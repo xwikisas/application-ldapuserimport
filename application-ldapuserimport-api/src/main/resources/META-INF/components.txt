@@ -1,0 +1,2 @@
+com.xwiki.ldapuserimport.script.LDAPUserImportScriptService
+com.xwiki.ldapuserimport.internal.DefaultLDAPUserImportManager

@@ -1,0 +1,678 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.4" reference="LDAPUserImport.LDAPUserImportUIX" locale="">
+  <web>LDAPUserImport</web>
+  <name>LDAPUserImportUIX</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <creationDate>1612196030000</creationDate>
+  <parent>WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <date>1612789711000</date>
+  <contentUpdateDate>1612513230000</contentUpdateDate>
+  <version>1.1</version>
+  <title>LDAPUserImportUIX</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content/>
+  <object>
+    <name>LDAPUserImport.LDAPUserImportUIX</name>
+    <number>0</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>c3463309-9ea5-4a5b-a7f9-364a116b4d16</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>require(['jquery'], function ($) {
+  /*
+   * Inject a button for user import in the Users and Groups administration sections.
+   */
+  var importUsersButton = $('&lt;button/&gt;').attr({
+    'class': 'btn btn-primary',
+    'type': 'button',
+    'data-toggle': 'modal',
+    'data-target': '#importUsersModal'
+  });
+  importUsersButton.text("$services.localization.render('importUsers.title')");
+  // Append button next to createUserModal or createGroupModal.
+  var counter = 0;
+  $.each([$('#xwikicontent'), $('#admin-page-content')], function() {
+    var createUserModal = $(this).find("button[data-target^='#create'][data-target$='Modal']");
+    if (createUserModal.length &gt; 0) {
+      createUserModal.parent().append(importUsersButton);
+      counter = 1;
+    }
+  });
+  // Append button after livetable in the Group page
+  if (counter == 0) {
+    $('#groupusers').closest('#xwikicontent').append(importUsersButton);
+  }
+});</code>
+    </property>
+    <property>
+      <name>Inject button</name>
+    </property>
+    <property>
+      <parse>1</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>LDAPUserImport.LDAPUserImportUIX</name>
+    <number>1</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>f254c128-4e9a-4874-9eeb-24dce5a05a88</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>require(['jquery'], function ($) {
+  $('#triggerSearch').click(function() {
+    var importUsersServiceDoc = new XWiki.Document('LDAPUserImportService', 'LDAPUserImport');
+    var field = $('#importUserModal-userField').val();
+    var fieldValue = $('#importUserModal-userFieldValue').val();
+    var formToken = $('input[name=form_token]').val();
+    var params = {
+      'field': field,
+      'fieldValue': fieldValue,
+      'form_token': formToken,
+      'outputSyntax': 'plain'
+    };
+    var url = importUsersServiceDoc.getURL('get', $.param(params));
+    $.post(url)
+      .done(function(data) {
+        var resultsContainer = $('#searchResults');
+        var resultsList = $('&lt;ul/&gt;').attr({'id': 'usersList'});
+        $.each(data.users, function(index, value) {
+          var mention = 'notImported';
+          var mentionText = "$services.localization.render('importUsers.modal.user.notImported')";
+          var listItem = $('&lt;li/&gt;');
+          // If the user exists, it will be represented as plain text.
+          // If the user doesn't exist, it will be represented as a label and a checkbox to be selected for import.
+          if (value.exists === 'true') {
+            listItem.text(value[field] + ' (' + index + ')');
+            mention = 'imported';
+            mentionText = "$services.localization.render('importUsers.modal.user.imported')";
+          } else {
+            var checkbox = $('&lt;input/&gt;').attr({
+              'type': 'checkbox',
+              'name': 'user',
+              'id': index,
+              'value': index
+            });
+            var label = $('&lt;label/&gt;').attr({
+              'for': index
+            }).text(value[field] + ' (' + index + ')');
+            listItem.append(checkbox);
+            listItem.append(label);
+          }
+          listItem.attr({'class': mention});
+          var mentionSpan = $('&lt;span/&gt;').text(mentionText);
+          listItem.append(mentionSpan);
+          resultsList.append(listItem);
+        });
+        resultsContainer.html(resultsList);
+      });
+  });
+});</code>
+    </property>
+    <property>
+      <name/>
+    </property>
+    <property>
+      <parse>1</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>LDAPUserImport.LDAPUserImportUIX</name>
+    <number>0</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>0f4d7c86-8049-4b93-8932-a773884df3b5</guid>
+    <class>
+      <name>XWiki.StyleSheetExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <contentType>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>contentType</name>
+        <number>6</number>
+        <prettyName>Content Type</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>CSS|LESS</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </contentType>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>ul#usersList {
+  list-style: none;
+  padding: 0;
+  li {
+    padding: 5px;
+    span {
+      float: right;
+    }
+  }
+  li.imported {
+    color: #055705;
+    padding-left: 25px;
+  }
+   li.notImported {
+    color: #840b0b;
+  }
+}
+#ldapSearchBox {
+  padding-left: 0;
+}
+#importUsersModal .modal-dialog {
+  width: 50%;
+}</code>
+    </property>
+    <property>
+      <contentType>LESS</contentType>
+    </property>
+    <property>
+      <name/>
+    </property>
+    <property>
+      <parse/>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>LDAPUserImport.LDAPUserImportUIX</name>
+    <number>0</number>
+    <className>XWiki.UIExtensionClass</className>
+    <guid>1e3f9959-8490-49ef-8f46-b8c8f42fd0c7</guid>
+    <class>
+      <name>XWiki.UIExtensionClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <async_cached>
+        <defaultValue>0</defaultValue>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType/>
+        <name>async_cached</name>
+        <number>3</number>
+        <prettyName>Cached</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </async_cached>
+      <async_context>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>1</multiSelect>
+        <name>async_context</name>
+        <number>4</number>
+        <prettyName>Context elements</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator>, </separator>
+        <separators>|, </separators>
+        <size>5</size>
+        <unmodifiable>0</unmodifiable>
+        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.parameters=Request parameters|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </async_context>
+      <async_enabled>
+        <defaultValue>0</defaultValue>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType/>
+        <name>async_enabled</name>
+        <number>2</number>
+        <prettyName>Asynchronous rendering</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </async_enabled>
+      <content>
+        <disabled>0</disabled>
+        <editor>Text</editor>
+        <name>content</name>
+        <number>1</number>
+        <prettyName>Executed Content</prettyName>
+        <rows>25</rows>
+        <size>120</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </content>
+      <extensionPointId>
+        <disabled>0</disabled>
+        <name>extensionPointId</name>
+        <number>5</number>
+        <prettyName>Extension Point ID</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </extensionPointId>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>6</number>
+        <prettyName>Extension ID</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parameters>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>parameters</name>
+        <number>7</number>
+        <prettyName>Extension Parameters</prettyName>
+        <rows>10</rows>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </parameters>
+      <scope>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>scope</name>
+        <number>8</number>
+        <prettyName>Extension Scope</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>wiki=Current Wiki|user=Current User|global=Global</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </scope>
+    </class>
+    <property>
+      <async_cached>0</async_cached>
+    </property>
+    <property>
+      <async_context/>
+    </property>
+    <property>
+      <async_enabled>0</async_enabled>
+    </property>
+    <property>
+      <content>{{velocity output="false"}}
+#macro (importUsersModal)
+  #set ($discard = $xwiki.linkx.use($services.webjars.url('selectize.js', 'css/selectize.bootstrap3.css'),
+  {'type': 'text/css', 'rel': 'stylesheet'}))
+  #set ($discard = $xwiki.ssfx.use('uicomponents/suggest/xwiki.selectize.css', true))
+  #set ($discard = $xwiki.jsfx.use('uicomponents/suggest/xwiki.selectize.js', true))
+  {{html clean="false"}}
+    &lt;div class="modal" id="importUsersModal" tabindex="-1" role="dialog"
+        aria-labelledby="importUsersModal-label" data-backdrop="static" data-keyboard="false"&gt;
+      &lt;div class="modal-dialog" role="document"&gt;
+        &lt;form class="modal-content xform"&gt;
+          &lt;div class="hidden"&gt;
+            &lt;input type="hidden" name="form_token" value="$services.csrf.token"/&gt;
+          &lt;/div&gt;
+          &lt;div class="modal-header"&gt;
+            &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
+              &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;
+            &lt;/button&gt;
+            &lt;div class="modal-title" id="importUsersModal-label"&gt;
+              $escapetool.xml($services.localization.render('importUsers.title'))
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class="modal-body"&gt;
+            &lt;dl&gt;
+              &lt;dt&gt;
+                &lt;label for="importUserModal-userField"&gt;
+                  $services.localization.render('importUsers.modal.field.label')
+                &lt;/label&gt;
+              &lt;/dt&gt;
+              &lt;dd&gt;
+                #set ($configDoc = $xwiki.getDocument('LDAPUserImport.WebHome'))
+                #set ($configObj = $configDoc.getObject('LDAPUserImport.LDAPUserImportConfigClass'))
+                #set ($ldapUserAttributes = $configObj.getValue('ldapUserAttributes').split(','))
+                &lt;select class="xwiki-selectize" id="importUserModal-userField"&gt;
+                  &lt;option value=""&gt;$services.localization.render('importUsers.modal.field.label')&lt;/option&gt;
+                  #foreach ($attr in $ldapUserAttributes)
+                    &lt;option value="$attr"&gt;$attr&lt;/option&gt;
+                  #end
+                &lt;/select&gt;
+              &lt;/dd&gt;
+              &lt;dt&gt;
+                &lt;label for="importUserModal-userFieldValue"&gt;
+                  $services.localization.render('importUsers.modal.fieldValue.label')
+                &lt;/label&gt;
+              &lt;/dt&gt;
+              &lt;dd&gt;
+                &lt;input type="text" id="importUserModal-userFieldValue" name="importUserModal-userFieldValue"
+                  placeholder="$escapetool.xml($services.localization.render('importUsers.modal.fieldValue.search'))" /&gt;
+              &lt;/dd&gt;
+            &lt;/dl&gt;
+            &lt;div class="box" id="ldapSearchBox"&gt;
+              &lt;div class="col-md-10" id="searchResults"&gt;
+                &lt;span class="hint"&gt;$services.localization.render('importUsers.modal.fieldValue.results')&lt;/span&gt;
+              &lt;/div&gt;
+              &lt;div class="col-md-2"&gt;
+                &lt;button type="button" id="triggerSearch" class="btn btn-primary pull-right"&gt;
+                  $services.localization.render('importUsers.modal.fieldValue.search')
+                &lt;/button&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class="modal-footer"&gt;
+            &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
+              $escapetool.xml($services.localization.render('cancel'))
+            &lt;/button&gt;
+            &lt;button type="submit" class="btn btn-primary"&gt;
+              $escapetool.xml($services.localization.render('import'))
+            &lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/form&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  {{/html}}
+#end
+{{/velocity}}
+
+{{velocity}}
+#if ($doc.fullName == 'XWiki.AdminUsersSheet' || $doc.getObjects('XWiki.XWikiGroups').size() &gt; 0 ||
+  ($doc.fullName == 'XWiki.XWikiPreferences' &amp;&amp; $request.section == 'Users'))
+  #set ($discard = $xwiki.jsx.use('LDAPUserImport.LDAPUserImportUIX'))
+  #set ($discard = $xwiki.ssx.use('LDAPUserImport.LDAPUserImportUIX'))
+  #importUsersModal
+#end
+{{/velocity}}
+</content>
+    </property>
+    <property>
+      <extensionPointId>org.xwiki.platform.template.header.after</extensionPointId>
+    </property>
+    <property>
+      <name>org.xwiki.platform.template.header.after.importUser</name>
+    </property>
+    <property>
+      <parameters/>
+    </property>
+    <property>
+      <scope>wiki</scope>
+    </property>
+  </object>
+</xwikidoc>
