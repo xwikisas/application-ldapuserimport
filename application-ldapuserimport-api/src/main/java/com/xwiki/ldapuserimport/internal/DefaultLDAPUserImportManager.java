@@ -19,7 +19,6 @@
  */
 package com.xwiki.ldapuserimport.internal;
 
-import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
@@ -29,6 +28,7 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
@@ -60,14 +60,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
 
     private static final String CN = "cn";
 
-    private static final String MAIL = "mail";
-
     private static final String FAILED_TO_GET_RESULTS = "Failed to get results";
-
-    /**
-     * LDAP search format string to get users matching the searched input.
-     */
-    private String userSearchFormatString = "(&({0}=*{1}*)({2}={3}))";
 
     @Inject
     private Logger logger;
@@ -82,10 +75,12 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
 
     private XWikiLDAPConfig configuration;
 
+    /**
+     * Get all the users that have the searched value contained in any of the provided fields value.
+     */
     @Override
-    public Map<String, Map<String, String>> getUsers(String fieldName, String searchInput)
+    public Map<String, Map<String, String>> getUsers(String singleField, String allFields, String searchInput)
     {
-
         XWikiLDAPConnection connection = new XWikiLDAPConnection(configuration);
         String loginDN = configuration.getLDAPBindDN();
         String password = configuration.getLDAPBindPassword();
@@ -93,38 +88,49 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
         try {
             connection.open(loginDN, password, contextProvider.get());
             String base = configuration.getLDAPParam("ldap_base_DN", "");
+            String[] allFieldsList = allFields.split(",");
 
-            // search for the user in LDAP
-            String filter =
-                MessageFormat.format(this.userSearchFormatString, XWikiLDAPConnection.escapeLDAPSearchFilter(fieldName),
-                    XWikiLDAPConnection.escapeLDAPSearchFilter(searchInput),
-                    XWikiLDAPConnection.escapeLDAPSearchFilter("objectClass"),
-                    XWikiLDAPConnection.escapeLDAPSearchFilter("user"));
-            /*
-             * Two different fields will be provided: fieldName as the user input field and secondFieldName as the mail
-             * (or the configured UID if the mail represents user input field)
-             */
-            String secondaryFieldName = MAIL;
-            if (fieldName.equals(secondaryFieldName)) {
-                secondaryFieldName = uuidFieldName;
+            StringBuilder filter;
+            if (StringUtils.isNoneBlank(singleField)) {
+                filter = getFilter(searchInput, new String[] {singleField});
+            } else {
+                filter = getFilter(searchInput, allFieldsList);
             }
-            String[] attributes = new String[] {fieldName, secondaryFieldName, uuidFieldName};
-            PagedLDAPSearchResults result =
-                connection.searchPaginated(base, LDAPConnection.SCOPE_SUB, filter, attributes, false);
 
-            return getUsers(fieldName, attributes, result);
+            PagedLDAPSearchResults result =
+                connection.searchPaginated(base, LDAPConnection.SCOPE_SUB, filter.toString(), allFieldsList, false);
+
+            return getUsers(allFieldsList, result);
         } catch (XWikiLDAPException e) {
             logger.error(e.getFullMessage());
         } catch (LDAPException e) {
-            logger.debug("Failed to search for field [{}] with value [{}]", fieldName, searchInput, e);
+            logger.debug("Failed to search for value [{}] in the fields [{}]", searchInput, allFields, e);
         } finally {
             connection.close();
         }
         return null;
     }
 
-    private Map<String, Map<String, String>> getUsers(String fieldName, String[] attributes,
-        PagedLDAPSearchResults result)
+    /**
+     * Filter pattern: (&({0}={1})(|({2}=*{3}*)({4}=*{5}*)({6}=*{7}*)...)).
+     */
+    private StringBuilder getFilter(String searchInput, String[] fieldsList)
+    {
+        String escapedSearchInput = XWikiLDAPConnection.escapeLDAPSearchFilter(searchInput);
+        StringBuilder filter = new StringBuilder("(&");
+        filter.append("(objectClass=user)(|");
+        for (String filed : fieldsList) {
+            filter.append("(");
+            filter.append(XWikiLDAPConnection.escapeLDAPSearchFilter(filed));
+            filter.append("=*");
+            filter.append(escapedSearchInput);
+            filter.append("*)");
+        }
+        filter.append("))");
+        return filter;
+    }
+
+    private Map<String, Map<String, String>> getUsers(String[] fieldsList, PagedLDAPSearchResults result)
     {
         SortedMap<String, Map<String, String>> users = new TreeMap<>();
         /*
@@ -144,8 +150,8 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
                     try {
                         String uuidFieldValue = getAttributeValue(uuidFieldName, resultEntry);
                         Map<String, String> user = new HashMap<>();
-                        for (String attribute : attributes) {
-                            user.put(attribute, getAttributeValue(attribute, resultEntry));
+                        for (String field : fieldsList) {
+                            user.put(field, getAttributeValue(field, resultEntry));
                         }
                         user.put("exists", checkUser(uuidFieldValue));
                         users.put(uuidFieldValue, user);
@@ -179,7 +185,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
 
     private String getAttributeValue(String fieldName, LDAPEntry resultEntry)
     {
-        String value = "";
+        String value = "-";
         if (resultEntry.getAttribute(fieldName) != null) {
             value = resultEntry.getAttribute(fieldName).getStringValue();
         }

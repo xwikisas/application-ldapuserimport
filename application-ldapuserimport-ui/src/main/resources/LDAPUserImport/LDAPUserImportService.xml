@@ -46,7 +46,7 @@
   #end
   #if ($services.csrf.isTokenValid($request.form_token))
     #set ($statusCode = 500)
-    #set ($users = $services.importUsers.getUsers($request.field, $request.fieldValue))
+    #set ($users = $services.ldapuserimport.getUsers($request.singleField, $request.allFields, $request.searchInput))
     #set ($statusCode = 200)
   #else
     #set ($StatisCode = 400)

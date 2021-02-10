@@ -54,6 +54,21 @@
       <defaultWeb/>
       <nameField/>
       <validationScript/>
+      <enableSingleFieldSearch>
+        <customDisplay/>
+        <defaultValue/>
+        <disabled>0</disabled>
+        <displayFormType>checkbox</displayFormType>
+        <displayType/>
+        <hint>If enabled, then a specific field will be able for search in the Import User modal. Default is to search in all the fields defined in the LDAP User Fields property.</hint>
+        <name>enableSingleFieldSearch</name>
+        <number>2</number>
+        <prettyName>Enable single field search</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </enableSingleFieldSearch>
       <extraParamsMapping>
         <contenttype>---</contenttype>
         <customDisplay/>
@@ -61,7 +76,7 @@
         <editor>PureText</editor>
         <hint/>
         <name>extraParamsMapping</name>
-        <number>5</number>
+        <number>6</number>
         <picker>1</picker>
         <prettyName>extraParamsMapping</prettyName>
         <rows>5</rows>
@@ -76,11 +91,11 @@
         <customDisplay/>
         <disabled>0</disabled>
         <editor>PureText</editor>
-        <hint>A list of all the user attributes available in LDAP</hint>
+        <hint/>
         <name>ldapUserAttributes</name>
         <number>1</number>
         <picker>1</picker>
-        <prettyName>LDAP user attributes</prettyName>
+        <prettyName>LDAP user fields</prettyName>
         <rows>5</rows>
         <size>40</size>
         <unmodifiable>0</unmodifiable>
@@ -93,7 +108,7 @@
         <disabled>0</disabled>
         <hint/>
         <name>uidAttribute</name>
-        <number>4</number>
+        <number>5</number>
         <picker>1</picker>
         <prettyName>LDAP property used as username</prettyName>
         <size>30</size>
@@ -110,7 +125,7 @@
         <displayType/>
         <hint/>
         <name>userObject</name>
-        <number>2</number>
+        <number>3</number>
         <prettyName>Add object on user profile</prettyName>
         <unmodifiable>0</unmodifiable>
         <validationMessage/>
@@ -122,7 +137,7 @@
         <disabled>0</disabled>
         <hint/>
         <name>userObjectClass</name>
-        <number>3</number>
+        <number>4</number>
         <picker>1</picker>
         <prettyName>Class name of the user profile object</prettyName>
         <size>30</size>
@@ -132,6 +147,9 @@
         <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
       </userObjectClass>
     </class>
+    <property>
+      <enableSingleFieldSearch>0</enableSingleFieldSearch>
+    </property>
     <property>
       <extraParamsMapping/>
     </property>

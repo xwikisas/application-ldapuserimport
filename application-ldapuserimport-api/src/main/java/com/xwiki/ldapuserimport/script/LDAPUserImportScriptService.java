@@ -48,16 +48,17 @@ public class LDAPUserImportScriptService implements ScriptService
     private ContextualAuthorizationManager contextualAuthorizationManager;
 
     /**
-     * Returns a list of users based on the query.
+     * Get all the users that have the searched value contained in any of the provided fields value.
      * 
-     * @param field the string
-     * @param value the value
-     * @return a list of users
+     * @param singleField the field to only filter when the single field search is enabled
+     * @param allFields the list of all configured fields
+     * @param searchInput the value to search for
+     * @return a map containing all the matching users with information from all fields
      */
-    public Map<String, Map<String, String>> getUsers(String field, String value)
+    public Map<String, Map<String, String>> getUsers(String singleField, String allFields, String searchInput)
     {
         if (contextualAuthorizationManager.hasAccess(Right.EDIT)) {
-            return manager.getUsers(field, value);
+            return manager.getUsers(singleField, allFields, searchInput);
         }
         return null;
     }

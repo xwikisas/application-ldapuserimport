@@ -253,12 +253,14 @@
       <code>require(['jquery'], function ($) {
   $('#triggerSearch').click(function() {
     var importUsersServiceDoc = new XWiki.Document('LDAPUserImportService', 'LDAPUserImport');
-    var field = $('#importUserModal-userField').val();
-    var fieldValue = $('#importUserModal-userFieldValue').val();
+    var allFields = $('#importUserModal-allFields').val();
+    var singleField = $('#importUserModal-userField').val();
+    var searchInput = $('#importUserModal-userFieldValue').val();
     var formToken = $('input[name=form_token]').val();
     var params = {
-      'field': field,
-      'fieldValue': fieldValue,
+      'allFields': allFields,
+      'singleField': singleField,
+      'searchInput': searchInput,
       'form_token': formToken,
       'outputSyntax': 'plain'
     };
@@ -268,13 +270,14 @@
         var resultsContainer = $('#searchResults');
         var resultsList = $('&lt;ul/&gt;').attr({'id': 'usersList'});
         $.each(data.users, function(index, value) {
+          var displayedText = value['givenName'] + ' ' + value['sn'] + ' (' + value['mail'] + ')';
           var mention = 'notImported';
           var mentionText = "$services.localization.render('importUsers.modal.user.notImported')";
           var listItem = $('&lt;li/&gt;');
           // If the user exists, it will be represented as plain text.
           // If the user doesn't exist, it will be represented as a label and a checkbox to be selected for import.
           if (value.exists === 'true') {
-            listItem.text(value[field] + ' (' + index + ')');
+            listItem.text(displayedText);
             mention = 'imported';
             mentionText = "$services.localization.render('importUsers.modal.user.imported')";
           } else {
@@ -286,7 +289,7 @@
             });
             var label = $('&lt;label/&gt;').attr({
               'for': index
-            }).text(value[field] + ' (' + index + ')');
+            }).text(displayedText);
             listItem.append(checkbox);
             listItem.append(label);
           }
@@ -599,23 +602,26 @@
             &lt;/div&gt;
           &lt;/div&gt;
           &lt;div class="modal-body"&gt;
+            #set ($configDoc = $xwiki.getDocument('LDAPUserImport.WebHome'))
+            #set ($configObj = $configDoc.getObject('LDAPUserImport.LDAPUserImportConfigClass'))
+            #set ($allFields = $configObj.getValue('ldapUserAttributes'))
             &lt;dl&gt;
-              &lt;dt&gt;
-                &lt;label for="importUserModal-userField"&gt;
-                  $services.localization.render('importUsers.modal.field.label')
-                &lt;/label&gt;
-              &lt;/dt&gt;
-              &lt;dd&gt;
-                #set ($configDoc = $xwiki.getDocument('LDAPUserImport.WebHome'))
-                #set ($configObj = $configDoc.getObject('LDAPUserImport.LDAPUserImportConfigClass'))
-                #set ($ldapUserAttributes = $configObj.getValue('ldapUserAttributes').split(','))
-                &lt;select class="xwiki-selectize" id="importUserModal-userField"&gt;
-                  &lt;option value=""&gt;$services.localization.render('importUsers.modal.field.label')&lt;/option&gt;
-                  #foreach ($attr in $ldapUserAttributes)
-                    &lt;option value="$attr"&gt;$attr&lt;/option&gt;
-                  #end
-                &lt;/select&gt;
-              &lt;/dd&gt;
+              #if ($configObj.getValue('enableSingleFieldSearch') == 1)
+                &lt;dt&gt;
+                  &lt;label for="importUserModal-userField"&gt;
+                    $services.localization.render('importUsers.modal.field.label')
+                  &lt;/label&gt;
+                &lt;/dt&gt;
+                &lt;dd&gt;
+                  &lt;select class="xwiki-selectize" id="importUserModal-userField"&gt;
+                    &lt;option value=""&gt;$services.localization.render('importUsers.modal.field.label')&lt;/option&gt;
+                    #foreach ($attr in $allFields.split(','))
+                      &lt;option value="$attr"&gt;$attr&lt;/option&gt;
+                    #end
+                  &lt;/select&gt;
+                &lt;/dd&gt;
+              #end
+              &lt;input type="hidden" id="importUserModal-allFields" value="$allFields"/&gt;
               &lt;dt&gt;
                 &lt;label for="importUserModal-userFieldValue"&gt;
                   $services.localization.render('importUsers.modal.fieldValue.label')

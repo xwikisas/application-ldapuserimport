@@ -31,14 +31,13 @@ import org.xwiki.component.annotation.Role;
 public interface LDAPUserImportManager
 {
     /**
-     * Check if the current user has delete right on a topic: the user is the topic creator and the topic doesn't have
-     * any answers created by other users and there aren't any other users' comments in the answers page OR the user has
-     * delete right on current forum.
+     * Get all the users that have the searched value contained in any of the provided fields value.
      * 
-     * @param field the topic document
-     * @param value the value
-     * @return true of the conditions are met, false otherwise
+     * @param singleField the field to only filter when the single field search is enabled
+     * @param allFields the list of all configured fields
+     * @param searchInput the value to search for
+     * @return a map containing all the matching users with information from all fields
      */
 
-    Map<String, Map<String, String>> getUsers(String field, String value);
+    Map<String, Map<String, String>> getUsers(String singleField, String allFields, String searchInput);
 }

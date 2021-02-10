@@ -29,7 +29,7 @@
   </parent>
   <artifactId>application-ldapuserimport-api</artifactId>
   <packaging>jar</packaging>
-  <name>ILDAP User Import Application - API</name>
+  <name>LDAP User Import Application - API</name>
   <description>Application to import users from LDAP</description>
   <properties>
     <xwiki.extension.category>api</xwiki.extension.category>
