@@ -299,6 +299,7 @@
           resultsList.append(listItem);
         });
         resultsContainer.html(resultsList);
+        $('#ldapSearchBox').toggleClass('hidden');
       });
   });
 });</code>
@@ -436,10 +437,13 @@
   }
 }
 #ldapSearchBox {
-  padding-left: 0;
+  padding: 20px;
 }
 #importUsersModal .modal-dialog {
   width: 50%;
+}
+#triggerSearch {
+  margin-bottom: 20px;
 }</code>
     </property>
     <property>
@@ -632,14 +636,12 @@
                   placeholder="$escapetool.xml($services.localization.render('importUsers.modal.fieldValue.search'))" /&gt;
               &lt;/dd&gt;
             &lt;/dl&gt;
-            &lt;div class="box" id="ldapSearchBox"&gt;
-              &lt;div class="col-md-10" id="searchResults"&gt;
+            &lt;button type="button" id="triggerSearch" class="btn btn-primary"&gt;
+              $services.localization.render('importUsers.modal.fieldValue.search')
+            &lt;/button&gt;
+            &lt;div class="box hidden" id="ldapSearchBox"&gt;
+              &lt;div id="searchResults"&gt;
                 &lt;span class="hint"&gt;$services.localization.render('importUsers.modal.fieldValue.results')&lt;/span&gt;
-              &lt;/div&gt;
-              &lt;div class="col-md-2"&gt;
-                &lt;button type="button" id="triggerSearch" class="btn btn-primary pull-right"&gt;
-                  $services.localization.render('importUsers.modal.fieldValue.search')
-                &lt;/button&gt;
               &lt;/div&gt;
             &lt;/div&gt;
           &lt;/div&gt;
