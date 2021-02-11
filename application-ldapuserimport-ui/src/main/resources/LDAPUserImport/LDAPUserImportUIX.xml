@@ -147,9 +147,15 @@
    * 4. In the Users administration section, next to Create User button, in the main wiki.
    * 5. In the Users administration section, next to Add and Invite buttons, in any subwiki.
    */
-  $.each([$("button[data-target^='#create'][data-target$='Modal']"), $('#groupusers'), $('#inviteUserButton'), $('#editGroupModal #addMembers')], function() {
-    $(this).parent().append(importUsersButton);
-  });
+  $.each([
+    $("button[data-target^='#create'][data-target$='Modal']"),
+    $('#groupusers'),
+    $('#inviteUserButton'),
+    $('#editGroupModal #addMembers')],
+    function() {
+      $(this).parent().append(importUsersButton);
+    }
+  );
   // The only case not covered in the above code is 2. In any Group's pop-up edit modal, next to the Add(member) button.
   $(document).on('xwiki:dom:updated', function() {
     $('#addMembers').parent().append(importUsersButton)
