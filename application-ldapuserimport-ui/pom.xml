@@ -32,7 +32,6 @@
   <name>LDAP User Import Application - UI</name>
   <description>Application to import users from LDAP</description>
   <properties>
-    <xwiki.extension.name>Import Users Application</xwiki.extension.name>
     <xwiki.extension.category>application</xwiki.extension.category>
   </properties>
   <dependencies>

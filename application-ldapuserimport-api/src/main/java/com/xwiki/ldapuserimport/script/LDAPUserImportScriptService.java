@@ -19,6 +19,7 @@
  */
 package com.xwiki.ldapuserimport.script;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -26,6 +27,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
@@ -59,6 +61,20 @@ public class LDAPUserImportScriptService implements ScriptService
     {
         if (contextualAuthorizationManager.hasAccess(Right.EDIT)) {
             return manager.getUsers(singleField, allFields, searchInput);
+        }
+        return null;
+    }
+
+    /**
+     * Import the selected users.
+     * 
+     * @param users the list of users to be imported
+     * @return a list of imported user profiles
+     */
+    public List<DocumentReference> importUsers(String[] users)
+    {
+        if (contextualAuthorizationManager.hasAccess(Right.EDIT)) {
+            return manager.importUsers(users);
         }
         return null;
     }

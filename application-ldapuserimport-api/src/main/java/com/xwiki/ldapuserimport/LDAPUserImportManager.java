@@ -19,9 +19,11 @@
  */
 package com.xwiki.ldapuserimport;
 
+import java.util.List;
 import java.util.Map;
 
 import org.xwiki.component.annotation.Role;
+import org.xwiki.model.reference.DocumentReference;
 
 /**
  * @version $Id$
@@ -40,4 +42,12 @@ public interface LDAPUserImportManager
      */
 
     Map<String, Map<String, String>> getUsers(String singleField, String allFields, String searchInput);
+
+    /**
+     * Import the selected users.
+     * 
+     * @param users the list of users to be imported
+     * @return a list of imported user profiles
+     */
+    List<DocumentReference> importUsers(String[] users);
 }

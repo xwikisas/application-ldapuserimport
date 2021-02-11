@@ -251,8 +251,10 @@
     </property>
     <property>
       <code>require(['jquery'], function ($) {
+  var importUsersServiceDoc = new XWiki.Document('LDAPUserImportService', 'LDAPUserImport');
+  var resultsContainer = $('#searchResults');
+  // Get user results from LDAP.
   $('#triggerSearch').click(function() {
-    var importUsersServiceDoc = new XWiki.Document('LDAPUserImportService', 'LDAPUserImport');
     var allFields = $('#importUserModal-allFields').val();
     var singleField = $('#importUserModal-userField').val();
     var searchInput = $('#importUserModal-userFieldValue').val();
@@ -264,43 +266,60 @@
       'form_token': formToken,
       'outputSyntax': 'plain'
     };
-    var url = importUsersServiceDoc.getURL('get', $.param(params));
-    $.post(url)
-      .done(function(data) {
-        var resultsContainer = $('#searchResults');
-        var resultsList = $('&lt;ul/&gt;').attr({'id': 'usersList'});
-        $.each(data.users, function(index, value) {
-          var displayedText = value['givenName'] + ' ' + value['sn'] + ' (' + value['mail'] + ')';
-          var mention = 'notImported';
-          var mentionText = "$services.localization.render('importUsers.modal.user.notImported')";
-          var listItem = $('&lt;li/&gt;');
-          // If the user exists, it will be represented as plain text.
-          // If the user doesn't exist, it will be represented as a label and a checkbox to be selected for import.
-          if (value.exists === 'true') {
-            listItem.text(displayedText);
-            mention = 'imported';
-            mentionText = "$services.localization.render('importUsers.modal.user.imported')";
-          } else {
-            var checkbox = $('&lt;input/&gt;').attr({
-              'type': 'checkbox',
-              'name': 'user',
-              'id': index,
-              'value': index
-            });
-            var label = $('&lt;label/&gt;').attr({
-              'for': index
-            }).text(displayedText);
-            listItem.append(checkbox);
-            listItem.append(label);
-          }
-          listItem.attr({'class': mention});
-          var mentionSpan = $('&lt;span/&gt;').text(mentionText);
-          listItem.append(mentionSpan);
-          resultsList.append(listItem);
-        });
-        resultsContainer.html(resultsList);
-        $('#ldapSearchBox').toggleClass('hidden');
+    var url = importUsersServiceDoc.getURL('get');
+    $.post(url, $.param(params)).done(function(data) {
+      var resultsList = $('&lt;ul/&gt;').attr({'id': 'usersList'});
+      $.each(data.users, function(index, value) {
+        var displayedText = value['givenName'] + ' ' + value['sn'] + ' (' + value['mail'] + ')';
+        var mention = 'notImported';
+        var mentionText = "$services.localization.render('importUsers.modal.user.notImported')";
+        var listItem = $('&lt;li/&gt;');
+        // If the user exists, it will be represented as plain text.
+        // If the user doesn't exist, it will be represented as a label and a checkbox to be selected for import.
+        if (value.exists === 'true') {
+          listItem.text(displayedText);
+          mention = 'imported';
+          mentionText = "$services.localization.render('importUsers.modal.user.imported')";
+        } else {
+          var checkbox = $('&lt;input/&gt;').attr({
+            'type': 'checkbox',
+            'name': 'user',
+            'id': index,
+            'value': index
+          });
+          var label = $('&lt;label/&gt;').attr({
+            'for': index
+          }).text(displayedText);
+          listItem.append(checkbox);
+          listItem.append(label);
+        }
+        listItem.attr({'class': mention});
+        var mentionSpan = $('&lt;span/&gt;').text(mentionText);
+        listItem.append(mentionSpan);
+        resultsList.append(listItem);
       });
+      resultsContainer.html(resultsList);
+      $('#ldapSearchBox').toggleClass('hidden');
+    });
+  });
+  // Perform the user import.
+  $('#importUsersModal form').submit(function(event) {
+    event.preventDefault();
+    var formData = $(this).serialize();
+    var url = importUsersServiceDoc.getURL('get', 'outputSyntax=plain&amp;action=import');
+    $.post(url, $(this).serialize()).done(function(data) {
+      var resultsList = $('&lt;ul/&gt;').attr({'id': 'importedUsersList'});
+      $.each(data.userProfiles, function() {
+        var listItem = $('&lt;li/&gt;');
+        var userProfileUrl = new XWiki.Document(this.name, this.parent.name).getURL();
+        var userLink = $('&lt;a/&gt;').attr({
+          'href': userProfileUrl
+        }).text(this.parent.name + '.' + this.name);
+        listItem.append(userLink);
+        resultsList.append(listItem);
+      });
+      resultsContainer.html(resultsList);
+    });
   });
 });</code>
     </property>
@@ -435,6 +454,10 @@
    li.notImported {
     color: #840b0b;
   }
+}
+ul#importedUsersList {
+  list-style: none;
+  padding: 0;
 }
 #ldapSearchBox {
   padding: 20px;

@@ -46,15 +46,23 @@
   #end
   #if ($services.csrf.isTokenValid($request.form_token))
     #set ($statusCode = 500)
-    #set ($users = $services.ldapuserimport.getUsers($request.singleField, $request.allFields, $request.searchInput))
-    #set ($statusCode = 200)
+    #if ($request.action == 'import')
+      #set ($userProfiles = $services.ldapuserimport.importUsers($request.parameterMap.user))
+      #set ($statusCode = 200)
+      $jsontool.serialize({
+        'userProfiles': $userProfiles
+      })
+    #else
+      #set ($users = $services.ldapuserimport.getUsers($request.singleField, $request.allFields, $request.searchInput))
+      #set ($statusCode = 200)
+      $jsontool.serialize({
+        'users': $users
+      })
+    #end
   #else
     #set ($StatisCode = 400)
   #end
   #set ($discard = $response.setStatus($statusCode))
-  $jsontool.serialize({
-    'users': $users
-  })
 #end
 {{/velocity}}
 </content>

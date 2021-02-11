@@ -19,7 +19,9 @@
  */
 package com.xwiki.ldapuserimport.internal;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -39,6 +41,7 @@ import org.xwiki.contrib.ldap.PagedLDAPSearchResults;
 import org.xwiki.contrib.ldap.XWikiLDAPConfig;
 import org.xwiki.contrib.ldap.XWikiLDAPConnection;
 import org.xwiki.contrib.ldap.XWikiLDAPException;
+import org.xwiki.contrib.ldap.XWikiLDAPUtils;
 import org.xwiki.model.reference.DocumentReference;
 
 import com.novell.ldap.LDAPConnection;
@@ -46,6 +49,8 @@ import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.web.Utils;
 import com.xwiki.ldapuserimport.LDAPUserImportManager;
 
@@ -57,6 +62,9 @@ import com.xwiki.ldapuserimport.LDAPUserImportManager;
 @Singleton
 public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Initializable
 {
+    private static final String LDAP_UID_ATTR = "ldap_UID_attr";
+
+    private static final String LDAP_BASE_DN = "ldap_base_DN";
 
     private static final String CN = "cn";
 
@@ -87,8 +95,16 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
 
         try {
             connection.open(loginDN, password, contextProvider.get());
-            String base = configuration.getLDAPParam("ldap_base_DN", "");
-            String[] allFieldsList = allFields.split(",");
+            String base = configuration.getLDAPParam(LDAP_BASE_DN, "");
+
+            String tempAllFields;
+            if (StringUtils.isNoneBlank(allFields)) {
+                tempAllFields = allFields;
+            } else {
+                tempAllFields = uuidFieldName + ",givenName,mail,name,sn";
+            }
+
+            String[] allFieldsList = tempAllFields.split(",");
 
             StringBuilder filter;
             if (StringUtils.isNoneBlank(singleField)) {
@@ -159,7 +175,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
                     } catch (LDAPException e) {
                         logger.debug(FAILED_TO_GET_RESULTS, e);
                     }
-                } while (resultEntry != null);
+                } while (resultEntry != null && users.size() <= 20);
             } else {
                 logger.debug("The LDAP request returned no result (hasMore() is true but first next() call "
                     + "returned nothing)");
@@ -196,7 +212,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
     public void initialize() throws InitializationException
     {
         configuration = getConfiguration();
-        uuidFieldName = configuration.getLDAPParam("ldap_UID_attr", CN);
+        uuidFieldName = configuration.getLDAPParam(LDAP_UID_ATTR, CN);
     }
 
     private XWikiLDAPConfig getConfiguration()
@@ -221,5 +237,35 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
         }
 
         return this.execution.getContext();
+    }
+
+    @Override
+    public List<DocumentReference> importUsers(String[] users)
+    {
+        XWikiContext context = contextProvider.get();
+        XWikiLDAPConnection connection = new XWikiLDAPConnection(configuration);
+        XWikiLDAPUtils ldapUtils = new XWikiLDAPUtils(connection, configuration);
+        String loginDN = configuration.getLDAPBindDN();
+        String password = configuration.getLDAPBindPassword();
+        try {
+            connection.open(loginDN, password, contextProvider.get());
+
+            List<DocumentReference> userProfiles = new ArrayList<>();
+            for (String user : users) {
+                try {
+                    XWikiDocument userProfile = ldapUtils.getUserProfileByUid(user, user, context);
+                    ldapUtils.syncUser(userProfile, null, loginDN, user, context);
+                    userProfiles.add(userProfile.getDocumentReference());
+                } catch (XWikiException e) {
+                    logger.debug("Failed to create user [{}] ", user, e);
+                }
+            }
+            return userProfiles;
+        } catch (XWikiLDAPException e) {
+            logger.error(e.getFullMessage());
+        } finally {
+            connection.close();
+        }
+        return null;
     }
 }
