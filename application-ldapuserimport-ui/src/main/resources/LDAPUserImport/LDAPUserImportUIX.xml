@@ -127,30 +127,37 @@
       <cache>long</cache>
     </property>
     <property>
-      <code>require(['jquery'], function ($) {
+      <code>require(['jquery', 'xwiki-events-bridge'], function ($) {
   /*
    * Inject a button for user import in the Users and Groups administration sections.
    */
   var importUsersButton = $('&lt;button/&gt;').attr({
+    'id': 'importUserButton',
     'class': 'btn btn-primary',
     'type': 'button',
     'data-toggle': 'modal',
     'data-target': '#importUsersModal'
   });
   importUsersButton.text("$services.localization.render('importUsers.title')");
-  // Append button next to createUserModal or createGroupModal.
-  var counter = 0;
-  $.each([$('#xwikicontent'), $('#admin-page-content')], function() {
-    var createUserModal = $(this).find("button[data-target^='#create'][data-target$='Modal']");
-    if (createUserModal.length &gt; 0) {
-      createUserModal.parent().append(importUsersButton);
-      counter = 1;
-    }
+  /*
+   * Append the Import User button in several needed places.
+   * 1. In any Group page, under the livetable.
+   * 2. In any Group's pop-up edit modal, next to the Add(member) button.
+   * 3. In the Groups administration section, next to Create Group button.
+   * 4. In the Users administration section, next to Create User button, in the main wiki.
+   * 5. In the Users administration section, next to Add and Invite buttons, in any subwiki.
+   */
+  $.each([$("button[data-target^='#create'][data-target$='Modal']"), $('#groupusers'), $('#inviteUserButton'), $('#editGroupModal #addMembers')], function() {
+    $(this).parent().append(importUsersButton);
   });
-  // Append button after livetable in the Group page
-  if (counter == 0) {
-    $('#groupusers').closest('#xwikicontent').append(importUsersButton);
-  }
+  // The only case not covered in the above code is 2. In any Group's pop-up edit modal, next to the Add(member) button.
+  $(document).on('xwiki:dom:updated', function() {
+    $('#addMembers').parent().append(importUsersButton)
+  });
+  // Hide the Edit Group modal, when using the Import Users feature.
+  $('#editGroupModal').on('click', '#importUserButton', function() {
+    $('#editGroupModal').modal('hide');
+  });
 });</code>
     </property>
     <property>
@@ -685,13 +692,12 @@ ul#importedUsersList {
 
 {{velocity}}
 #if ($doc.fullName == 'XWiki.AdminUsersSheet' || $doc.getObjects('XWiki.XWikiGroups').size() &gt; 0 ||
-  ($doc.fullName == 'XWiki.XWikiPreferences' &amp;&amp; $request.section == 'Users'))
+  ($doc.fullName == 'XWiki.XWikiPreferences' &amp;&amp; ($request.section == 'Users' || $request.section == 'Groups')))
   #set ($discard = $xwiki.jsx.use('LDAPUserImport.LDAPUserImportUIX'))
   #set ($discard = $xwiki.ssx.use('LDAPUserImport.LDAPUserImportUIX'))
   #importUsersModal
 #end
-{{/velocity}}
-</content>
+{{/velocity}}</content>
     </property>
     <property>
       <extensionPointId>org.xwiki.platform.template.header.after</extensionPointId>
