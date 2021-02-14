@@ -40,6 +40,7 @@
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
   <content>importUsers.title=Import User
+importUsers.info=Import user from LDAP
 importUsers.modal.field.label=User field
 importUsers.modal.fieldValue.label=Search value 
 importUsers.modal.fieldValue.search=Search

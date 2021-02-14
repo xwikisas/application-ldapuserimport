@@ -150,15 +150,25 @@
   $.each([
     $("button[data-target^='#create'][data-target$='Modal']"),
     $('#groupusers'),
-    $('#inviteUserButton'),
-    $('#editGroupModal #addMembers')],
+    $('#inviteUserButton')],
     function() {
       $(this).parent().append(importUsersButton);
     }
   );
   // The only case not covered in the above code is 2. In any Group's pop-up edit modal, next to the Add(member) button.
   $(document).on('xwiki:dom:updated', function() {
-    $('#addMembers').parent().append(importUsersButton)
+    // Instead of displaying the Add User form on full modal width, split the width in 2 columns to also add the Import
+    // User button.
+    var editForm = $('#editGroupModal form');
+    editForm.wrap("&lt;div class='row'&gt;&lt;/div&gt;").addClass('col-sm-6');
+    var importSection = $('&lt;div/&gt;').attr({'class': 'col-sm-6'});
+    var importInfo = $('&lt;p/&gt;').attr({'class': 'importInfo'});
+    importInfo.text("$services.localization.render('importUsers.info')");
+    importSection.append(importInfo);
+    // The same element cannot be appended in different places.
+    var importUsersButtonClone = importUsersButton.clone();
+    importSection.append(importUsersButtonClone);
+    editForm.parent().append(importSection);
   });
   // Hide the Edit Group modal, when using the Import Users feature.
   $('#editGroupModal').on('click', '#importUserButton', function() {
@@ -264,6 +274,11 @@
     </property>
     <property>
       <code>require(['jquery'], function ($) {
+  // Set the groupReference value when accessing the edit group modal.
+  $('#groupstable').on('click', '.actionedit', function() {
+    var groupReference = $(this).closest('tr').find('.group').data('reference');
+    $("#importUsersModal input[name='groupReference']").val(groupReference);
+  });
   var importUsersServiceDoc = new XWiki.Document('LDAPUserImportService', 'LDAPUserImport');
   var resultsContainer = $('#searchResults');
   // Get user results from LDAP.
@@ -324,10 +339,10 @@
       var resultsList = $('&lt;ul/&gt;').attr({'id': 'importedUsersList'});
       $.each(data.userProfiles, function() {
         var listItem = $('&lt;li/&gt;');
-        var userProfileUrl = new XWiki.Document(this.name, this.parent.name).getURL();
+        var userProfileUrl = new XWiki.Document(XWiki.Model.resolve(this, XWiki.EntityType.DOCUMENT)).getURL();
         var userLink = $('&lt;a/&gt;').attr({
           'href': userProfileUrl
-        }).text(this.parent.name + '.' + this.name);
+        }).text(this);
         listItem.append(userLink);
         resultsList.append(listItem);
       });
@@ -480,6 +495,15 @@ ul#importedUsersList {
 }
 #triggerSearch {
   margin-bottom: 20px;
+}
+.importInfo {
+  text-transform: uppercase;
+  font-size: 0.85em;
+  font-weight: bold;
+  margin-bottom: 0.3em;
+}
+#editGroupModal form.col-sm-6 {
+  border-right: 1px solid #e5e5e5;
 }</code>
     </property>
     <property>
@@ -625,6 +649,9 @@ ul#importedUsersList {
   {'type': 'text/css', 'rel': 'stylesheet'}))
   #set ($discard = $xwiki.ssfx.use('uicomponents/suggest/xwiki.selectize.css', true))
   #set ($discard = $xwiki.jsfx.use('uicomponents/suggest/xwiki.selectize.js', true))
+  #if ($doc.getObjects('XWiki.XWikiGroups').size() &gt; 0)
+    #set ($groupReference = $doc.documentReference)
+  #end
   {{html clean="false"}}
     &lt;div class="modal" id="importUsersModal" tabindex="-1" role="dialog"
         aria-labelledby="importUsersModal-label" data-backdrop="static" data-keyboard="false"&gt;
@@ -632,6 +659,7 @@ ul#importedUsersList {
         &lt;form class="modal-content xform"&gt;
           &lt;div class="hidden"&gt;
             &lt;input type="hidden" name="form_token" value="$services.csrf.token"/&gt;
+            &lt;input type="hidden" name="groupReference" value="$!groupReference"/&gt;
           &lt;/div&gt;
           &lt;div class="modal-header"&gt;
             &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;

@@ -27,7 +27,6 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
-import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
@@ -69,12 +68,13 @@ public class LDAPUserImportScriptService implements ScriptService
      * Import the selected users.
      * 
      * @param users the list of users to be imported
+     * @param groupName the group to add users in
      * @return a list of imported user profiles
      */
-    public List<DocumentReference> importUsers(String[] users)
+    public List<String> importUsers(String[] users, String groupName)
     {
         if (contextualAuthorizationManager.hasAccess(Right.EDIT)) {
-            return manager.importUsers(users);
+            return manager.importUsers(users, groupName);
         }
         return null;
     }

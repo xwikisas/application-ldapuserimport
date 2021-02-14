@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.xwiki.component.annotation.Role;
-import org.xwiki.model.reference.DocumentReference;
 
 /**
  * @version $Id$
@@ -47,7 +46,8 @@ public interface LDAPUserImportManager
      * Import the selected users.
      * 
      * @param users the list of users to be imported
+     * @param groupName the group to add users in
      * @return a list of imported user profiles
      */
-    List<DocumentReference> importUsers(String[] users);
+    List<String> importUsers(String[] users, String groupName);
 }
