@@ -19,9 +19,7 @@
  */
 package com.xwiki.ldapuserimport.script;
 
-import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -67,14 +65,14 @@ public class LDAPUserImportScriptService implements ScriptService
     /**
      * Import the selected users.
      * 
-     * @param users the list of users to be imported
+     * @param usersList the list of users to be imported
      * @param groupName the group to add users in
-     * @return a list of imported user profiles
+     * @return a map of imported user profiles and URLs
      */
-    public List<String> importUsers(String[] users, String groupName)
+    public Map<String, String> importUsers(String[] usersList, String groupName)
     {
         if (contextualAuthorizationManager.hasAccess(Right.EDIT)) {
-            return manager.importUsers(users, groupName);
+            return manager.importUsers(usersList, groupName);
         }
         return null;
     }

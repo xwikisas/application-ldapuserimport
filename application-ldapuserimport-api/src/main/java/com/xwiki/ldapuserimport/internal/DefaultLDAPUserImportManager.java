@@ -19,10 +19,9 @@
  */
 package com.xwiki.ldapuserimport.internal;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -122,6 +121,8 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
                 filter = getFilter(searchInput, allFieldsList);
             }
 
+            logger.debug("Base dn: [{}], search scope: [{}], filter: [{}], fields: [{}]", base,
+                LDAPConnection.SCOPE_SUB, filter.toString(), tempAllFields);
             PagedLDAPSearchResults result =
                 connection.searchPaginated(base, LDAPConnection.SCOPE_SUB, filter.toString(), allFieldsList, false);
 
@@ -129,7 +130,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
         } catch (XWikiLDAPException e) {
             logger.error(e.getFullMessage());
         } catch (LDAPException e) {
-            logger.debug("Failed to search for value [{}] in the fields [{}]", searchInput, allFields, e);
+            logger.warn("Failed to search for value [{}] in the fields [{}]", searchInput, allFields, e);
         } finally {
             connection.close();
         }
@@ -143,7 +144,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
     {
         String escapedSearchInput = XWikiLDAPConnection.escapeLDAPSearchFilter(searchInput);
         StringBuilder filter = new StringBuilder("(&");
-        filter.append("(objectClass=user)(|");
+        filter.append("(objectClass=*)(|");
         for (String filed : fieldsList) {
             filter.append("(");
             filter.append(XWikiLDAPConnection.escapeLDAPSearchFilter(filed));
@@ -202,8 +203,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
         XWiki xwiki = xcontext.getWiki();
         // Apply a cleaning rule close to the one in platform.
         // TODO: Find the EXACT formula for this cleaning.
-        DocumentReference userReference =
-            new DocumentReference(xcontext.getMainXWiki(), XWIKI, uidFieldValue);
+        DocumentReference userReference = new DocumentReference(xcontext.getMainXWiki(), XWIKI, uidFieldValue);
         return Boolean.toString(xwiki.exists(userReference, xcontext));
     }
 
@@ -224,7 +224,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
     }
 
     @Override
-    public List<String> importUsers(String[] users, String groupName)
+    public Map<String, String> importUsers(String[] usersList, String groupName)
     {
         XWikiLDAPConnection connection = new XWikiLDAPConnection(configuration);
         XWikiLDAPUtils ldapUtils = new XWikiLDAPUtils(connection, configuration);
@@ -233,26 +233,26 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
         try {
             connection.open(loginDN, password, contextProvider.get());
 
-            List<String> userProfiles = new ArrayList<>();
+            SortedMap<String, String> users = new TreeMap<>();
 
-            for (String user : users) {
+            for (String user : usersList) {
                 try {
                     // Make sure to create users in the main wiki.
                     XWikiContext mainContext = contextProvider.get().clone();
                     mainContext.setWikiId(mainContext.getMainXWiki());
                     XWikiDocument userDoc = ldapUtils.getUserProfileByUid(user, user, mainContext);
                     ldapUtils.syncUser(userDoc, null, loginDN, user, mainContext);
-                    userProfiles.add(userDoc.getDocumentReference().toString());
+                    users.put(userDoc.getDocumentReference().toString(), userDoc.getURL("view", mainContext));
                 } catch (XWikiException e) {
-                    logger.debug("Failed to create user [{}] ", user, e);
+                    logger.warn("Failed to create user [{}] ", user, e);
                 }
             }
 
             if (StringUtils.isNoneBlank(groupName)) {
-                addUsersInGroup(groupName, userProfiles);
+                addUsersInGroup(groupName, users);
             }
 
-            return userProfiles;
+            return users;
         } catch (XWikiException e) {
             logger.error(e.getFullMessage());
         } finally {
@@ -261,15 +261,15 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
         return null;
     }
 
-    private void addUsersInGroup(String groupName, List<String> userProfiles) throws XWikiException
+    private void addUsersInGroup(String groupName, Map<String, String> users) throws XWikiException
     {
         XWikiContext context = contextProvider.get();
         XWiki xwiki = context.getWiki();
         DocumentReference groupReference = documentReferenceResolver.resolve(groupName);
         XWikiDocument groupDocument = xwiki.getDocument(groupReference, context);
-        for (String userProfile : userProfiles) {
+        for (Entry<String, String> user : users.entrySet()) {
             BaseObject memberObject = groupDocument.newXObject(GROUP_CLASS_REFERENCE, context);
-            memberObject.setStringValue("member", userProfile);
+            memberObject.setStringValue("member", user.getKey());
             xwiki.saveDocument(groupDocument, context);
         }
     }

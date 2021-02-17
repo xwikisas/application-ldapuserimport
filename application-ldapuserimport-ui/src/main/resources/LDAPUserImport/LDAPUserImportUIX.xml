@@ -295,10 +295,18 @@
       'outputSyntax': 'plain'
     };
     var url = importUsersServiceDoc.getURL('get');
-    $.post(url, $.param(params)).done(function(data) {
+    $.ajax({
+      'url': url,
+      'method': 'POST',
+      'data': $.param(params),
+      beforeSend: function() {
+        $('#ldapSearchBox').toggleClass('hidden');
+      }
+    }).done(function(users) {
       var resultsList = $('&lt;ul/&gt;').attr({'id': 'usersList'});
-      $.each(data.users, function(index, value) {
-        var displayedText = value['givenName'] + ' ' + value['sn'] + ' (' + value['mail'] + ')';
+      $.each(users, function(index, value) {
+        console.log(index, value);
+        var displayedText = value['givenName'] + ' ' + value['cn'] + ' (' + value['mail'] + ')';
         var mention = 'notImported';
         var mentionText = "$services.localization.render('importUsers.modal.user.notImported')";
         var listItem = $('&lt;li/&gt;');
@@ -327,7 +335,6 @@
         resultsList.append(listItem);
       });
       resultsContainer.html(resultsList);
-      $('#ldapSearchBox').toggleClass('hidden');
     });
   });
   // Perform the user import.
@@ -335,14 +342,13 @@
     event.preventDefault();
     var formData = $(this).serialize();
     var url = importUsersServiceDoc.getURL('get', 'outputSyntax=plain&amp;action=import');
-    $.post(url, $(this).serialize()).done(function(data) {
+    $.post(url, $(this).serialize()).done(function(users) {
       var resultsList = $('&lt;ul/&gt;').attr({'id': 'importedUsersList'});
-      $.each(data.userProfiles, function() {
+      $.each(users, function(index, value) {
         var listItem = $('&lt;li/&gt;');
-        var userProfileUrl = new XWiki.Document(XWiki.Model.resolve(this, XWiki.EntityType.DOCUMENT)).getURL();
         var userLink = $('&lt;a/&gt;').attr({
-          'href': userProfileUrl
-        }).text(this);
+          'href': value
+        }).text(index);
         listItem.append(userLink);
         resultsList.append(listItem);
       });
@@ -504,6 +510,17 @@ ul#importedUsersList {
 }
 #editGroupModal form.col-sm-6 {
   border-right: 1px solid #e5e5e5;
+}
+.glyphicon.normal-right-spinner {
+  animation: glyphicon-spin-r 2s infinite linear;
+}
+@keyframes glyphicon-spin-r {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(359deg);
+  }
 }</code>
     </property>
     <property>
@@ -705,7 +722,8 @@ ul#importedUsersList {
             &lt;/button&gt;
             &lt;div class="box hidden" id="ldapSearchBox"&gt;
               &lt;div id="searchResults"&gt;
-                &lt;span class="hint"&gt;$services.localization.render('importUsers.modal.fieldValue.results')&lt;/span&gt;
+                &lt;span class="glyphicon glyphicon-repeat normal-right-spinner"&gt;&lt;/span&gt;
+                &lt;span class="hint"&gt;$services.localization.render('importUsers.modal.fieldValue.loadingResults')&lt;/span&gt;
               &lt;/div&gt;
             &lt;/div&gt;
           &lt;/div&gt;
