@@ -48,6 +48,7 @@ importUsers.modal.fieldValue.noResults=No users were found for the searched valu
 importUsers.modal.fieldValue.loadingResults=Loading results ...
 importUsers.modal.user.imported=imported
 importUsers.modal.user.notImported=not imported
+importUsers.modal.user.failedImport=Failed to import users!
 
 admin.ldapUserImport=LDAP User Import</content>
   <object>

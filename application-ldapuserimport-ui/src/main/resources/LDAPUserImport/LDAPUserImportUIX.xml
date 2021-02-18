@@ -341,16 +341,20 @@
     var formData = $(this).serialize();
     var url = importUsersServiceDoc.getURL('get', 'outputSyntax=plain&amp;action=import');
     $.post(url, $(this).serialize()).done(function(users) {
-      var resultsList = $('&lt;ul/&gt;').attr({'id': 'importedUsersList'});
-      $.each(users, function(index, value) {
-        var listItem = $('&lt;li/&gt;');
-        var userLink = $('&lt;a/&gt;').attr({
-          'href': value
-        }).text(index);
-        listItem.append(userLink);
-        resultsList.append(listItem);
-      });
-      resultsContainer.html(resultsList);
+      if (users == null) {
+        resultsContainer.html("$services.localization.render('importUsers.modal.user.failedImport')");
+      } else {
+        var resultsList = $('&lt;ul/&gt;').attr({'id': 'importedUsersList'});
+        $.each(users, function(index, value) {
+          var listItem = $('&lt;li/&gt;');
+          var userLink = $('&lt;a/&gt;').attr({
+            'href': value
+          }).text(index);
+          listItem.append(userLink);
+          resultsList.append(listItem);
+          resultsContainer.html(resultsList);
+        });
+      }
     });
   });
 });</code>
