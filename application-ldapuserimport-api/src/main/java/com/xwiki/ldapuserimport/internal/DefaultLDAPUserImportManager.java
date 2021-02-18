@@ -19,6 +19,7 @@
  */
 package com.xwiki.ldapuserimport.internal;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -72,6 +73,9 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
     private static final String CN = "cn";
 
     private static final String FAILED_TO_GET_RESULTS = "Failed to get results";
+
+    private static final DocumentReference OIDC_CLASS =
+        new DocumentReference("xwiki", Arrays.asList(XWIKI, "OIDC"), "UserClass");
 
     private static final LocalDocumentReference GROUP_CLASS_REFERENCE =
         new LocalDocumentReference(XWIKI, "XWikiGroups");
@@ -194,8 +198,6 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
     {
         XWikiContext xcontext = contextProvider.get();
         XWiki xwiki = xcontext.getWiki();
-        // Apply a cleaning rule close to the one in platform.
-        // TODO: Find the EXACT formula for this cleaning.
         DocumentReference userReference = new DocumentReference(xcontext.getMainXWiki(), XWIKI, uidFieldValue);
         return Boolean.toString(xwiki.exists(userReference, xcontext));
     }
@@ -217,29 +219,45 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
     }
 
     @Override
-    public Map<String, String> importUsers(String[] usersList, String groupName)
+    public Map<String, String> importUsers(String[] usersList, String groupName, boolean addOIDCObj)
     {
         XWikiLDAPConnection connection = new XWikiLDAPConnection(configuration);
         XWikiLDAPUtils ldapUtils = new XWikiLDAPUtils(connection, configuration);
         String loginDN = configuration.getLDAPBindDN();
         String password = configuration.getLDAPBindPassword();
+        XWikiContext context = contextProvider.get();
+        XWiki xwiki = context.getWiki();
+        String currentWikiId = context.getWikiId();
+
         try {
-            connection.open(loginDN, password, contextProvider.get());
+            // Make sure to create users in the main wiki.
+            context.setWikiId(context.getMainXWiki());
+            connection.open(loginDN, password, context);
 
             SortedMap<String, String> users = new TreeMap<>();
 
+            boolean oIDCClassExists = xwiki.exists(OIDC_CLASS, context);
             for (String user : usersList) {
                 try {
-                    // Make sure to create users in the main wiki.
-                    XWikiContext mainContext = contextProvider.get().clone();
-                    mainContext.setWikiId(mainContext.getMainXWiki());
-                    XWikiDocument userDoc = ldapUtils.getUserProfileByUid(user, user, mainContext);
-                    ldapUtils.syncUser(userDoc, null, loginDN, user, mainContext);
-                    users.put(userDoc.getDocumentReference().toString(), userDoc.getURL("view", mainContext));
+                    XWikiDocument userDoc = ldapUtils.getUserProfileByUid(user, user, context);
+                    DocumentReference userDocRef = userDoc.getDocumentReference();
+                    ldapUtils.syncUser(userDoc, null, loginDN, userDocRef.getName(), context);
+
+                    // Make sure to get the latest version of the document, after LDAP synchronization.
+                    userDoc = xwiki.getDocument(userDocRef, context);
+
+                    if (addOIDCObj && oIDCClassExists) {
+                        addOIDCObject(userDoc, user, context);
+                    }
+
+                    users.put(userDocRef.toString(), userDoc.getURL("view", context));
                 } catch (XWikiException e) {
                     logger.warn("Failed to create user [{}] ", user, e);
                 }
             }
+
+            // Reset the wikiId to the current. The groups are resolved locally.
+            context.setWikiId(currentWikiId);
 
             if (StringUtils.isNoneBlank(groupName)) {
                 addUsersInGroup(groupName, users);
@@ -250,8 +268,31 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
             logger.error(e.getFullMessage());
         } finally {
             connection.close();
+            context.setWikiId(currentWikiId);
         }
         return null;
+    }
+
+    /**
+     * This method handles the creation of the XWiki.OIDC.UserClass object in user profile. The subject property should
+     * be populated according to a mapping between the LDAP user attribute and OIDC subject format. The default mapping
+     * is (OIDC) subject = (LDAP) uid. Example: if the LDAP uid is sAMAccountName, then the value from this field will
+     * be stored in the OIDC subject. TODO: Provide flexibility to accept other field/formatter for the mapping.
+     * 
+     * @param userDoc the new created user profile document
+     * @param subject the user UID to be stored in the OIDC subject property
+     * @param context the main wiki context, to make sure the users are updated on the main wiki
+     */
+    private void addOIDCObject(XWikiDocument userDoc, String subject, XWikiContext context)
+    {
+        XWiki xwiki = context.getWiki();
+        try {
+            BaseObject oIDCObj = userDoc.newXObject(OIDC_CLASS, context);
+            oIDCObj.setStringValue("subject", subject);
+            xwiki.saveDocument(userDoc, "OIDC user object added.", context);
+        } catch (XWikiException e) {
+            logger.warn("Failed to attach OIDC object of [{}] type to the [{}] user profile.", OIDC_CLASS, userDoc, e);
+        }
     }
 
     private void addUsersInGroup(String groupName, Map<String, String> users) throws XWikiException

@@ -67,12 +67,13 @@ public class LDAPUserImportScriptService implements ScriptService
      * 
      * @param usersList the list of users to be imported
      * @param groupName the group to add users in
+     * @param addOIDCObj whether to add or not the OIDC object in user profile
      * @return a map of imported user profiles and URLs
      */
-    public Map<String, String> importUsers(String[] usersList, String groupName)
+    public Map<String, String> importUsers(String[] usersList, String groupName, boolean addOIDCObj)
     {
         if (contextualAuthorizationManager.hasAccess(Right.EDIT)) {
-            return manager.importUsers(usersList, groupName);
+            return manager.importUsers(usersList, groupName, addOIDCObj);
         }
         return null;
     }

@@ -671,6 +671,10 @@ ul#importedUsersList {
   #if ($doc.getObjects('XWiki.XWikiGroups').size() &gt; 0)
     #set ($groupReference = $doc.documentReference)
   #end
+  #set ($configDoc = $xwiki.getDocument('LDAPUserImport.WebHome'))
+  #set ($configObj = $configDoc.getObject('LDAPUserImport.LDAPUserImportConfigClass'))
+  #set ($allFields = $configObj.getValue('ldapUserAttributes'))
+  #set ($addOIDCObj = $configObj.getValue('addOIDCObject'))
   {{html clean="false"}}
     &lt;div class="modal" id="importUsersModal" tabindex="-1" role="dialog"
         aria-labelledby="importUsersModal-label" data-backdrop="static" data-keyboard="false"&gt;
@@ -679,6 +683,7 @@ ul#importedUsersList {
           &lt;div class="hidden"&gt;
             &lt;input type="hidden" name="form_token" value="$services.csrf.token"/&gt;
             &lt;input type="hidden" name="groupReference" value="$!groupReference"/&gt;
+            &lt;input type="hidden" name="addOIDCObj" value="$addOIDCObj"&gt;
           &lt;/div&gt;
           &lt;div class="modal-header"&gt;
             &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
@@ -689,9 +694,6 @@ ul#importedUsersList {
             &lt;/div&gt;
           &lt;/div&gt;
           &lt;div class="modal-body"&gt;
-            #set ($configDoc = $xwiki.getDocument('LDAPUserImport.WebHome'))
-            #set ($configObj = $configDoc.getObject('LDAPUserImport.LDAPUserImportConfigClass'))
-            #set ($allFields = $configObj.getValue('ldapUserAttributes'))
             &lt;dl&gt;
               #if ($configObj.getValue('enableSingleFieldSearch') == 1)
                 &lt;dt&gt;

@@ -47,7 +47,7 @@
   #if ($services.csrf.isTokenValid($request.form_token))
     #set ($statusCode = 500)
     #if ($request.action == 'import')
-      #set ($users = $services.ldapuserimport.importUsers($request.parameterMap.user, $request.groupReference))
+      #set ($users = $services.ldapuserimport.importUsers($request.parameterMap.user, $request.groupReference, $request.addOIDCObj))
       #set ($statusCode = 200)
       $jsontool.serialize($users)
     #else

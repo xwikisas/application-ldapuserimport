@@ -55,6 +55,21 @@
     <defaultWeb/>
     <nameField/>
     <validationScript/>
+    <addOIDCObject>
+      <customDisplay/>
+      <defaultValue/>
+      <disabled>0</disabled>
+      <displayFormType>checkbox</displayFormType>
+      <displayType/>
+      <hint/>
+      <name>addOIDCObject</name>
+      <number>7</number>
+      <prettyName>Add OIDC object in user profile</prettyName>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+    </addOIDCObject>
     <enableSingleFieldSearch>
       <customDisplay/>
       <defaultValue/>
