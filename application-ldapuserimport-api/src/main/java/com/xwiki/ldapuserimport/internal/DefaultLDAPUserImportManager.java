@@ -121,12 +121,15 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
                 filter = getFilter(searchInput, allFieldsList);
             }
 
-            logger.debug("Base dn: [{}], search scope: [{}], filter: [{}], fields: [{}]", base,
-                LDAPConnection.SCOPE_SUB, filter.toString(), tempAllFields);
             PagedLDAPSearchResults result =
                 connection.searchPaginated(base, LDAPConnection.SCOPE_SUB, filter.toString(), allFieldsList, false);
-
-            return getUsers(allFieldsList, result);
+            if (result.hasMore()) {
+                return getUsers(allFieldsList, result);
+            } else {
+                logger.warn("There are no result for base dn: [{}], search scope: [{}], filter: [{}], fields: [{}]",
+                    base, LDAPConnection.SCOPE_SUB, filter.toString(), tempAllFields);
+                return null;
+            }
         } catch (XWikiLDAPException e) {
             logger.error(e.getFullMessage());
         } catch (LDAPException e) {
@@ -159,41 +162,31 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
     private Map<String, Map<String, String>> getUsers(String[] fieldsList, PagedLDAPSearchResults result)
     {
         SortedMap<String, Map<String, String>> users = new TreeMap<>();
-        /*
-         * For some weird reason result.hasMore() is always true before the first call to next() even if nothing is
-         * found.
-         */
-        if (result.hasMore()) {
-            LDAPEntry resultEntry = null;
-            try {
-                resultEntry = result.next();
-            } catch (LDAPException e) {
-                logger.debug(FAILED_TO_GET_RESULTS, e);
-            }
-
+        LDAPEntry resultEntry = null;
+        try {
+            resultEntry = result.next();
             if (resultEntry != null) {
                 do {
-                    try {
-                        String uuidFieldValue = getAttributeValue(uuidFieldName, resultEntry);
-                        Map<String, String> user = new HashMap<>();
-                        for (String field : fieldsList) {
-                            user.put(field, getAttributeValue(field, resultEntry));
-                        }
-                        user.put("exists", checkUser(uuidFieldValue));
-                        users.put(uuidFieldValue, user);
-                        resultEntry = result.hasMore() ? result.next() : null;
-                    } catch (LDAPException e) {
-                        logger.debug(FAILED_TO_GET_RESULTS, e);
+                    String uuidFieldValue = getAttributeValue(uuidFieldName, resultEntry);
+                    Map<String, String> user = new HashMap<>();
+                    for (String field : fieldsList) {
+                        user.put(field, getAttributeValue(field, resultEntry));
                     }
+                    user.put("exists", checkUser(uuidFieldValue));
+                    users.put(uuidFieldValue, user);
+                    resultEntry = result.hasMore() ? result.next() : null;
                 } while (resultEntry != null && users.size() <= 20);
             } else {
-                logger.debug("The LDAP request returned no result (hasMore() is true but first next() call "
+                /*
+                 * For some weird reason result.hasMore() can be true before the first call to next() even if nothing is
+                 * found.
+                 */
+                logger.warn("The LDAP request returned no result (hasMore() is true but first next() call "
                     + "returned nothing)");
             }
-        } else {
-            logger.debug("The LDAP request returned no result (hasMore is false)");
+        } catch (LDAPException e) {
+            logger.warn(FAILED_TO_GET_RESULTS, e);
         }
-
         return users;
     }
 

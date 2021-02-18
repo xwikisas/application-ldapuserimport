@@ -283,6 +283,8 @@
   var resultsContainer = $('#searchResults');
   // Get user results from LDAP.
   $('#triggerSearch').click(function() {
+    $('#ldapSearchBox').removeClass('hidden');
+    resultsContainer.html($('#searchResultsLoading').html())
     var allFields = $('#importUserModal-allFields').val();
     var singleField = $('#importUserModal-userField').val();
     var searchInput = $('#importUserModal-userFieldValue').val();
@@ -295,46 +297,42 @@
       'outputSyntax': 'plain'
     };
     var url = importUsersServiceDoc.getURL('get');
-    $.ajax({
-      'url': url,
-      'method': 'POST',
-      'data': $.param(params),
-      beforeSend: function() {
-        $('#ldapSearchBox').toggleClass('hidden');
+    $.post(url, $.param(params)).done(function(users) {
+      if (users == null) {
+        resultsContainer.html("$services.localization.render('importUsers.modal.fieldValue.noResults')");
+      } else {
+        var resultsList = $('&lt;ul/&gt;').attr({'id': 'usersList'});
+        $.each(users, function(index, value) {
+          var displayedText = value['givenName'] + ' ' + value['cn'] + ' (' + value['mail'] + ')';
+          var mention = 'notImported';
+          var mentionText = "$services.localization.render('importUsers.modal.user.notImported')";
+          var listItem = $('&lt;li/&gt;');
+          // If the user exists, it will be represented as plain text.
+          // If the user doesn't exist, it will be represented as a label and a checkbox to be selected for import.
+          if (value.exists === 'true') {
+            listItem.text(displayedText);
+            mention = 'imported';
+            mentionText = "$services.localization.render('importUsers.modal.user.imported')";
+          } else {
+            var checkbox = $('&lt;input/&gt;').attr({
+              'type': 'checkbox',
+              'name': 'user',
+              'id': index,
+              'value': index
+            });
+            var label = $('&lt;label/&gt;').attr({
+              'for': index
+            }).text(displayedText);
+            listItem.append(checkbox);
+            listItem.append(label);
+          }
+          listItem.attr({'class': mention});
+          var mentionSpan = $('&lt;span/&gt;').text(mentionText);
+          listItem.append(mentionSpan);
+          resultsList.append(listItem);
+        });
+        resultsContainer.html(resultsList);
       }
-    }).done(function(users) {
-      var resultsList = $('&lt;ul/&gt;').attr({'id': 'usersList'});
-      $.each(users, function(index, value) {
-        console.log(index, value);
-        var displayedText = value['givenName'] + ' ' + value['cn'] + ' (' + value['mail'] + ')';
-        var mention = 'notImported';
-        var mentionText = "$services.localization.render('importUsers.modal.user.notImported')";
-        var listItem = $('&lt;li/&gt;');
-        // If the user exists, it will be represented as plain text.
-        // If the user doesn't exist, it will be represented as a label and a checkbox to be selected for import.
-        if (value.exists === 'true') {
-          listItem.text(displayedText);
-          mention = 'imported';
-          mentionText = "$services.localization.render('importUsers.modal.user.imported')";
-        } else {
-          var checkbox = $('&lt;input/&gt;').attr({
-            'type': 'checkbox',
-            'name': 'user',
-            'id': index,
-            'value': index
-          });
-          var label = $('&lt;label/&gt;').attr({
-            'for': index
-          }).text(displayedText);
-          listItem.append(checkbox);
-          listItem.append(label);
-        }
-        listItem.attr({'class': mention});
-        var mentionSpan = $('&lt;span/&gt;').text(mentionText);
-        listItem.append(mentionSpan);
-        resultsList.append(listItem);
-      });
-      resultsContainer.html(resultsList);
     });
   });
   // Perform the user import.
@@ -721,9 +719,11 @@ ul#importedUsersList {
               $services.localization.render('importUsers.modal.fieldValue.search')
             &lt;/button&gt;
             &lt;div class="box hidden" id="ldapSearchBox"&gt;
-              &lt;div id="searchResults"&gt;
+              &lt;div id="searchResultsLoading" class="hidden"&gt;
                 &lt;span class="glyphicon glyphicon-repeat normal-right-spinner"&gt;&lt;/span&gt;
                 &lt;span class="hint"&gt;$services.localization.render('importUsers.modal.fieldValue.loadingResults')&lt;/span&gt;
+              &lt;/div&gt;
+              &lt;div id="searchResults"&gt;
               &lt;/div&gt;
             &lt;/div&gt;
           &lt;/div&gt;
