@@ -33,8 +33,6 @@ import javax.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.component.phase.Initializable;
-import org.xwiki.component.phase.InitializationException;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.contrib.ldap.PagedLDAPSearchResults;
 import org.xwiki.contrib.ldap.XWikiLDAPConfig;
@@ -62,7 +60,7 @@ import com.xwiki.ldapuserimport.LDAPUserImportManager;
  */
 @Component
 @Singleton
-public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Initializable
+public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 {
     private static final String XWIKI = "XWiki";
 
@@ -91,16 +89,14 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
     @Inject
     private Provider<XWikiContext> contextProvider;
 
-    private String uuidFieldName;
-
-    private XWikiLDAPConfig configuration;
-
     /**
      * Get all the users that have the searched value contained in any of the provided fields value.
      */
     @Override
     public Map<String, Map<String, String>> getUsers(String singleField, String allFields, String searchInput)
     {
+        XWikiLDAPConfig configuration = new XWikiLDAPConfig(null, configurationSource);
+        String uidFieldName = configuration.getLDAPParam(LDAP_UID_ATTR, CN);
         XWikiLDAPConnection connection = new XWikiLDAPConnection(configuration);
         String loginDN = configuration.getLDAPBindDN();
         String password = configuration.getLDAPBindPassword();
@@ -113,7 +109,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
             if (StringUtils.isNoneBlank(allFields)) {
                 tempAllFields = allFields;
             } else {
-                tempAllFields = uuidFieldName + ",givenName,mail,name,sn";
+                tempAllFields = uidFieldName + ",givenName,mail,name,sn";
             }
 
             String[] allFieldsList = tempAllFields.split(",");
@@ -128,7 +124,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
             PagedLDAPSearchResults result =
                 connection.searchPaginated(base, LDAPConnection.SCOPE_SUB, filter.toString(), allFieldsList, false);
             if (result.hasMore()) {
-                return getUsers(allFieldsList, result);
+                return getUsers(allFieldsList, result, uidFieldName);
             } else {
                 logger.warn("There are no result for base dn: [{}], search scope: [{}], filter: [{}], fields: [{}]",
                     base, LDAPConnection.SCOPE_SUB, filter.toString(), tempAllFields);
@@ -163,7 +159,8 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
         return filter;
     }
 
-    private Map<String, Map<String, String>> getUsers(String[] fieldsList, PagedLDAPSearchResults result)
+    private Map<String, Map<String, String>> getUsers(String[] fieldsList, PagedLDAPSearchResults result,
+        String uidFieldName)
     {
         SortedMap<String, Map<String, String>> users = new TreeMap<>();
         LDAPEntry resultEntry = null;
@@ -171,13 +168,13 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
             resultEntry = result.next();
             if (resultEntry != null) {
                 do {
-                    String uuidFieldValue = getAttributeValue(uuidFieldName, resultEntry);
+                    String uidFieldValue = getAttributeValue(uidFieldName, resultEntry);
                     Map<String, String> user = new HashMap<>();
                     for (String field : fieldsList) {
                         user.put(field, getAttributeValue(field, resultEntry));
                     }
-                    user.put("exists", checkUser(uuidFieldValue));
-                    users.put(uuidFieldValue, user);
+                    user.put("exists", checkUser(uidFieldValue));
+                    users.put(uidFieldValue, user);
                     resultEntry = result.hasMore() ? result.next() : null;
                 } while (resultEntry != null && users.size() <= 20);
             } else {
@@ -212,15 +209,9 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager, Init
     }
 
     @Override
-    public void initialize() throws InitializationException
-    {
-        configuration = new XWikiLDAPConfig(null, this.configurationSource);
-        uuidFieldName = configuration.getLDAPParam(LDAP_UID_ATTR, CN);
-    }
-
-    @Override
     public Map<String, String> importUsers(String[] usersList, String groupName, boolean addOIDCObj)
     {
+        XWikiLDAPConfig configuration = new XWikiLDAPConfig(null, configurationSource);
         XWikiLDAPConnection connection = new XWikiLDAPConnection(configuration);
         XWikiLDAPUtils ldapUtils = new XWikiLDAPUtils(connection, configuration);
         String loginDN = configuration.getLDAPBindDN();
