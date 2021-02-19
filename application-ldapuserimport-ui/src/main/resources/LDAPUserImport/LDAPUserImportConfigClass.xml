@@ -85,23 +85,6 @@
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
     </enableSingleFieldSearch>
-    <extraParamsMapping>
-      <contenttype>---</contenttype>
-      <customDisplay/>
-      <disabled>0</disabled>
-      <editor>PureText</editor>
-      <hint/>
-      <name>extraParamsMapping</name>
-      <number>6</number>
-      <picker>1</picker>
-      <prettyName>extraParamsMapping</prettyName>
-      <rows>5</rows>
-      <size>40</size>
-      <unmodifiable>0</unmodifiable>
-      <validationMessage/>
-      <validationRegExp/>
-      <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
-    </extraParamsMapping>
     <ldapUserAttributes>
       <contenttype>---</contenttype>
       <customDisplay/>
@@ -119,49 +102,6 @@
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
     </ldapUserAttributes>
-    <uidAttribute>
-      <customDisplay/>
-      <disabled>0</disabled>
-      <hint/>
-      <name>uidAttribute</name>
-      <number>5</number>
-      <picker>1</picker>
-      <prettyName>LDAP property used as username</prettyName>
-      <size>30</size>
-      <unmodifiable>0</unmodifiable>
-      <validationMessage/>
-      <validationRegExp/>
-      <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-    </uidAttribute>
-    <userObject>
-      <customDisplay/>
-      <defaultValue/>
-      <disabled>0</disabled>
-      <displayFormType>select</displayFormType>
-      <displayType/>
-      <hint/>
-      <name>userObject</name>
-      <number>3</number>
-      <prettyName>Add object on user profile</prettyName>
-      <unmodifiable>0</unmodifiable>
-      <validationMessage/>
-      <validationRegExp/>
-      <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
-    </userObject>
-    <userObjectClass>
-      <customDisplay/>
-      <disabled>0</disabled>
-      <hint/>
-      <name>userObjectClass</name>
-      <number>4</number>
-      <picker>1</picker>
-      <prettyName>Class name of the user profile object</prettyName>
-      <size>30</size>
-      <unmodifiable>0</unmodifiable>
-      <validationMessage/>
-      <validationRegExp/>
-      <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-    </userObjectClass>
   </class>
   <object>
     <name>LDAPUserImport.LDAPUserImportConfigClass</name>
