@@ -304,7 +304,7 @@
         var resultsList = $('&lt;ul/&gt;').attr({'id': 'usersList'});
         var displayImportButton = false;
         $.each(users, function(index, value) {
-          var displayedText = value['givenName'] + ' ' + value['cn'] + ' (' + value['mail'] + ')';
+          var displayedText = 'xwiki:' + 'XWiki.' + index + ' [' + value['first_name'] + ' ' + value['last_name'] + ', ' + value['email'] + ']';
           var mention = 'notImported';
           var mentionText = "$services.localization.render('importUsers.modal.user.notImported')";
           var listItem = $('&lt;li/&gt;');
@@ -492,11 +492,11 @@
     }
   }
   li.imported {
-    color: #055705;
+    color: #840b0b;
     padding-left: 25px;
   }
    li.notImported {
-    color: #840b0b;
+    color: #055705;
   }
 }
 ul#importedUsersList {

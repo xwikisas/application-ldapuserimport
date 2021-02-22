@@ -21,8 +21,10 @@ package com.xwiki.ldapuserimport.internal;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -62,6 +64,8 @@ import com.xwiki.ldapuserimport.LDAPUserImportManager;
 @Singleton
 public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 {
+    private static final String FIELDS_SEPARATOR = ",";
+
     private static final String XWIKI = "XWiki";
 
     private static final String LDAP_UID_ATTR = "ldap_UID_attr";
@@ -105,29 +109,33 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             connection.open(loginDN, password, contextProvider.get());
             String base = configuration.getLDAPParam(LDAP_BASE_DN, "");
 
-            String tempAllFields;
-            if (StringUtils.isNoneBlank(allFields)) {
-                tempAllFields = allFields;
-            } else {
-                tempAllFields = uidFieldName + ",givenName,mail,name,sn";
+            Set<String> fieldsToReturn = new HashSet<>();
+            Map<String, String> fieldsMap = new HashMap<>();
+            // Make sure to add the UID field, to get its value in the PagedLDAPSearchResult.
+            fieldsToReturn.add(uidFieldName);
+            // Make sure to also add all the mapped fields, to get their values in the PagedLDAPSearchResult.
+            String ldapFieldsMapping =
+                configuration.getLDAPParam("ldap_fields_mapping", "first_name=givenName,last_name=sn,email=mail");
+            for (String pair : ldapFieldsMapping.split(FIELDS_SEPARATOR)) {
+                String[] parts = pair.split("=");
+                // From first_name=givenName, store key=givenName and value=first_name.
+                fieldsMap.put(parts[1], parts[0]);
+                fieldsToReturn.add(parts[1]);
             }
-
-            String[] allFieldsList = tempAllFields.split(",");
-
             StringBuilder filter;
             if (StringUtils.isNoneBlank(singleField)) {
-                filter = getFilter(searchInput, new String[] {singleField});
+                filter = getFilter(searchInput, singleField);
             } else {
-                filter = getFilter(searchInput, allFieldsList);
+                filter = getFilter(searchInput, allFields);
             }
 
-            PagedLDAPSearchResults result =
-                connection.searchPaginated(base, LDAPConnection.SCOPE_SUB, filter.toString(), allFieldsList, false);
+            PagedLDAPSearchResults result = connection.searchPaginated(base, LDAPConnection.SCOPE_SUB,
+                filter.toString(), fieldsToReturn.toArray(new String[fieldsToReturn.size()]), false);
             if (result.hasMore()) {
-                return getUsers(allFieldsList, result, uidFieldName);
+                return getUsers(fieldsToReturn, result, uidFieldName, fieldsMap);
             } else {
                 logger.warn("There are no result for base dn: [{}], search scope: [{}], filter: [{}], fields: [{}]",
-                    base, LDAPConnection.SCOPE_SUB, filter.toString(), tempAllFields);
+                    base, LDAPConnection.SCOPE_SUB, filter.toString(), fieldsToReturn);
                 return null;
             }
         } catch (XWikiLDAPException e) {
@@ -143,12 +151,12 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     /**
      * Filter pattern: (&({0}={1})(|({2}=*{3}*)({4}=*{5}*)({6}=*{7}*)...)).
      */
-    private StringBuilder getFilter(String searchInput, String[] fieldsList)
+    private StringBuilder getFilter(String searchInput, String searchFields)
     {
         String escapedSearchInput = XWikiLDAPConnection.escapeLDAPSearchFilter(searchInput);
         StringBuilder filter = new StringBuilder("(&");
         filter.append("(objectClass=*)(|");
-        for (String filed : fieldsList) {
+        for (String filed : Arrays.asList(searchFields.split(FIELDS_SEPARATOR))) {
             filter.append("(");
             filter.append(XWikiLDAPConnection.escapeLDAPSearchFilter(filed));
             filter.append("=*");
@@ -159,8 +167,8 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         return filter;
     }
 
-    private Map<String, Map<String, String>> getUsers(String[] fieldsList, PagedLDAPSearchResults result,
-        String uidFieldName)
+    private Map<String, Map<String, String>> getUsers(Set<String> fieldsToReturn, PagedLDAPSearchResults result,
+        String uidFieldName, Map<String, String> fieldsMap)
     {
         SortedMap<String, Map<String, String>> users = new TreeMap<>();
         LDAPEntry resultEntry = null;
@@ -170,8 +178,14 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 do {
                     String uidFieldValue = getAttributeValue(uidFieldName, resultEntry);
                     Map<String, String> user = new HashMap<>();
-                    for (String field : fieldsList) {
-                        user.put(field, getAttributeValue(field, resultEntry));
+                    for (String field : fieldsToReturn) {
+                        // For first_name=givenName in the LDAP fields mapping, store the LDAP attribute value in the
+                        // XWiki property name.
+                        if (fieldsMap.containsKey(field)) {
+                            user.put(fieldsMap.get(field), getAttributeValue(field, resultEntry));
+                        } else {
+                            user.put(field, getAttributeValue(field, resultEntry));
+                        }
                     }
                     user.put("exists", checkUser(uidFieldValue));
                     users.put(uidFieldValue, user);
