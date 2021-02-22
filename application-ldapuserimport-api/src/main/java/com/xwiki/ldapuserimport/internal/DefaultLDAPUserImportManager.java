@@ -125,8 +125,10 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             StringBuilder filter;
             if (StringUtils.isNoneBlank(singleField)) {
                 filter = getFilter(searchInput, singleField);
-            } else {
+            } else if (StringUtils.isNoneBlank(allFields)) {
                 filter = getFilter(searchInput, allFields);
+            } else {
+                filter = getFilter(searchInput, String.join(FIELDS_SEPARATOR, fieldsToReturn));
             }
 
             PagedLDAPSearchResults result = connection.searchPaginated(base, LDAPConnection.SCOPE_SUB,
