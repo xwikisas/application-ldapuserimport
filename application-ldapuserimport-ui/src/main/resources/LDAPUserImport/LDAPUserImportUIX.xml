@@ -302,6 +302,7 @@
         resultsContainer.html("$services.localization.render('importUsers.modal.fieldValue.noResults')");
       } else {
         var resultsList = $('&lt;ul/&gt;').attr({'id': 'usersList'});
+        var displayImportButton = false;
         $.each(users, function(index, value) {
           var displayedText = value['givenName'] + ' ' + value['cn'] + ' (' + value['mail'] + ')';
           var mention = 'notImported';
@@ -314,6 +315,7 @@
             mention = 'imported';
             mentionText = "$services.localization.render('importUsers.modal.user.imported')";
           } else {
+            displayImportButton = true;
             var checkbox = $('&lt;input/&gt;').attr({
               'type': 'checkbox',
               'name': 'user',
@@ -332,6 +334,10 @@
           resultsList.append(listItem);
         });
         resultsContainer.html(resultsList);
+        // Show the Import button, after search was performed with results.
+        if (displayImportButton) {
+          $('#importButton').removeClass('hidden');
+        }
       }
     });
   });
@@ -354,6 +360,8 @@
           resultsList.append(listItem);
           resultsContainer.html(resultsList);
         });
+        // Hide the Import button, after import was performed.
+        $('#importButton').addClass('hidden');
       }
     });
   });
@@ -737,7 +745,7 @@ ul#importedUsersList {
             &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
               $escapetool.xml($services.localization.render('cancel'))
             &lt;/button&gt;
-            &lt;button type="submit" class="btn btn-primary"&gt;
+            &lt;button type="submit" class="btn btn-primary hidden" id="importButton"&gt;
               $escapetool.xml($services.localization.render('import'))
             &lt;/button&gt;
           &lt;/div&gt;
