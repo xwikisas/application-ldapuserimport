@@ -49,4 +49,11 @@ public interface LDAPUserImportManager
      * @return a map of imported user profiles and URLs
      */
     Map<String, String> importUsers(String[] usersList, String groupName, boolean addOIDCObj);
+
+    /**
+     * Check if the current user is allowed to import users.
+     * 
+     * @return true if has import right, false otherwise
+     */
+    boolean hasImport();
 }

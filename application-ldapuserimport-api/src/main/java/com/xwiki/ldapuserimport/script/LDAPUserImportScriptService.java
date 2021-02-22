@@ -26,9 +26,6 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.script.service.ScriptService;
-import org.xwiki.security.authorization.ContextualAuthorizationManager;
-import org.xwiki.security.authorization.Right;
-
 import com.xwiki.ldapuserimport.LDAPUserImportManager;
 
 /**
@@ -43,9 +40,6 @@ public class LDAPUserImportScriptService implements ScriptService
     @Inject
     private LDAPUserImportManager manager;
 
-    @Inject
-    private ContextualAuthorizationManager contextualAuthorizationManager;
-
     /**
      * Get all the users that have the searched value contained in any of the provided fields value.
      * 
@@ -56,7 +50,7 @@ public class LDAPUserImportScriptService implements ScriptService
      */
     public Map<String, Map<String, String>> getUsers(String singleField, String allFields, String searchInput)
     {
-        if (contextualAuthorizationManager.hasAccess(Right.EDIT)) {
+        if (hasImport()) {
             return manager.getUsers(singleField, allFields, searchInput);
         }
         return null;
@@ -72,9 +66,19 @@ public class LDAPUserImportScriptService implements ScriptService
      */
     public Map<String, String> importUsers(String[] usersList, String groupName, boolean addOIDCObj)
     {
-        if (contextualAuthorizationManager.hasAccess(Right.EDIT)) {
+        if (hasImport()) {
             return manager.importUsers(usersList, groupName, addOIDCObj);
         }
         return null;
+    }
+
+    /**
+     * Check if the current user is allowed to import users.
+     * 
+     * @return true if has import right, false otherwise
+     */
+    public boolean hasImport()
+    {
+        return manager.hasImport();
     }
 }

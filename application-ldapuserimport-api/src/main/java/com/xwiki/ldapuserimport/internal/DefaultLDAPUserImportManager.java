@@ -22,6 +22,7 @@ package com.xwiki.ldapuserimport.internal;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -44,6 +45,8 @@ import org.xwiki.contrib.ldap.XWikiLDAPUtils;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.LocalDocumentReference;
+import org.xwiki.security.authorization.ContextualAuthorizationManager;
+import org.xwiki.security.authorization.Right;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPEntry;
@@ -64,9 +67,16 @@ import com.xwiki.ldapuserimport.LDAPUserImportManager;
 @Singleton
 public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 {
+    private static final String MAIN_WIKI_NAME = "xwiki";
+
+    private static final String LDAP_USER_IMPORT = "LDAPUserImport";
+
     private static final String FIELDS_SEPARATOR = ",";
 
     private static final String XWIKI = "XWiki";
+
+    private static final DocumentReference GLOBAL_PREFERENCES =
+        new DocumentReference(MAIN_WIKI_NAME, XWIKI, "XWikiPreferences");
 
     private static final String LDAP_UID_ATTR = "ldap_UID_attr";
 
@@ -77,12 +87,21 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     private static final String FAILED_TO_GET_RESULTS = "Failed to get results";
 
     private static final DocumentReference OIDC_CLASS =
-        new DocumentReference("xwiki", Arrays.asList(XWIKI, "OIDC"), "UserClass");
+        new DocumentReference(MAIN_WIKI_NAME, Arrays.asList(XWIKI, "OIDC"), "UserClass");
 
     private static final LocalDocumentReference GROUP_CLASS_REFERENCE =
         new LocalDocumentReference(XWIKI, "XWikiGroups");
 
+    private static final LocalDocumentReference CONFIGURATION_REFERENCE =
+        new LocalDocumentReference(LDAP_USER_IMPORT, "WebHome");
+
+    private static final LocalDocumentReference CONFIGURATION_CLASS_REFERENCE =
+        new LocalDocumentReference(LDAP_USER_IMPORT, "LDAPUserImportConfigClass");
+
     private ConfigurationSource configurationSource = Utils.getComponent(ConfigurationSource.class, "ldapuserimport");
+
+    @Inject
+    private ContextualAuthorizationManager contextualAuthorizationManager;
 
     @Inject
     private DocumentReferenceResolver<String> documentReferenceResolver;
@@ -313,5 +332,39 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             memberObject.setStringValue("member", user.getKey());
             xwiki.saveDocument(groupDocument, context);
         }
+    }
+
+    @Override
+    public boolean hasImport()
+    {
+        XWikiContext context = contextProvider.get();
+        XWiki xwiki = context.getWiki();
+        boolean hasImport = false;
+        try {
+            XWikiDocument importConfigDoc = xwiki.getDocument(CONFIGURATION_REFERENCE, context);
+            BaseObject importConfigObj = importConfigDoc.getXObject(CONFIGURATION_CLASS_REFERENCE);
+            List<String> values = importConfigObj.getListValue("usersAllowedToImport");
+
+            if (values != null) {
+                // Check if the current user has Admin right on the main wiki.
+                if (!values.iterator().hasNext() || values.contains("globalAdmin")) {
+                    hasImport = contextualAuthorizationManager.hasAccess(Right.ADMIN, GLOBAL_PREFERENCES);
+                }
+
+                // Check if the current user has Admin right on the local wiki.
+                if (!hasImport && values.contains("localAdmin")) {
+                    hasImport = contextualAuthorizationManager.hasAccess(Right.ADMIN);
+                }
+
+                // Check if the current user has Edit right on the current group.
+                if (!hasImport && values.contains("groupEditor")) {
+                    hasImport = contextualAuthorizationManager.hasAccess(Right.EDIT);
+                }
+            }
+        } catch (XWikiException e) {
+            logger.warn("Failed to get document for reference [{}].", CONFIGURATION_REFERENCE, e);
+            return false;
+        }
+        return hasImport;
     }
 }

@@ -101,6 +101,31 @@
         <validationRegExp/>
         <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
       </ldapUserAttributes>
+      <usersAllowedToImport>
+        <cache>0</cache>
+        <customDisplay/>
+        <defaultValue/>
+        <disabled>0</disabled>
+        <displayType>checkbox</displayType>
+        <freeText/>
+        <hint>Use this option to specify who is able to import users from LDAP. By default, this is restricted only to Global admin users.</hint>
+        <largeStorage>0</largeStorage>
+        <multiSelect>1</multiSelect>
+        <name>usersAllowedToImport</name>
+        <number>4</number>
+        <picker>1</picker>
+        <prettyName>Users allowed to import users</prettyName>
+        <relationalStorage>1</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <sort/>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <values>globalAdmin|localAdmin|groupEditor</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </usersAllowedToImport>
     </class>
     <property>
       <addOIDCObject>0</addOIDCObject>
@@ -110,6 +135,9 @@
     </property>
     <property>
       <ldapUserAttributes/>
+    </property>
+    <property>
+      <usersAllowedToImport/>
     </property>
   </object>
   <object>
