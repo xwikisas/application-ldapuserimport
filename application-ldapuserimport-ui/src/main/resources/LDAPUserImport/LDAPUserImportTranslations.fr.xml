@@ -28,6 +28,7 @@
   <translation>1</translation>
   <creator>xwiki:XWiki.Admin</creator>
   <creationDate>1613991921000</creationDate>
+  <parent>WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <date>1613992643000</date>
