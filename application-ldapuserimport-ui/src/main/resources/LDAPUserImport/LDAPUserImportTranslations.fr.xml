@@ -55,8 +55,12 @@ admin.ldapuserimport=Import LDAP
 LDAPUserImport.LDAPUserImportConfigClass_ldapUserAttributes=Champs de recherche LDAP
 LDAPUserImport.LDAPUserImportConfigClass_enableSingleFieldSearch=Recherche par champ
 LDAPUserImport.LDAPUserImportConfigClass_addOIDCObject=Ajouter un objet OIDC
+LDAPUserImport.LDAPUserImportConfigClass_usersAllowedToImport=Utilisateurs étant autorisés à créer des comptes à partir de l'annuaire LDAP
+LDAPUserImport.LDAPUserImportConfigClass_usersAllowedToImport_globalAdmin=Administrateurs globaux
+LDAPUserImport.LDAPUserImportConfigClass_usersAllowedToImport_localAdmin=Administrateurs locaux
+LDAPUserImport.LDAPUserImportConfigClass_usersAllowedToImport_groupEditor=Utilisateurs autorisés à éditer un groupe
 LDAPUserImport.LDAPUserImportConfigClass_ldapUserAttributes.hint=La liste des champs disponibles pour la recherche LDAP. L'administrateur pourra choisir dans quel champ rechercher si l'option "RECHERCHE PAR CHAMP" est activée.
 LDAPUserImport.LDAPUserImportConfigClass_enableSingleFieldSearch.hint=Si cette option est activée, l'administrateur pourra choisir dans quel champ LDAP rechercher. Si elle n'est pas activée la recherche se fera dans tous les champs.
 LDAPUserImport.LDAPUserImportConfigClass_addOIDCObject.hint=Si cette option est activée, si le connecteur OIDC est installé dans le wiki princiapl, un objet OIDC sera ajoutée afin que l'utilisateur soit reconnu lors d'une authentification par ODIC.
-</content>
+LDAPUserImport.LDAPUserImportConfigClass_usersAllowedToImport.hint=Décidez quels sont les utilisateurs autorisés à créer des comptes utilisateurs à partir de l'annuaire LDAP. Par défault, seuls les administrateurs globaux sont autorisés.</content>
 </xwikidoc>

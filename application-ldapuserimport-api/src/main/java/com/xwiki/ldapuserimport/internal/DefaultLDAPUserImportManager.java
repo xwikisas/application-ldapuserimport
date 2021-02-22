@@ -22,7 +22,6 @@ package com.xwiki.ldapuserimport.internal;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -343,23 +342,21 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         try {
             XWikiDocument importConfigDoc = xwiki.getDocument(CONFIGURATION_REFERENCE, context);
             BaseObject importConfigObj = importConfigDoc.getXObject(CONFIGURATION_CLASS_REFERENCE);
-            List<String> values = importConfigObj.getListValue("usersAllowedToImport");
+            String value = importConfigObj.getStringValue("usersAllowedToImport");
 
-            if (values != null) {
-                // Check if the current user has Admin right on the main wiki.
-                if (!values.iterator().hasNext() || values.contains("globalAdmin")) {
-                    hasImport = contextualAuthorizationManager.hasAccess(Right.ADMIN, GLOBAL_PREFERENCES);
-                }
+            // Check if the current user is global admin.
+            if (value.equals("globalAdmin") || StringUtils.isAllEmpty(value)) {
+                hasImport = contextualAuthorizationManager.hasAccess(Right.ADMIN, GLOBAL_PREFERENCES);
+            }
 
-                // Check if the current user has Admin right on the local wiki.
-                if (!hasImport && values.contains("localAdmin")) {
-                    hasImport = contextualAuthorizationManager.hasAccess(Right.ADMIN);
-                }
+            // Check if the current user is local admin.
+            if (!hasImport && value.equals("localAdmin")) {
+                hasImport = contextualAuthorizationManager.hasAccess(Right.ADMIN);
+            }
 
-                // Check if the current user has Edit right on the current group.
-                if (!hasImport && values.contains("groupEditor")) {
-                    hasImport = contextualAuthorizationManager.hasAccess(Right.EDIT);
-                }
+            // Check if the current user has edit right on the current group.
+            if (!hasImport && value.equals("groupEditor")) {
+                hasImport = contextualAuthorizationManager.hasAccess(Right.EDIT);
             }
         } catch (XWikiException e) {
             logger.warn("Failed to get document for reference [{}].", CONFIGURATION_REFERENCE, e);
