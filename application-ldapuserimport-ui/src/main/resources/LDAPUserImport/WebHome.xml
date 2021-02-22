@@ -60,9 +60,9 @@
         <disabled>0</disabled>
         <displayFormType>checkbox</displayFormType>
         <displayType/>
-        <hint/>
+        <hint>If this option is checked, then an OpenID Connect related object will be added in the profile of the new created user, in case any OpenID Connect Authenticator is installed in the main wiki.</hint>
         <name>addOIDCObject</name>
-        <number>7</number>
+        <number>3</number>
         <prettyName>Add OIDC object in user profile</prettyName>
         <unmodifiable>0</unmodifiable>
         <validationMessage/>
@@ -75,7 +75,7 @@
         <disabled>0</disabled>
         <displayFormType>checkbox</displayFormType>
         <displayType/>
-        <hint>If enabled, then a specific field will be able for search in the Import User modal. Default is to search in all the fields defined in the LDAP User Fields property.</hint>
+        <hint>If this option is checked, then a select input will be displayed in the Import User modal, allowing to select and to search only in one LDAP field (e.g.: mail). If the option is not checked, the search will be performed in all the fields defined in the "LDAP USER FIELDS" list.</hint>
         <name>enableSingleFieldSearch</name>
         <number>2</number>
         <prettyName>Enable single field search</prettyName>
@@ -89,7 +89,7 @@
         <customDisplay/>
         <disabled>0</disabled>
         <editor>PureText</editor>
-        <hint/>
+        <hint>The list of the LDAP user fields to be available for custom search. The fields added in this list will be available in the Import User modal only if the "SEARCH BY FIELD" option is checked.</hint>
         <name>ldapUserAttributes</name>
         <number>1</number>
         <picker>1</picker>
