@@ -49,6 +49,8 @@ importUsers.modal.fieldValue.loadingResults=Chargement des résultats ...
 importUsers.modal.user.imported=Utilisateur déjà importé
 importUsers.modal.user.notImported=Utilisateur non importé
 importUsers.modal.user.failedImport=Echec d'importation de l'utilisateur
+importUsers.modal.user.alreadyImported={0} {1} ({2}, {3}) déjà importé dans
+importUsers.modal.user.toImport={0} {1} ({2}, {3}) à importer dans
 
 admin.ldapuserimport=Import LDAP
 
