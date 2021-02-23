@@ -190,6 +190,8 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     private Map<String, Map<String, String>> getUsers(Set<String> fieldsToReturn, PagedLDAPSearchResults result,
         String uidFieldName, Map<String, String> fieldsMap)
     {
+        XWikiContext xcontext = contextProvider.get();
+        XWiki xwiki = xcontext.getWiki();
         SortedMap<String, Map<String, String>> users = new TreeMap<>();
         LDAPEntry resultEntry = null;
         try {
@@ -198,6 +200,8 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 do {
                     String uidFieldValue = getAttributeValue(uidFieldName, resultEntry);
                     if (StringUtils.isNoneBlank(uidFieldValue)) {
+                        DocumentReference userReference =
+                            new DocumentReference(xcontext.getMainXWiki(), XWIKI, uidFieldValue);
                         Map<String, String> user = new HashMap<>();
                         for (String field : fieldsToReturn) {
                             // For first_name=givenName in the LDAP fields mapping, store the LDAP attribute value in
@@ -208,7 +212,15 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                                 user.put(field, getAttributeValue(field, resultEntry));
                             }
                         }
-                        user.put("exists", checkUser(uidFieldValue));
+                        
+                        boolean userExists = xwiki.exists(userReference, xcontext);
+                        String userProfile = userReference.toString();
+                        if (userExists) {
+                            String userProfileURL = xwiki.getURL(userReference, xcontext);
+                            user.put("userProfileURL", userProfileURL);
+                        }
+                        user.put("userProfile", userProfile);
+                        user.put("exists", Boolean.toString(userExists));
                         users.put(uidFieldValue, user);
                     }
                     resultEntry = result.hasMore() ? result.next() : null;
@@ -225,14 +237,6 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             logger.warn(FAILED_TO_GET_RESULTS, e);
         }
         return users;
-    }
-
-    private String checkUser(String uidFieldValue)
-    {
-        XWikiContext xcontext = contextProvider.get();
-        XWiki xwiki = xcontext.getWiki();
-        DocumentReference userReference = new DocumentReference(xcontext.getMainXWiki(), XWIKI, uidFieldValue);
-        return Boolean.toString(xwiki.exists(userReference, xcontext));
     }
 
     private String getAttributeValue(String fieldName, LDAPEntry resultEntry)

@@ -304,16 +304,21 @@
         var resultsList = $('&lt;ul/&gt;').attr({'id': 'usersList'});
         var displayImportButton = false;
         $.each(users, function(index, value) {
-          var displayedText = 'xwiki:' + 'XWiki.' + index + ' [' + value['first_name'] + ' ' + value['last_name'] + ', ' + value['email'] + ']';
-          var mention = 'notImported';
-          var mentionText = "$services.localization.render('importUsers.modal.user.notImported')";
+          var tooltipInfo = '';
+          $.each(value, function(i, v) {
+            if (i !== 'displayMessage')
+            tooltipInfo += i + ' = ' + v + '\n';
+          })
+          var displayedText = value['displayMessage'] + ' ';
+          var itemCSSClass = 'notImported';
           var listItem = $('&lt;li/&gt;');
           // If the user exists, it will be represented as plain text.
           // If the user doesn't exist, it will be represented as a label and a checkbox to be selected for import.
           if (value.exists === 'true') {
-            listItem.text(displayedText);
-            mention = 'imported';
-            mentionText = "$services.localization.render('importUsers.modal.user.imported')";
+            var userProfile = $('&lt;a/&gt;').attr({'href': value['userProfileURL']}).text(value['userProfile']);
+            listItem.html(displayedText);
+            listItem.append(userProfile)
+            itemCSSClass = 'imported';
           } else {
             displayImportButton = true;
             var checkbox = $('&lt;input/&gt;').attr({
@@ -323,14 +328,13 @@
               'value': index
             });
             var label = $('&lt;label/&gt;').attr({
-              'for': index
-            }).text(displayedText);
+              'for': index,
+              'title': tooltipInfo
+            }).text(displayedText + value['userProfile']);
             listItem.append(checkbox);
             listItem.append(label);
           }
-          listItem.attr({'class': mention});
-          var mentionSpan = $('&lt;span/&gt;').text(mentionText);
-          listItem.append(mentionSpan);
+          listItem.attr({'class': itemCSSClass});
           resultsList.append(listItem);
         });
         resultsContainer.html(resultsList);

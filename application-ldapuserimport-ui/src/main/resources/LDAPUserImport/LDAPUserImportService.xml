@@ -52,6 +52,15 @@
       $jsontool.serialize($users)
     #else
       #set ($users = $services.ldapuserimport.getUsers($request.singleField, $request.allFields, $request.searchInput))
+      #foreach ($user in $users.entrySet())
+        #set ($params = [$user.value.first_name, $user.value.last_name, $user.key, $user.value.email])
+        #if ($user.value.exists == true)
+          #set ($message = $services.localization.render('importUsers.modal.user.alreadyImported', $params))
+        #else
+          #set ($message = $services.localization.render('importUsers.modal.user.toImport', $params))
+        #end
+        #set ($user.value.displayMessage = $message)
+      #end
       #set ($statusCode = 200)
       $jsontool.serialize($users)
     #end
