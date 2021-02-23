@@ -197,18 +197,20 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             if (resultEntry != null) {
                 do {
                     String uidFieldValue = getAttributeValue(uidFieldName, resultEntry);
-                    Map<String, String> user = new HashMap<>();
-                    for (String field : fieldsToReturn) {
-                        // For first_name=givenName in the LDAP fields mapping, store the LDAP attribute value in the
-                        // XWiki property name.
-                        if (fieldsMap.containsKey(field)) {
-                            user.put(fieldsMap.get(field), getAttributeValue(field, resultEntry));
-                        } else {
-                            user.put(field, getAttributeValue(field, resultEntry));
+                    if (StringUtils.isNoneBlank(uidFieldValue)) {
+                        Map<String, String> user = new HashMap<>();
+                        for (String field : fieldsToReturn) {
+                            // For first_name=givenName in the LDAP fields mapping, store the LDAP attribute value in
+                            // the XWiki property name.
+                            if (fieldsMap.containsKey(field)) {
+                                user.put(fieldsMap.get(field), getAttributeValue(field, resultEntry));
+                            } else {
+                                user.put(field, getAttributeValue(field, resultEntry));
+                            }
                         }
+                        user.put("exists", checkUser(uidFieldValue));
+                        users.put(uidFieldValue, user);
                     }
-                    user.put("exists", checkUser(uidFieldValue));
-                    users.put(uidFieldValue, user);
                     resultEntry = result.hasMore() ? result.next() : null;
                 } while (resultEntry != null && users.size() <= 20);
             } else {
@@ -235,7 +237,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 
     private String getAttributeValue(String fieldName, LDAPEntry resultEntry)
     {
-        String value = "-";
+        String value = "";
         if (resultEntry.getAttribute(fieldName) != null) {
             value = resultEntry.getAttribute(fieldName).getStringValue();
         }
