@@ -707,7 +707,7 @@ ul#importedUsersList {
           &lt;/div&gt;
           &lt;div class="modal-body"&gt;
             &lt;dl&gt;
-              #if ($configObj.getValue('enableSingleFieldSearch') == 1 &amp;&amp; $allFields.size() &gt; 0)
+              #if ($configObj.getValue('enableSingleFieldSearch') == 1 &amp;&amp; "$!allFields" != '')
                 &lt;dt&gt;
                   &lt;label for="importUserModal-userField"&gt;
                     $services.localization.render('importUsers.modal.field.label')
