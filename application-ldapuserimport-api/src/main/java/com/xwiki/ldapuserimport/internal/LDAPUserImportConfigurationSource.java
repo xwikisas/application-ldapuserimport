@@ -43,7 +43,7 @@ public class LDAPUserImportConfigurationSource extends AbstractXWikiPreferencesC
     @Override
     protected String getCacheId()
     {
-        return "configuration.ldapuserimport.wiki";
+        return getCacheKeyPrefix() + ".configuration.ldapuserimport.wiki";
     }
 
     @Override
