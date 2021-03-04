@@ -254,8 +254,8 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         XWikiLDAPConfig configuration = new XWikiLDAPConfig(null, configurationSource);
         XWikiLDAPConnection connection = new XWikiLDAPConnection(configuration);
         XWikiLDAPUtils ldapUtils = new XWikiLDAPUtils(connection, configuration);
-        String loginDN = configuration.getLDAPBindDN();
-        String password = configuration.getLDAPBindPassword();
+        ldapUtils.setUidAttributeName(configuration.getLDAPParam(LDAP_UID_ATTR, CN));
+        ldapUtils.setBaseDN(configuration.getLDAPParam(LDAP_BASE_DN, ""));
         XWikiContext context = contextProvider.get();
         XWiki xwiki = context.getWiki();
         String currentWikiId = context.getWikiId();
@@ -263,7 +263,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         try {
             // Make sure to create users in the main wiki.
             context.setWikiId(context.getMainXWiki());
-            connection.open(loginDN, password, context);
+            connection.open(configuration.getLDAPBindDN(), configuration.getLDAPBindPassword(), context);
 
             SortedMap<String, String> users = new TreeMap<>();
 
@@ -272,7 +272,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 try {
                     XWikiDocument userDoc = ldapUtils.getUserProfileByUid(user, user, context);
                     DocumentReference userDocRef = userDoc.getDocumentReference();
-                    ldapUtils.syncUser(userDoc, null, loginDN, userDocRef.getName(), context);
+                    ldapUtils.syncUser(userDoc, null, ldapUtils.searchUserDNByUid(user), userDocRef.getName(), context);
 
                     // Make sure to get the latest version of the document, after LDAP synchronization.
                     userDoc = xwiki.getDocument(userDocRef, context);
