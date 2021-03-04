@@ -317,7 +317,7 @@
           if (value.exists === 'true') {
             var userProfile = $('&lt;a/&gt;').attr({'href': value['userProfileURL']}).text(value['userProfile']);
             listItem.html(displayedText);
-            listItem.append(userProfile)
+            listItem.append(userProfile);
             itemCSSClass = 'imported';
           } else {
             displayImportButton = true;
@@ -356,11 +356,11 @@
       } else {
         var resultsList = $('&lt;ul/&gt;').attr({'id': 'importedUsersList'});
         $.each(users, function(index, value) {
+          var displayedText = value['displayMessage'] + ' ';
+          var userProfile = $('&lt;a/&gt;').attr({'href': value['userProfileURL']}).text(value['userProfile']);
           var listItem = $('&lt;li/&gt;');
-          var userLink = $('&lt;a/&gt;').attr({
-            'href': value
-          }).text(index);
-          listItem.append(userLink);
+          listItem.html(displayedText);
+          listItem.append(userProfile);
           resultsList.append(listItem);
           resultsContainer.html(resultsList);
         });

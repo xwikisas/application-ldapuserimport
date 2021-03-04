@@ -64,7 +64,7 @@ public class LDAPUserImportScriptService implements ScriptService
      * @param addOIDCObj whether to add or not the OIDC object in user profile
      * @return a map of imported user profiles and URLs
      */
-    public Map<String, String> importUsers(String[] usersList, String groupName, boolean addOIDCObj)
+    public Map<String, Map<String, String>> importUsers(String[] usersList, String groupName, boolean addOIDCObj)
     {
         if (hasImport()) {
             return manager.importUsers(usersList, groupName, addOIDCObj);

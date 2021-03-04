@@ -48,6 +48,11 @@
     #set ($statusCode = 500)
     #if ($request.action == 'import')
       #set ($users = $services.ldapuserimport.importUsers($request.parameterMap.user, $request.groupReference, $request.addOIDCObj))
+      #foreach ($user in $users.entrySet())
+        #set ($params = [$user.value.first_name, $user.value.last_name, $user.key, $user.value.email])
+        #set ($message = $services.localization.render('importUsers.modal.user.created', $params))
+        #set ($user.value.displayMessage = $message)
+      #end
       #set ($statusCode = 200)
       $jsontool.serialize($users)
     #else

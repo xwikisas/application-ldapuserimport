@@ -48,7 +48,7 @@ public interface LDAPUserImportManager
      * @param addOIDCObj whether to add or not the OIDC object in user profile
      * @return a map of imported user profiles and URLs
      */
-    Map<String, String> importUsers(String[] usersList, String groupName, boolean addOIDCObj);
+    Map<String, Map<String, String>> importUsers(String[] usersList, String groupName, boolean addOIDCObj);
 
     /**
      * Check if the current user is allowed to import users.
