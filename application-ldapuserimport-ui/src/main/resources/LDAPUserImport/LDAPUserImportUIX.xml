@@ -288,10 +288,12 @@
     </property>
     <property>
       <code>require(['jquery'], function ($) {
+  var isInEditGroupModal = false;
   // Set the groupReference value when accessing the edit group modal.
   $('#groupstable').on('click', '.actionedit', function() {
     var groupReference = $(this).closest('tr').find('.group').data('reference');
     $("#importUsersModal input[name='groupReference']").val(groupReference);
+    isInEditGroupModal = true;
   });
   var importUsersServiceDoc = new XWiki.Document('LDAPUserImportService', 'LDAPUserImport');
   var resultsContainer = $('#searchResults');
@@ -380,6 +382,21 @@
         });
         // Hide the Import button, after import was performed.
         $('#importButton').addClass('hidden');
+
+        // Make sure to update the current livetable to see new users.
+        $('#importUsersModal').on('click', "[data-dismiss='modal']", function() {
+          var livetable = window['livetable_' + $('.xwiki-livetable').attr('id')];
+          if ($.type(livetable) !== 'undefined') {
+            livetable.refresh();
+          } else {
+            // For the Group page.
+            editgrouptable.refresh();
+          }
+          // Display back the edit group modal, if exists.
+          if (isInEditGroupModal === true) {
+            $('#editGroupModal').modal('show');
+          }
+        });
       }
     });
   });
@@ -777,7 +794,8 @@ ul#importedUsersList {
 
 {{velocity}}
 #if ($services.ldapuserimport.hasImport())
-  #if ($doc.fullName == 'XWiki.AdminUsersSheet' || $doc.getObjects('XWiki.XWikiGroups').size() &gt; 0 ||
+  #if ($doc.fullName == 'XWiki.AdminUsersSheet' || $doc.fullName == 'XWiki.AdminGroupsSheet' ||
+    $doc.getObjects('XWiki.XWikiGroups').size() &gt; 0 ||
     ($doc.fullName == 'XWiki.XWikiPreferences' &amp;&amp; ($request.section == 'Users' || $request.section == 'Groups')))
     #set ($discard = $xwiki.jsx.use('LDAPUserImport.LDAPUserImportUIX'))
     #set ($discard = $xwiki.ssx.use('LDAPUserImport.LDAPUserImportUIX'))
