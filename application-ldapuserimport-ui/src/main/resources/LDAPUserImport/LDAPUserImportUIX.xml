@@ -139,27 +139,34 @@
     'data-target': '#importUsersModal'
   });
   importUsersButton.text("$services.localization.render('importUsers.title')");
+
   /*
    * Append the Import User button in several needed places.
-   * 1. In any Group page, under the livetable.
-   * 2. In any Group's pop-up edit modal, next to the Add(member) button.
-   * 3. In the Groups administration section, next to Create Group button.
-   * 4. In the Users administration section, next to Create User button, in the main wiki.
-   * 5. In the Users administration section, next to Add and Invite buttons, in any subwiki.
+   * 1. In any Group page, view mode, above the livetable.
+   */
+   $('#groupusers').closest('#xwikicontent').prepend(importUsersButton);
+
+  /*
+   * Append the Import User button in several needed places.
+   * 1. In the Groups administration section, next to Create Group button.
+   * 2. In the Users administration section, next to Create User button, in the main wiki.
+   * 3. In the Users administration section, next to Add and Invite buttons, in any subwiki.
    */
   $.each([
     $("button[data-target^='#create'][data-target$='Modal']"),
-    $('#groupusers'),
     $('#inviteUserButton')],
     function() {
       $(this).parent().append(importUsersButton);
     }
   );
-  // The only case not covered in the above code is 2. In any Group's pop-up edit modal, next to the Add(member) button.
-  $(document).on('xwiki:dom:updated', function() {
-    // Instead of displaying the Add User form on full modal width, split the width in 2 columns to also add the Import
-    // User button.
-    var editForm = $('#editGroupModal form');
+  /*
+   * Append the Import User button in several needed places.
+   * 1. In any Group page, edit mode, splitting the screen in 2, sharing width with Add members form.
+   * 2. In any Group's pop-up edit modal,  splitting the screen in 2, sharing width with Add members form.
+   */
+
+  var updateAddMembersForm = function() {
+    var editForm = $('#addMembers').closest('.xform');
     editForm.wrap("&lt;div class='row'&gt;&lt;/div&gt;").addClass('col-sm-6');
     var importSection = $('&lt;div/&gt;').attr({'class': 'col-sm-6'});
     var importInfo = $('&lt;p/&gt;').attr({'class': 'importInfo'});
@@ -169,6 +176,13 @@
     var importUsersButtonClone = importUsersButton.clone();
     importSection.append(importUsersButtonClone);
     editForm.parent().append(importSection);
+  };
+
+  updateAddMembersForm();
+
+  // Update Add members form in edit group modal;
+  $(document).on('xwiki:dom:updated', function() {
+    updateAddMembersForm();
   });
   // Hide the Edit Group modal, when using the Import Users feature.
   $('#editGroupModal').on('click', '#importUserButton', function() {
@@ -522,7 +536,8 @@ ul#importedUsersList {
   font-weight: bold;
   margin-bottom: 0.3em;
 }
-#editGroupModal form.col-sm-6 {
+#editGroupModal form.col-sm-6,
+#inline .xform.col-sm-6 {
   border-right: 1px solid #e5e5e5;
 }
 .glyphicon.normal-right-spinner {
