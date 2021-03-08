@@ -166,16 +166,18 @@
    */
 
   var updateAddMembersForm = function() {
-    var editForm = $('#addMembers').closest('.xform');
-    editForm.wrap("&lt;div class='row'&gt;&lt;/div&gt;").addClass('col-sm-6');
-    var importSection = $('&lt;div/&gt;').attr({'class': 'col-sm-6'});
-    var importInfo = $('&lt;p/&gt;').attr({'class': 'importInfo'});
-    importInfo.text("$services.localization.render('importUsers.info')");
-    importSection.append(importInfo);
-    // The same element cannot be appended in different places.
-    var importUsersButtonClone = importUsersButton.clone();
-    importSection.append(importUsersButtonClone);
-    editForm.parent().append(importSection);
+    var editForm = $('#addMembers').closest('.xform').not('#inviteUserForm');
+    if (editForm.size() &gt; 0) {
+      editForm.wrap("&lt;div class='row'&gt;&lt;/div&gt;").addClass('col-sm-6');
+      var importSection = $('&lt;div/&gt;').attr({'class': 'col-sm-6'});
+      var importInfo = $('&lt;p/&gt;').attr({'class': 'importInfo'});
+      importInfo.text("$services.localization.render('importUsers.info')");
+      importSection.append(importInfo);
+      // The same element cannot be appended in different places.
+      var importUsersButtonClone = importUsersButton.clone();
+      importSection.append(importUsersButtonClone);
+      editForm.parent().append(importSection);
+    }
   };
 
   updateAddMembersForm();
