@@ -172,7 +172,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         Map<String, String> fieldsMap = new HashMap<>();
 
         String uidFieldName = configuration.getLDAPParam(LDAP_UID_ATTR, CN);
-        fieldsMap.put("uid", uidFieldName);
+        fieldsMap.put(uidFieldName, "uid");
         for (String pair : getFieldMapping(configuration)) {
             String[] parts = pair.split(EQUAL_STRING);
             // From first_name=givenName, store key=givenName and value=first_name.
@@ -399,7 +399,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         XWikiDocument groupDocument = xwiki.getDocument(groupReference, context);
         for (Entry<String, Map<String, String>> user : users.entrySet()) {
             BaseObject memberObject = groupDocument.newXObject(GROUP_CLASS_REFERENCE, context);
-            memberObject.setStringValue("member", user.getKey());
+            memberObject.setStringValue("member", user.getValue().get(USER_PROFILE_KEY));
             xwiki.saveDocument(groupDocument, context);
         }
     }
