@@ -449,7 +449,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         return hasImport;
     }
 
-    public ConfigurationSource getConfigurationSource()
+    private ConfigurationSource getConfigurationSource()
     {
         if (componentManagerProvider.get().hasComponent(ConfigurationSource.class, ACTIVE_DIRECTORY_HINT)) {
             return activeDirectoryConfigurationSource;
