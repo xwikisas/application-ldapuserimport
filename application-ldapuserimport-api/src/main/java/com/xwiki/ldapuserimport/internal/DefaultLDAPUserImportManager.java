@@ -301,12 +301,11 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     }
 
     private Map<String, String> getUserDetails(String[] attributeNameTable, Map<String, String> fieldsMap,
-        List<XWikiLDAPSearchAttribute> attributes, XWikiDocument userDoc, XWikiContext context)
+        List<XWikiLDAPSearchAttribute> attributes, DocumentReference userReference, XWikiContext context)
     {
         Map<String, String> user = new HashMap<>();
-        DocumentReference userDocRef = userDoc.getDocumentReference();
-        user.put(USER_PROFILE_URL_KEY, context.getWiki().getURL(userDocRef, context));
-        user.put(USER_PROFILE_KEY, userDocRef.toString());
+        user.put(USER_PROFILE_URL_KEY, context.getWiki().getURL(userReference, context));
+        user.put(USER_PROFILE_KEY, userReference.toString());
         for (XWikiLDAPSearchAttribute attribute : attributes) {
             String value = attribute.value;
             String name = attribute.name;
@@ -351,11 +350,11 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             String[] attributeNameTable = getAttributeNameTable(configuration);
             for (String user : usersList) {
                 XWikiDocument userDoc = ldapUtils.getUserProfileByUid(user, user, context);
-                DocumentReference userDocRef = userDoc.getDocumentReference();
-                ldapUtils.syncUser(userDoc, null, ldapUtils.searchUserDNByUid(user), userDocRef.getName(), context);
+                DocumentReference userReference = userDoc.getDocumentReference();
+                ldapUtils.syncUser(userDoc, null, ldapUtils.searchUserDNByUid(user), userReference.getName(), context);
 
                 // Make sure to get the latest version of the document, after LDAP synchronization.
-                userDoc = context.getWiki().getDocument(userDocRef, context);
+                userDoc = context.getWiki().getDocument(userReference, context);
 
                 if (addOIDCObj && oIDCClassExists) {
                     addOIDCObject(userDoc, user, context);
@@ -363,7 +362,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 List<XWikiLDAPSearchAttribute> attributes =
                     ldapUtils.searchUserAttributesByUid(user, attributeNameTable);
                 Map<String, String> userMap =
-                    getUserDetails(attributeNameTable, getFieldsMap(configuration), attributes, userDoc, context);
+                    getUserDetails(attributeNameTable, getFieldsMap(configuration), attributes, userReference, context);
 
                 users.put(user, userMap);
             }
