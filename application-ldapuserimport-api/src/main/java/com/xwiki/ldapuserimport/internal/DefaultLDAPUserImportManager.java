@@ -30,12 +30,14 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.contrib.ldap.PagedLDAPSearchResults;
 import org.xwiki.contrib.ldap.XWikiLDAPConfig;
@@ -67,6 +69,8 @@ import com.xwiki.ldapuserimport.LDAPUserImportManager;
 @Singleton
 public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 {
+    private static final String ACTIVE_DIRECTORY_HINT = "activedirectory";
+
     private static final String USER_PROFILE_KEY = "userProfile";
 
     private static final String USER_PROFILE_URL_KEY = "userProfileURL";
@@ -108,6 +112,14 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     private ConfigurationSource configurationSource;
 
     @Inject
+    @Named(ACTIVE_DIRECTORY_HINT)
+    private ConfigurationSource activeDirectoryConfigurationSource;
+
+    @Inject
+    @Named("context")
+    private Provider<ComponentManager> componentManagerProvider;
+
+    @Inject
     private ContextualAuthorizationManager contextualAuthorizationManager;
 
     @Inject
@@ -130,7 +142,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         // Make sure to use the main wiki configuration source.
         context.setWikiId(context.getMainXWiki());
 
-        XWikiLDAPConfig configuration = new XWikiLDAPConfig(null, configurationSource);
+        XWikiLDAPConfig configuration = new XWikiLDAPConfig(null, getConfigurationSource());
         String uidFieldName = configuration.getLDAPParam(LDAP_UID_ATTR, CN);
         XWikiLDAPConnection connection = new XWikiLDAPConnection(configuration);
         String loginDN = configuration.getLDAPBindDN();
@@ -324,7 +336,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         // Make sure to use the main wiki configuration source.
         context.setWikiId(context.getMainXWiki());
 
-        XWikiLDAPConfig configuration = new XWikiLDAPConfig(null, configurationSource);
+        XWikiLDAPConfig configuration = new XWikiLDAPConfig(null, getConfigurationSource());
         XWikiLDAPConnection connection = new XWikiLDAPConnection(configuration);
         XWikiLDAPUtils ldapUtils = new XWikiLDAPUtils(connection, configuration);
         ldapUtils.setUidAttributeName(configuration.getLDAPParam(LDAP_UID_ATTR, CN));
@@ -435,5 +447,14 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             return false;
         }
         return hasImport;
+    }
+
+    public ConfigurationSource getConfigurationSource()
+    {
+        if (componentManagerProvider.get().hasComponent(ConfigurationSource.class, ACTIVE_DIRECTORY_HINT)) {
+            return activeDirectoryConfigurationSource;
+        }
+
+        return configurationSource;
     }
 }
