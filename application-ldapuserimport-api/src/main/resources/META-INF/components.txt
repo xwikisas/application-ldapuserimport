@@ -1,3 +1,2 @@
 com.xwiki.ldapuserimport.script.LDAPUserImportScriptService
 com.xwiki.ldapuserimport.internal.DefaultLDAPUserImportManager
-com.xwiki.ldapuserimport.internal.LDAPUserImportConfigurationSource
