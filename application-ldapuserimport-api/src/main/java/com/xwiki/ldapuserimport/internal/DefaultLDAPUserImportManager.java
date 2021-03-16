@@ -37,6 +37,7 @@ import javax.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.configuration.ConfigurationSource;
 import org.xwiki.contrib.ldap.PagedLDAPSearchResults;
@@ -69,8 +70,6 @@ import com.xwiki.ldapuserimport.LDAPUserImportManager;
 @Singleton
 public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 {
-    private static final String ACTIVE_DIRECTORY_HINT = "activedirectory";
-
     private static final String USER_PROFILE_KEY = "userProfile";
 
     private static final String USER_PROFILE_URL_KEY = "userProfileURL";
@@ -110,10 +109,6 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 
     @Inject
     private ConfigurationSource configurationSource;
-
-    @Inject
-    @Named(ACTIVE_DIRECTORY_HINT)
-    private ConfigurationSource activeDirectoryConfigurationSource;
 
     @Inject
     @Named("context")
@@ -450,10 +445,15 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 
     private ConfigurationSource getConfigurationSource()
     {
-        if (componentManagerProvider.get().hasComponent(ConfigurationSource.class, ACTIVE_DIRECTORY_HINT)) {
-            return activeDirectoryConfigurationSource;
+        String activeDirectoryHint = "activedirectory";
+        if (componentManagerProvider.get().hasComponent(ConfigurationSource.class, activeDirectoryHint)) {
+            try {
+                return componentManagerProvider.get().getInstance(ConfigurationSource.class, activeDirectoryHint);
+            } catch (ComponentLookupException e) {
+                logger.error("Failed to get [{}] configuration source. Using the default LDAP configuration source",
+                    activeDirectoryHint, e);
+            }
         }
-
         return configurationSource;
     }
 }
