@@ -55,7 +55,6 @@ import org.xwiki.security.authorization.Right;
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
-import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -388,11 +387,10 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
      */
     private void addOIDCObject(XWikiDocument userDoc, String subject, XWikiContext context)
     {
-        XWiki xwiki = context.getWiki();
         try {
             BaseObject oIDCObj = userDoc.newXObject(OIDC_CLASS, context);
             oIDCObj.setStringValue("subject", subject);
-            xwiki.saveDocument(userDoc, "OIDC user object added.", context);
+            context.getWiki().saveDocument(userDoc, "OIDC user object added.", context);
         } catch (XWikiException e) {
             logger.warn("Failed to attach OIDC object of [{}] type to the [{}] user profile.", OIDC_CLASS, userDoc, e);
         }
@@ -401,13 +399,12 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     private void addUsersInGroup(String groupName, SortedMap<String, Map<String, String>> users) throws XWikiException
     {
         XWikiContext context = contextProvider.get();
-        XWiki xwiki = context.getWiki();
         DocumentReference groupReference = documentReferenceResolver.resolve(groupName);
-        XWikiDocument groupDocument = xwiki.getDocument(groupReference, context);
+        XWikiDocument groupDocument = context.getWiki().getDocument(groupReference, context);
         for (Entry<String, Map<String, String>> user : users.entrySet()) {
             BaseObject memberObject = groupDocument.newXObject(GROUP_CLASS_REFERENCE, context);
             memberObject.setStringValue("member", user.getValue().get(USER_PROFILE_KEY));
-            xwiki.saveDocument(groupDocument, context);
+            context.getWiki().saveDocument(groupDocument, context);
         }
     }
 
@@ -415,10 +412,9 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     public boolean hasImport()
     {
         XWikiContext context = contextProvider.get();
-        XWiki xwiki = context.getWiki();
         boolean hasImport = false;
         try {
-            XWikiDocument importConfigDoc = xwiki.getDocument(CONFIGURATION_REFERENCE, context);
+            XWikiDocument importConfigDoc = context.getWiki().getDocument(CONFIGURATION_REFERENCE, context);
             BaseObject importConfigObj = importConfigDoc.getXObject(CONFIGURATION_CLASS_REFERENCE);
             String value = importConfigObj.getStringValue("usersAllowedToImport");
 
