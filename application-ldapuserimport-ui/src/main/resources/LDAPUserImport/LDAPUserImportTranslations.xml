@@ -63,7 +63,8 @@ LDAPUserImport.LDAPUserImportConfigClass_usersAllowedToImport_groupEditor=Users 
 LDAPUserImport.LDAPUserImportConfigClass_ldapUserAttributes.hint=The list of the LDAP user fields to be available for custom search. The fields added in this list will be available in the Import User modal only if the "SEARCH BY FIELD" option is checked.
 LDAPUserImport.LDAPUserImportConfigClass_enableSingleFieldSearch.hint=If this option is checked, then a select input will be displayed in the Import User modal, allowing to select and to search only in one LDAP field (e.g.: mail). If the option is not checked, the search will be performed in all the fields defined in the "LDAP USER FIELDS" list.
 LDAPUserImport.LDAPUserImportConfigClass_addOIDCObject.hint=If this option is checked, then an OpenID Connect related object will be added in the profile of the new created user, in case any OpenID Connect Authenticator is installed in the main wiki.
-LDAPUserImport.LDAPUserImportConfigClass_usersAllowedToImport.hint=Use this option to specify who is able to import users from LDAP. By default, this is restricted only to Global admin users.</content>
+LDAPUserImport.LDAPUserImportConfigClass_usersAllowedToImport.hint=Use this option to specify who is able to import users from LDAP. By default, this is restricted only to Global admin users.
+LDAPUserImport.LDAPUserImportConfigClass_pageNameFormatter.hint=The XWiki page name pattern. Default value is ${uid}, see the documentation for more details.</content>
   <object>
     <name>LDAPUserImport.LDAPUserImportTranslations</name>
     <number>0</number>

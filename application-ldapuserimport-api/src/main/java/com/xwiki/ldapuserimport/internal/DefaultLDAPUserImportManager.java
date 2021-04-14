@@ -19,6 +19,7 @@
  */
 package com.xwiki.ldapuserimport.internal;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -69,6 +70,10 @@ import com.xwiki.ldapuserimport.LDAPUserImportManager;
 @Singleton
 public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 {
+    private static final String LDAP_FIELDS_MAPPING = "ldap_fields_mapping";
+
+    private static final String UID = "uid";
+
     private static final String USER_PROFILE_KEY = "userProfile";
 
     private static final String USER_PROFILE_URL_KEY = "userProfileURL";
@@ -136,8 +141,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         // Make sure to use the main wiki configuration source.
         context.setWikiId(context.getMainXWiki());
 
-        XWikiLDAPConfig configuration = new XWikiLDAPConfig(null, getConfigurationSource());
-        String uidFieldName = configuration.getLDAPParam(LDAP_UID_ATTR, CN);
+        XWikiLDAPConfig configuration = getConfiguration();
         XWikiLDAPConnection connection = new XWikiLDAPConnection(configuration);
         String loginDN = configuration.getLDAPBindDN();
         String password = configuration.getLDAPBindPassword();
@@ -147,8 +151,6 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             String base = configuration.getLDAPParam(LDAP_BASE_DN, "");
 
             String[] attributeNameTable = getAttributeNameTable(configuration);
-
-            Map<String, String> fieldsMap = getFieldsMap(configuration);
 
             StringBuilder filter;
             if (StringUtils.isNoneBlank(singleField)) {
@@ -162,7 +164,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             PagedLDAPSearchResults result = connection.searchPaginated(base, LDAPConnection.SCOPE_SUB,
                 filter.toString(), attributeNameTable, false);
             if (result.hasMore()) {
-                return getUsers(attributeNameTable, result, uidFieldName, fieldsMap, context);
+                return getUsers(configuration, connection, result, context);
             } else {
                 logger.warn("There are no result for base dn: [{}], search scope: [{}], filter: [{}], fields: [{}]",
                     base, LDAPConnection.SCOPE_SUB, filter.toString(), attributeNameTable);
@@ -179,13 +181,23 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         return null;
     }
 
+    private XWikiLDAPConfig getConfiguration()
+    {
+        XWikiLDAPConfig configuration = new XWikiLDAPConfig(null, getConfigurationSource());
+        setPageNameFormatter(configuration);
+        if (StringUtils.isBlank(configuration.getLDAPParam(LDAP_FIELDS_MAPPING, null))) {
+            configuration.setFinalProperty(LDAP_FIELDS_MAPPING, "first_name=givenName,last_name=sn,email=mail");
+        }
+        return configuration;
+    }
+
     private Map<String, String> getFieldsMap(XWikiLDAPConfig configuration)
     {
         Map<String, String> fieldsMap = new HashMap<>();
 
         String uidFieldName = configuration.getLDAPParam(LDAP_UID_ATTR, CN);
-        fieldsMap.put(uidFieldName, "uid");
-        for (String pair : getFieldMapping(configuration)) {
+        fieldsMap.put(uidFieldName, UID);
+        for (String pair : configuration.getLDAPParam(LDAP_FIELDS_MAPPING, null).split(FIELDS_SEPARATOR)) {
             String[] parts = pair.split(EQUAL_STRING);
             // From first_name=givenName, store key=givenName and value=first_name.
             fieldsMap.put(parts[1], parts[0]);
@@ -195,26 +207,19 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 
     private String[] getAttributeNameTable(XWikiLDAPConfig configuration)
     {
-        Set<String> fieldsToReturn = new HashSet<>();
+        Set<String> attributesNameTable = new HashSet<>();
 
         // Make sure to add the UID field, to get its value in the PagedLDAPSearchResult.
         String uidFieldName = configuration.getLDAPParam(LDAP_UID_ATTR, CN);
-        fieldsToReturn.add(uidFieldName);
+        attributesNameTable.add(uidFieldName);
 
         // Make sure to also add all the mapped fields, to get their values in the PagedLDAPSearchResult.
-        for (String pair : getFieldMapping(configuration)) {
+        for (String pair : configuration.getLDAPParam(LDAP_FIELDS_MAPPING, null).split(FIELDS_SEPARATOR)) {
             String[] parts = pair.split(EQUAL_STRING);
             // From first_name=givenName, store key=givenName and value=first_name.
-            fieldsToReturn.add(parts[1]);
+            attributesNameTable.add(parts[1]);
         }
-        return fieldsToReturn.toArray(new String[fieldsToReturn.size()]);
-    }
-
-    private String[] getFieldMapping(XWikiLDAPConfig configuration)
-    {
-        String ldapFieldsMapping =
-            configuration.getLDAPParam("ldap_fields_mapping", "first_name=givenName,last_name=sn,email=mail");
-        return ldapFieldsMapping.split(FIELDS_SEPARATOR);
+        return attributesNameTable.toArray(new String[attributesNameTable.size()]);
     }
 
     /**
@@ -236,25 +241,22 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         return filter;
     }
 
-    private Map<String, Map<String, String>> getUsers(String[] attributeNameTable, PagedLDAPSearchResults result,
-        String uidFieldName, Map<String, String> fieldsMap, XWikiContext context)
+    private Map<String, Map<String, String>> getUsers(XWikiLDAPConfig configuration, XWikiLDAPConnection connection,
+        PagedLDAPSearchResults result, XWikiContext context)
     {
+        XWikiLDAPUtils ldapUtils = new XWikiLDAPUtils(connection, configuration);
+        String uidFieldName = configuration.getLDAPParam(LDAP_UID_ATTR, CN);
+        ldapUtils.setUidAttributeName(uidFieldName);
+        ldapUtils.setBaseDN(configuration.getLDAPParam(LDAP_BASE_DN, ""));
         SortedMap<String, Map<String, String>> users = new TreeMap<>();
         LDAPEntry resultEntry = null;
         try {
             resultEntry = result.next();
             if (resultEntry != null) {
                 do {
-                    String uidFieldValue = getAttributeValue(uidFieldName, resultEntry);
-                    if (StringUtils.isNoneBlank(uidFieldValue)) {
-                        DocumentReference userReference =
-                            new DocumentReference(context.getWikiId(), XWIKI, uidFieldValue);
-
-                        Map<String, String> user =
-                            getUserDetails(attributeNameTable, fieldsMap, resultEntry, userReference, context);
-
-                        users.put(uidFieldValue, user);
-                    }
+                    Map<String, String> user =
+                        getUserDetails(connection, configuration, ldapUtils, context, uidFieldName, resultEntry);
+                    users.put(user.get(UID), user);
                     resultEntry = result.hasMore() ? result.next() : null;
                 } while (resultEntry != null && users.size() <= 20);
             } else {
@@ -271,35 +273,33 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         return users;
     }
 
-    private Map<String, String> getUserDetails(String[] attributeNameTable, Map<String, String> fieldsMap,
-        LDAPEntry resultEntry, DocumentReference userReference, XWikiContext context)
+    private Map<String, String> getUserDetails(XWikiLDAPConnection connection, XWikiLDAPConfig configuration,
+        XWikiLDAPUtils ldapUtils, XWikiContext context, String uidFieldName, LDAPEntry resultEntry)
+    {
+        String uidFieldValue = getAttributeValue(uidFieldName, resultEntry);
+        if (StringUtils.isNoneBlank(uidFieldValue)) {
+            List<XWikiLDAPSearchAttribute> searchAttributeList = new ArrayList<>();
+            connection.ldapToXWikiAttribute(searchAttributeList, resultEntry.getAttributeSet());
+            String userPageName = ldapUtils.getUserPageName(searchAttributeList, context);
+            DocumentReference userReference = new DocumentReference(MAIN_WIKI_NAME, XWIKI, userPageName);
+            return getUserDetails(configuration, searchAttributeList, userReference, context);
+        }
+        return null;
+    }
+
+    private Map<String, String> getUserDetails(XWikiLDAPConfig configuration, List<XWikiLDAPSearchAttribute> attributes,
+        DocumentReference userReference, XWikiContext context)
     {
         Map<String, String> user = new HashMap<>();
         boolean userExists = context.getWiki().exists(userReference, context);
         if (userExists) {
-            String userProfileURL = context.getWiki().getURL(userReference, context);
-            user.put(USER_PROFILE_URL_KEY, userProfileURL);
+            user.put(USER_PROFILE_URL_KEY, context.getWiki().getURL(userReference, context));
         }
         user.put(USER_PROFILE_KEY, userReference.toString());
         user.put("exists", Boolean.toString(userExists));
 
-        for (String field : attributeNameTable) {
-            String value = getAttributeValue(field, resultEntry);
-            if (fieldsMap.containsKey(field)) {
-                user.put(fieldsMap.get(field), value);
-            } else {
-                user.put(field, value);
-            }
-        }
-        return user;
-    }
+        Map<String, String> fieldsMap = getFieldsMap(configuration);
 
-    private Map<String, String> getUserDetails(String[] attributeNameTable, Map<String, String> fieldsMap,
-        List<XWikiLDAPSearchAttribute> attributes, DocumentReference userReference, XWikiContext context)
-    {
-        Map<String, String> user = new HashMap<>();
-        user.put(USER_PROFILE_URL_KEY, context.getWiki().getURL(userReference, context));
-        user.put(USER_PROFILE_KEY, userReference.toString());
         for (XWikiLDAPSearchAttribute attribute : attributes) {
             String value = attribute.value;
             String name = attribute.name;
@@ -329,7 +329,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         // Make sure to use the main wiki configuration source.
         context.setWikiId(context.getMainXWiki());
 
-        XWikiLDAPConfig configuration = new XWikiLDAPConfig(null, getConfigurationSource());
+        XWikiLDAPConfig configuration = getConfiguration();
         XWikiLDAPConnection connection = new XWikiLDAPConnection(configuration);
         XWikiLDAPUtils ldapUtils = new XWikiLDAPUtils(connection, configuration);
         ldapUtils.setUidAttributeName(configuration.getLDAPParam(LDAP_UID_ATTR, CN));
@@ -343,20 +343,17 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             boolean oIDCClassExists = context.getWiki().exists(OIDC_CLASS, context);
             String[] attributeNameTable = getAttributeNameTable(configuration);
             for (String user : usersList) {
-                XWikiDocument userDoc = ldapUtils.getUserProfileByUid(user, user, context);
-                DocumentReference userReference = userDoc.getDocumentReference();
-                ldapUtils.syncUser(userDoc, null, ldapUtils.searchUserDNByUid(user), userReference.getName(), context);
-
-                // Make sure to get the latest version of the document, after LDAP synchronization.
-                userDoc = context.getWiki().getDocument(userReference, context);
+                List<XWikiLDAPSearchAttribute> attributes =
+                    ldapUtils.searchUserAttributesByUid(user, attributeNameTable);
+                XWikiDocument userDoc =
+                    ldapUtils.syncUser(null, attributes, ldapUtils.searchUserDNByUid(user), user, context);
 
                 if (addOIDCObj && oIDCClassExists) {
                     addOIDCObject(userDoc, user, context);
                 }
-                List<XWikiLDAPSearchAttribute> attributes =
-                    ldapUtils.searchUserAttributesByUid(user, attributeNameTable);
+
                 Map<String, String> userMap =
-                    getUserDetails(attributeNameTable, getFieldsMap(configuration), attributes, userReference, context);
+                    getUserDetails(configuration, attributes, userDoc.getDocumentReference(), context);
 
                 users.put(user, userMap);
             }
@@ -373,6 +370,22 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             context.setWikiId(currentWikiId);
         }
         return null;
+    }
+
+    private void setPageNameFormatter(XWikiLDAPConfig configuration)
+    {
+        XWikiContext context = contextProvider.get();
+        XWikiDocument importConfigDoc;
+        try {
+            importConfigDoc = context.getWiki().getDocument(CONFIGURATION_REFERENCE, context);
+            BaseObject importConfigObj = importConfigDoc.getXObject(CONFIGURATION_CLASS_REFERENCE);
+            String pageNameFormatter = importConfigObj.getStringValue("pageNameFormatter");
+            if (StringUtils.isNoneBlank(pageNameFormatter)) {
+                configuration.setFinalProperty("ldap_userPageName", pageNameFormatter);
+            }
+        } catch (XWikiException e) {
+            logger.warn("Failed to get LDAP Import configuration document [{}].", CONFIGURATION_REFERENCE, e);
+        }
     }
 
     /**

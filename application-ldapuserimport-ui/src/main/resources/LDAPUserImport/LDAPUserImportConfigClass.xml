@@ -102,6 +102,20 @@
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
     </ldapUserAttributes>
+    <pageNameFormatter>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <hint>The XWiki page name pattern. Default value is ${uid}, see the documentation for more details.</hint>
+      <name>pageNameFormatter</name>
+      <number>5</number>
+      <picker>0</picker>
+      <prettyName>Page name formatter</prettyName>
+      <size>30</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+    </pageNameFormatter>
     <usersAllowedToImport>
       <cache>0</cache>
       <customDisplay/>
