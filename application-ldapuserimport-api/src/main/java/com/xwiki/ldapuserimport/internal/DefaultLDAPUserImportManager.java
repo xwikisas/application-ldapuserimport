@@ -349,6 +349,8 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 XWikiDocument userDoc =
                     ldapUtils.syncUser(null, attributes, ldapUtils.searchUserDNByUid(user), user, context);
 
+                // Make sure to get the latest version of the document, after LDAP synchronization.
+                userDoc = context.getWiki().getDocument(userDoc.getDocumentReference(), context);
                 if (addOIDCObj && oIDCClassExists) {
                     addOIDCObject(userDoc, user, context);
                 }
