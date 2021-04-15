@@ -296,6 +296,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             user.put(USER_PROFILE_URL_KEY, context.getWiki().getURL(userReference, context));
         }
         user.put(USER_PROFILE_KEY, userReference.toString());
+        user.put("username", userReference.getName());
         user.put("exists", Boolean.toString(userExists));
 
         Map<String, String> fieldsMap = getFieldsMap(configuration);
