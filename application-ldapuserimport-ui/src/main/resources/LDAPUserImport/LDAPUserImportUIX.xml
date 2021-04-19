@@ -142,18 +142,11 @@
 
   /*
    * Append the Import User button in several needed places.
-   * 1. In any Group page, view mode, above the livetable.
-   */
-   $('#groupusers').closest('#xwikicontent').prepend(importUsersButton);
-
-  /*
-   * Append the Import User button in several needed places.
-   * 1. In the Groups administration section, next to Create Group button.
-   * 2. In the Users administration section, next to Create User button, in the main wiki.
-   * 3. In the Users administration section, next to Add and Invite buttons, in any subwiki.
+   * 1. In the Users administration section, next to Create User button, in the main wiki.
+   * 2. In the Users administration section, next to Add and Invite buttons, in any subwiki.
    */
   $.each([
-    $("button[data-target^='#create'][data-target$='Modal']"),
+    $("button[data-target='#createUserModal']"),
     $('#inviteUserButton')],
     function() {
       $(this).parent().append(importUsersButton);
