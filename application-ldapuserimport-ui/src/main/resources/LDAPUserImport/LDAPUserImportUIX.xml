@@ -290,30 +290,23 @@
     $("#importUsersModal input[name='groupReference']").val(groupReference);
     isInEditGroupModal = true;
   });
-  var importUsersServiceDoc = new XWiki.Document('LDAPUserImportService', 'LDAPUserImport');
   var resultsContainer = $('#searchResults');
   // Get user results from LDAP.
-  $('#triggerSearch').click(function() {
+  $('#searchLDAPUsers').submit(function(event) {
+    event.preventDefault();
+    var searchLDAPUsersForm = $(this);
     $('#ldapSearchBox').removeClass('hidden');
-    resultsContainer.html($('#searchResultsLoading').html())
-    var allFields = $('#importUserModal-allFields').val();
-    var singleField = $('#importUserModal-userField').val();
-    var searchInput = $('#importUserModal-userFieldValue').val();
-    var formToken = $('input[name=form_token]').val();
-    var params = {
-      'allFields': allFields,
-      'singleField': singleField,
-      'searchInput': searchInput,
-      'form_token': formToken,
-      'outputSyntax': 'plain'
-    };
-    var url = importUsersServiceDoc.getURL('get');
-    $.post(url, $.param(params)).done(function(users) {
+    // The import button should be displayed in relation with the results, thus it should be hidden by default for each
+    // search operation.
+    $('#importButton').addClass('hidden');
+    var displayImportButton = false;
+    $.post(searchLDAPUsersForm.attr('action'), searchLDAPUsersForm.serialize())
+     .done(function(users) {
+      $('#searchResultsLoading').addClass('hidden');
       if (users == null) {
         resultsContainer.html("$services.localization.render('importUsers.modal.fieldValue.noResults')");
       } else {
         var resultsList = $('&lt;ul/&gt;').attr({'id': 'usersList'});
-        var displayImportButton = false;
         $.each(users, function(index, value) {
           var tooltipInfo = '';
           $.each(value, function(i, v) {
@@ -356,12 +349,13 @@
       }
     });
   });
+
   // Perform the user import.
-  $('#importUsersModal form').submit(function(event) {
+  $('#importLDAPUsers').submit(function(event) {
     event.preventDefault();
-    var formData = $(this).serialize();
-    var url = importUsersServiceDoc.getURL('get', 'outputSyntax=plain&amp;action=import');
-    $.post(url, $(this).serialize()).done(function(users) {
+    var importLDAPUsersForm = $(this);
+    $.post(importLDAPUsersForm.attr('action'), importLDAPUsersForm.serialize())
+     .done(function(users) {
       if (users == null) {
         resultsContainer.html("$services.localization.render('importUsers.modal.user.failedImport')");
       } else {
@@ -710,6 +704,8 @@ ul#importedUsersList {
   #if ($doc.getObjects('XWiki.XWikiGroups').size() &gt; 0)
     #set ($groupReference = $doc.documentReference)
   #end
+  #set ($serviceDoc = $xwiki.getDocument('LDAPUserImport.LDAPUserImportService'))
+  #set ($formAction = $serviceDoc.getURL('get'))
   #set ($configDoc = $xwiki.getDocument('LDAPUserImport.WebHome'))
   #set ($configObj = $configDoc.getObject('LDAPUserImport.LDAPUserImportConfigClass'))
   #set ($allFields = $configObj.getValue('ldapUserAttributes'))
@@ -718,12 +714,7 @@ ul#importedUsersList {
     &lt;div class="modal" id="importUsersModal" tabindex="-1" role="dialog"
         aria-labelledby="importUsersModal-label" data-backdrop="static" data-keyboard="false"&gt;
       &lt;div class="modal-dialog" role="document"&gt;
-        &lt;form class="modal-content xform"&gt;
-          &lt;div class="hidden"&gt;
-            &lt;input type="hidden" name="form_token" value="$services.csrf.token"/&gt;
-            &lt;input type="hidden" name="groupReference" value="$!groupReference"/&gt;
-            &lt;input type="hidden" name="addOIDCObj" value="$addOIDCObj"&gt;
-          &lt;/div&gt;
+        &lt;div class="modal-content"&gt;
           &lt;div class="modal-header"&gt;
             &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
               &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;
@@ -733,54 +724,67 @@ ul#importedUsersList {
             &lt;/div&gt;
           &lt;/div&gt;
           &lt;div class="modal-body"&gt;
-            &lt;dl&gt;
-              #if ($configObj.getValue('enableSingleFieldSearch') == 1 &amp;&amp; "$!allFields" != '')
+            &lt;form class="xform" id="searchLDAPUsers" action="$formAction"&gt;
+              &lt;div class="hidden"&gt;
+                &lt;input type="hidden" name="form_token" value="$services.csrf.token"/&gt;
+                &lt;input type="hidden" name="outputSyntax" value="plain"/&gt;
+              &lt;/div&gt;
+              &lt;dl&gt;
+                #if ($configObj.getValue('enableSingleFieldSearch') == 1 &amp;&amp; "$!allFields" != '')
+                  &lt;dt&gt;
+                    &lt;label for="singleField"&gt;
+                      $services.localization.render('importUsers.modal.field.label')
+                    &lt;/label&gt;
+                  &lt;/dt&gt;
+                  &lt;dd&gt;
+                    &lt;select class="xwiki-selectize" id="singleField" name="singleField"&gt;
+                      &lt;option value=""&gt;$services.localization.render('importUsers.modal.field.label')&lt;/option&gt;
+                      #foreach ($attr in $allFields.split(','))
+                        &lt;option value="$attr"&gt;$attr&lt;/option&gt;
+                      #end
+                    &lt;/select&gt;
+                  &lt;/dd&gt;
+                #end
+                &lt;input type="hidden" id="allFields" value="$allFields"/&gt;
                 &lt;dt&gt;
-                  &lt;label for="importUserModal-userField"&gt;
-                    $services.localization.render('importUsers.modal.field.label')
+                  &lt;label for="searchInput"&gt;
+                    $services.localization.render('importUsers.modal.fieldValue.label')
                   &lt;/label&gt;
                 &lt;/dt&gt;
                 &lt;dd&gt;
-                  &lt;select class="xwiki-selectize" id="importUserModal-userField"&gt;
-                    &lt;option value=""&gt;$services.localization.render('importUsers.modal.field.label')&lt;/option&gt;
-                    #foreach ($attr in $allFields.split(','))
-                      &lt;option value="$attr"&gt;$attr&lt;/option&gt;
-                    #end
-                  &lt;/select&gt;
+                  &lt;input type="text" id="searchInput" name="searchInput"
+                    placeholder="$escapetool.xml($services.localization.render('importUsers.modal.fieldValue.search'))" /&gt;
                 &lt;/dd&gt;
-              #end
-              &lt;input type="hidden" id="importUserModal-allFields" value="$allFields"/&gt;
-              &lt;dt&gt;
-                &lt;label for="importUserModal-userFieldValue"&gt;
-                  $services.localization.render('importUsers.modal.fieldValue.label')
-                &lt;/label&gt;
-              &lt;/dt&gt;
-              &lt;dd&gt;
-                &lt;input type="text" id="importUserModal-userFieldValue" name="importUserModal-userFieldValue"
-                  placeholder="$escapetool.xml($services.localization.render('importUsers.modal.fieldValue.search'))" /&gt;
-              &lt;/dd&gt;
-            &lt;/dl&gt;
-            &lt;button type="button" id="triggerSearch" class="btn btn-primary"&gt;
-              $services.localization.render('importUsers.modal.fieldValue.search')
-            &lt;/button&gt;
-            &lt;div class="box hidden" id="ldapSearchBox"&gt;
-              &lt;div id="searchResultsLoading" class="hidden"&gt;
-                &lt;span class="glyphicon glyphicon-repeat normal-right-spinner"&gt;&lt;/span&gt;
-                &lt;span class="hint"&gt;$services.localization.render('importUsers.modal.fieldValue.loadingResults')&lt;/span&gt;
+              &lt;/dl&gt;
+              &lt;input type="submit" id="triggerSearch" class="btn btn-primary"
+                value="$services.localization.render('importUsers.modal.fieldValue.search')"/&gt;
+            &lt;/form&gt;
+            &lt;form class="xform" id="importLDAPUsers" action="$formAction"&gt;
+              &lt;div class="hidden"&gt;
+                &lt;input type="hidden" name="form_token" value="$services.csrf.token"/&gt;
+                &lt;input type="hidden" name="outputSyntax" value="plain"/&gt;
+                &lt;input type="hidden" name="action" value="import"/&gt;
+                &lt;input type="hidden" name="groupReference" value="$!groupReference"/&gt;
+                &lt;input type="hidden" name="addOIDCObj" value="$addOIDCObj"&gt;
               &lt;/div&gt;
-              &lt;div id="searchResults"&gt;
+              &lt;div class="box hidden" id="ldapSearchBox"&gt;
+                &lt;div id="searchResultsLoading"&gt;
+                  &lt;span class="glyphicon glyphicon-repeat normal-right-spinner"&gt;&lt;/span&gt;
+                  &lt;span class="hint"&gt;$services.localization.render('importUsers.modal.fieldValue.loadingResults')&lt;/span&gt;
+                &lt;/div&gt;
+                &lt;div id="searchResults"&gt;
+                &lt;/div&gt;
               &lt;/div&gt;
-            &lt;/div&gt;
+              &lt;input type="submit" id="importButton" class="btn btn-primary hidden"
+                value="$escapetool.xml($services.localization.render('import'))"&gt;
+            &lt;/form&gt;
           &lt;/div&gt;
           &lt;div class="modal-footer"&gt;
             &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
               $escapetool.xml($services.localization.render('cancel'))
             &lt;/button&gt;
-            &lt;button type="submit" class="btn btn-primary hidden" id="importButton"&gt;
-              $escapetool.xml($services.localization.render('import'))
-            &lt;/button&gt;
           &lt;/div&gt;
-        &lt;/form&gt;
+        &lt;/div&gt;
       &lt;/div&gt;
     &lt;/div&gt;
   {{/html}}
