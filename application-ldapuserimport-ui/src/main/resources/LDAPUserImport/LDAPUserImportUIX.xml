@@ -781,7 +781,7 @@ ul#importedUsersList {
           &lt;/div&gt;
           &lt;div class="modal-footer"&gt;
             &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
-              $escapetool.xml($services.localization.render('cancel'))
+              $escapetool.xml($services.localization.render('importUsers.modal.close'))
             &lt;/button&gt;
           &lt;/div&gt;
         &lt;/div&gt;

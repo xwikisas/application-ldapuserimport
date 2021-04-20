@@ -50,6 +50,7 @@ importUsers.modal.user.failedImport=Failed to import users!
 importUsers.modal.user.alreadyImported={0} {1} ({2}, {3}) already imported in
 importUsers.modal.user.created={0} {1} ({2}, {3}) user profile has been created in
 importUsers.modal.user.toImport={0} {1} ({2}, {3}) to import in
+importUsers.modal.close=Close
 
 admin.ldapuserimport=LDAP User Import
 
