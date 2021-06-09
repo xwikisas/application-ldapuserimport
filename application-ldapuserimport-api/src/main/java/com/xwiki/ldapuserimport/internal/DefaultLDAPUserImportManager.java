@@ -248,17 +248,20 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         String uidFieldName = configuration.getLDAPParam(LDAP_UID_ATTR, CN);
         ldapUtils.setUidAttributeName(uidFieldName);
         ldapUtils.setBaseDN(configuration.getLDAPParam(LDAP_BASE_DN, ""));
-        SortedMap<String, Map<String, String>> users = new TreeMap<>();
+        SortedMap<String, Map<String, String>> allUsersMap = new TreeMap<>();
         LDAPEntry resultEntry = null;
+
         try {
             resultEntry = result.next();
             if (resultEntry != null) {
                 do {
                     Map<String, String> user =
                         getUserDetails(connection, configuration, ldapUtils, context, uidFieldName, resultEntry);
-                    users.put(user.get(UID), user);
+                    if (user != null) {
+                        allUsersMap.put(user.get(UID), user);
+                    }
                     resultEntry = result.hasMore() ? result.next() : null;
-                } while (resultEntry != null && users.size() <= 20);
+                } while (resultEntry != null);
             } else {
                 /*
                  * For some weird reason result.hasMore() can be true before the first call to next() even if nothing is
@@ -270,7 +273,18 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         } catch (LDAPException e) {
             logger.warn(FAILED_TO_GET_RESULTS, e);
         }
-        return users;
+        int resultsNumber = getLDAPImportConfiguration().getIntValue("resultsNumber");
+        if (resultsNumber == 0) {
+            resultsNumber = 20;
+        }
+        SortedMap<String, Map<String, String>> limitedUsersMap = new TreeMap<>();
+        for (String userId : allUsersMap.keySet()) {
+            if (limitedUsersMap.size() < resultsNumber) {
+                limitedUsersMap.put(userId, allUsersMap.get(userId));
+            }
+        }
+
+        return limitedUsersMap;
     }
 
     private Map<String, String> getUserDetails(XWikiLDAPConnection connection, XWikiLDAPConfig configuration,
@@ -377,18 +391,24 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 
     private void setPageNameFormatter(XWikiLDAPConfig configuration)
     {
+        String pageNameFormatter = getLDAPImportConfiguration().getStringValue("pageNameFormatter");
+        if (StringUtils.isNoneBlank(pageNameFormatter)) {
+            configuration.setFinalProperty("ldap_userPageName", pageNameFormatter);
+        }
+    }
+
+    private BaseObject getLDAPImportConfiguration()
+    {
         XWikiContext context = contextProvider.get();
         XWikiDocument importConfigDoc;
         try {
             importConfigDoc = context.getWiki().getDocument(CONFIGURATION_REFERENCE, context);
             BaseObject importConfigObj = importConfigDoc.getXObject(CONFIGURATION_CLASS_REFERENCE);
-            String pageNameFormatter = importConfigObj.getStringValue("pageNameFormatter");
-            if (StringUtils.isNoneBlank(pageNameFormatter)) {
-                configuration.setFinalProperty("ldap_userPageName", pageNameFormatter);
-            }
+            return importConfigObj;
         } catch (XWikiException e) {
             logger.warn("Failed to get LDAP Import configuration document [{}].", CONFIGURATION_REFERENCE, e);
         }
+        return null;
     }
 
     /**
@@ -427,30 +447,22 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     @Override
     public boolean hasImport()
     {
-        XWikiContext context = contextProvider.get();
+        String value = getLDAPImportConfiguration().getStringValue("usersAllowedToImport");
         boolean hasImport = false;
-        try {
-            XWikiDocument importConfigDoc = context.getWiki().getDocument(CONFIGURATION_REFERENCE, context);
-            BaseObject importConfigObj = importConfigDoc.getXObject(CONFIGURATION_CLASS_REFERENCE);
-            String value = importConfigObj.getStringValue("usersAllowedToImport");
 
-            // Check if the current user is global admin.
-            if (value.equals("globalAdmin") || StringUtils.isAllEmpty(value)) {
-                hasImport = contextualAuthorizationManager.hasAccess(Right.ADMIN, GLOBAL_PREFERENCES);
-            }
+        // Check if the current user is global admin.
+        if (value.equals("globalAdmin") || StringUtils.isAllEmpty(value)) {
+            hasImport = contextualAuthorizationManager.hasAccess(Right.ADMIN, GLOBAL_PREFERENCES);
+        }
 
-            // Check if the current user is local admin.
-            if (!hasImport && value.equals("localAdmin")) {
-                hasImport = contextualAuthorizationManager.hasAccess(Right.ADMIN);
-            }
+        // Check if the current user is local admin.
+        if (!hasImport && value.equals("localAdmin")) {
+            hasImport = contextualAuthorizationManager.hasAccess(Right.ADMIN);
+        }
 
-            // Check if the current user has edit right on the current group.
-            if (!hasImport && value.equals("groupEditor")) {
-                hasImport = contextualAuthorizationManager.hasAccess(Right.EDIT);
-            }
-        } catch (XWikiException e) {
-            logger.warn("Failed to get document for reference [{}].", CONFIGURATION_REFERENCE, e);
-            return false;
+        // Check if the current user has edit right on the current group.
+        if (!hasImport && value.equals("groupEditor")) {
+            hasImport = contextualAuthorizationManager.hasAccess(Right.EDIT);
         }
         return hasImport;
     }

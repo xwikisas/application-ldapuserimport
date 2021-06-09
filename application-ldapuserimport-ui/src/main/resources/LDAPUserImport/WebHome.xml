@@ -101,6 +101,34 @@
         <validationRegExp/>
         <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
       </ldapUserAttributes>
+      <pageNameFormatter>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <hint>The XWiki page name pattern. Default value is ${uid}, see the documentation for more details.</hint>
+        <name>pageNameFormatter</name>
+        <number>5</number>
+        <picker>0</picker>
+        <prettyName>Page name formatter</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </pageNameFormatter>
+      <resultsNumber>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <hint/>
+        <name>resultsNumber</name>
+        <number>5</number>
+        <numberType>long</numberType>
+        <prettyName>Results number</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
+      </resultsNumber>
       <usersAllowedToImport>
         <cache>0</cache>
         <customDisplay/>
@@ -135,6 +163,12 @@
     </property>
     <property>
       <ldapUserAttributes/>
+    </property>
+    <property>
+      <pageNameFormatter/>
+    </property>
+    <property>
+      <resultsNumber/>
     </property>
     <property>
       <usersAllowedToImport/>

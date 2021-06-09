@@ -308,7 +308,7 @@
      .done(function(users) {
       searchLoading.addClass('hidden');
       resultsContainer.removeClass('hidden');
-      if (users == null) {
+      if (users == null || $.isEmptyObject(users)) {
         resultsContainer.html("$services.localization.render('importUsers.modal.fieldValue.noResults')");
       } else {
         var resultsList = $('&lt;ul/&gt;').attr({'id': 'usersList'});
@@ -722,6 +722,13 @@ ul#importedUsersList {
   #set ($configObj = $configDoc.getObject('LDAPUserImport.LDAPUserImportConfigClass'))
   #set ($allFields = $configObj.getValue('ldapUserAttributes'))
   #set ($addOIDCObj = $configObj.getValue('addOIDCObject'))
+  #set ($resultsNumber = $configObj.getValue('resultsNumber'))
+  ## There is a default number expected also in Java, even if the user will clean this property in the configuration.
+  ## This assignment is purely for display purposes.
+  #if ("$!resultsNumber" == '')
+    #set ($resultsNumber = 20)
+  #end
+  #set ($configURL = $xwiki.getURL('XWiki.XWikiPreferences', 'admin', 'editor=globaladmin&amp;section=ldapuserimport'))
   {{html clean="false"}}
     &lt;div class="modal" id="importUsersModal" tabindex="-1" role="dialog"
         aria-labelledby="importUsersModal-label" data-backdrop="static" data-keyboard="false"&gt;
@@ -736,6 +743,10 @@ ul#importedUsersList {
             &lt;/div&gt;
           &lt;/div&gt;
           &lt;div class="modal-body"&gt;
+            &lt;div class="box infomessage"&gt;
+              $services.localization.render('importUsers.modal.form.description',
+                [$resultsNumber, "&lt;a href='$configURL' target='_blank'&gt;", '&lt;/a&gt;'])
+            &lt;/div&gt;
             &lt;form class="xform" id="searchLDAPUsers" action="$formAction"&gt;
               &lt;div class="hidden"&gt;
                 &lt;input type="hidden" name="form_token" value="$services.csrf.token"/&gt;
