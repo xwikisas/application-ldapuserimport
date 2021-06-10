@@ -45,12 +45,19 @@
     #set ($discard = $response.setContentType('application/json'))
   #end
   #if ($services.csrf.isTokenValid($request.form_token))
+    ## Exclude some helper fields from being displayed in the feedback list.
+    #set ($excludedFields = ['exists', 'uid', 'dn', 'userProfile', 'userProfileURL'])
     #set ($statusCode = 500)
     #if ($request.action == 'import')
       #set ($users = $services.ldapuserimport.importUsers($request.parameterMap.user, $request.groupReference, $request.addOIDCObj))
       #foreach ($user in $users.entrySet())
-        #set ($params = [$user.value.first_name, $user.value.last_name, $user.value.username, $user.value.email])
-        #set ($message = $services.localization.render('importUsers.modal.user.created', $params))
+        #set ($params = [])
+        #foreach ($item in $user.value.entrySet())
+          #if (!$excludedFields.contains($item.key))
+            #set ($discard = $params.add($item.value))
+          #end
+        #end
+        #set ($message = $services.localization.render('importUsers.modal.user.created', [$stringtool.join($params, ', ')]))
         #set ($user.value.displayMessage = $message)
       #end
       #set ($statusCode = 200)
@@ -58,11 +65,16 @@
     #else
       #set ($users = $services.ldapuserimport.getUsers($request.singleField, $request.allFields, $request.searchInput))
       #foreach ($user in $users.entrySet())
-        #set ($params = [$user.value.first_name, $user.value.last_name, $user.value.username, $user.value.email])
+        #set ($params = [])
+        #foreach ($item in $user.value.entrySet())
+          #if (!$excludedFields.contains($item.key))
+            #set ($discard = $params.add($item.value))
+          #end
+        #end
         #if ($user.value.exists == true)
-          #set ($message = $services.localization.render('importUsers.modal.user.alreadyImported', $params))
+          #set ($message = $services.localization.render('importUsers.modal.user.alreadyImported', [$stringtool.join($params, ', ')]))
         #else
-          #set ($message = $services.localization.render('importUsers.modal.user.toImport', $params))
+          #set ($message = $services.localization.render('importUsers.modal.user.toImport', [$stringtool.join($params, ', ')]))
         #end
         #set ($user.value.displayMessage = $message)
       #end

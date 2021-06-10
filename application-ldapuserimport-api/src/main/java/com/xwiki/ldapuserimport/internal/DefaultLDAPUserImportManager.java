@@ -72,6 +72,8 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 {
     private static final String LDAP_FIELDS_MAPPING = "ldap_fields_mapping";
 
+    private static final String DEFAULT_LDAP_FIELDS_MAPPING = "first_name=givenName,last_name=sn,email=mail";
+
     private static final String UID = "uid";
 
     private static final String USER_PROFILE_KEY = "userProfile";
@@ -186,7 +188,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         XWikiLDAPConfig configuration = new XWikiLDAPConfig(null, getConfigurationSource());
         setPageNameFormatter(configuration);
         if (StringUtils.isBlank(configuration.getLDAPParam(LDAP_FIELDS_MAPPING, null))) {
-            configuration.setFinalProperty(LDAP_FIELDS_MAPPING, "first_name=givenName,last_name=sn,email=mail");
+            configuration.setFinalProperty(LDAP_FIELDS_MAPPING, DEFAULT_LDAP_FIELDS_MAPPING);
         }
         return configuration;
     }
@@ -195,12 +197,25 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     {
         Map<String, String> fieldsMap = new HashMap<>();
 
+        // Make sure to add the UID field, since it may not be present in the LDAP fields mapping.
         String uidFieldName = configuration.getLDAPParam(LDAP_UID_ATTR, CN);
         fieldsMap.put(uidFieldName, UID);
+
+        // Make sure to also add all the mapped fields.
         for (String pair : configuration.getLDAPParam(LDAP_FIELDS_MAPPING, null).split(FIELDS_SEPARATOR)) {
             String[] parts = pair.split(EQUAL_STRING);
             // From first_name=givenName, store key=givenName and value=first_name.
             fieldsMap.put(parts[1], parts[0]);
+        }
+
+        // Make sure to also add all the default LDAP fields mappings. LDAP configuration could provide only few of
+        // them, but for display purposes, we need them all.
+        for (String pair : DEFAULT_LDAP_FIELDS_MAPPING.split(FIELDS_SEPARATOR)) {
+            String[] parts = pair.split(EQUAL_STRING);
+            // From first_name=givenName, store key=givenName and value=first_name.
+            if (!fieldsMap.containsKey(parts[1])) {
+                fieldsMap.put(parts[1], parts[0]);
+            }
         }
         return fieldsMap;
     }
@@ -218,6 +233,16 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             String[] parts = pair.split(EQUAL_STRING);
             // From first_name=givenName, store key=givenName and value=first_name.
             attributesNameTable.add(parts[1]);
+        }
+
+        // Make sure to also add all the default LDAP fields mappings. LDAP configuration could provide only few of
+        // them, but for display purposes, we need them all.
+        for (String pair : DEFAULT_LDAP_FIELDS_MAPPING.split(FIELDS_SEPARATOR)) {
+            String[] parts = pair.split(EQUAL_STRING);
+            // From first_name=givenName, store key=givenName and value=first_name.
+            if (!attributesNameTable.contains(parts[1])) {
+                attributesNameTable.add(parts[1]);
+            }
         }
         return attributesNameTable.toArray(new String[attributesNameTable.size()]);
     }
