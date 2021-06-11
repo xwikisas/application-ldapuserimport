@@ -55,7 +55,7 @@ import org.xwiki.security.authorization.Right;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPEntry;
-import com.novell.ldap.LDAPException;
+import com.novell.ldap.LDAPReferralException;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -174,7 +174,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             }
         } catch (XWikiLDAPException e) {
             logger.error(e.getFullMessage());
-        } catch (LDAPException e) {
+        } catch (Exception e) {
             logger.warn("Failed to search for value [{}] in the fields [{}]", searchInput, allFields, e);
         } finally {
             connection.close();
@@ -296,8 +296,11 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 logger.warn("The LDAP request returned no result (hasMore() is true but first next() call "
                     + "returned nothing)");
             }
-        } catch (LDAPException e) {
+        } catch (Exception e) {
             logger.warn(FAILED_TO_GET_RESULTS, e);
+            if (e instanceof LDAPReferralException) {
+                logger.warn(((LDAPReferralException) e).getFailedReferral());
+            }
         }
         int resultsNumber = getLDAPImportConfiguration().getIntValue("resultsNumber");
         if (resultsNumber == 0) {
