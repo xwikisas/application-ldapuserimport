@@ -41,7 +41,7 @@
   <hidden>false</hidden>
   <content>importUsers.title=Importer des utilisateurs
 importUsers.info=Importer des utilisateurs de l'annuaire LDAP
-importUsers.modal.form.description=Affichez les {0} premiers utilisateurs, classés par ordre alphabétique selon l'UID configuré. Le numéro des résultats peut être modifié à partir {1}d'ici{2}.
+importUsers.modal.form.description=Affichez les {0} premiers utilisateurs, classés par ordre alphabétique selon l''UID configuré. Le numéro des résultats peut être modifié à partir {1}d''ici{2}.
 importUsers.modal.field.label=Champ de recherche LDAP
 importUsers.modal.fieldValue.label=Texte recherché
 importUsers.modal.fieldValue.search=Rechercher
