@@ -41,7 +41,7 @@
   <hidden>true</hidden>
   <content>importUsers.title=Import User
 importUsers.info=Import user from LDAP
-importUsers.modal.form.description=Display the first {0} users, ordered alphabetically by the configured UID. The results number can be changed from {1}here{2}.
+importUsers.modal.form.description=There are more results for this search. Please provide a more precise query.
 importUsers.modal.field.label=Field to search in
 importUsers.modal.fieldValue.label=Search text 
 importUsers.modal.fieldValue.search=Search

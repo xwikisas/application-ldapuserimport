@@ -300,12 +300,18 @@
     $('#ldapSearchBox').removeClass('hidden');
     searchLoading.removeClass('hidden');
     resultsContainer.addClass('hidden');
+    // Make sure the message is hidden all the time even if the form is submitted without reloading the page.
+    $('#ldapSearchBox .infomessage').addClass('hidden');
     // The import button should be displayed in relation with the results, thus it should be hidden by default for each
     // search operation.
     $('#importButton').addClass('hidden');
     var displayImportButton = false;
     $.post(searchLDAPUsersForm.attr('action'), searchLDAPUsersForm.serialize())
-     .done(function(users) {
+     .done(function(data) {
+      var users = data.users;
+      if (data.displayedMax) {
+        $('#ldapSearchBox .infomessage').removeClass('hidden');
+      }
       searchLoading.addClass('hidden');
       resultsContainer.removeClass('hidden');
       if (users == null || $.isEmptyObject(users)) {
@@ -363,6 +369,8 @@
     var importLDAPUsersForm = $(this);
     var importButton = $('#importButton');
     importButton.prop('disabled', true);
+    // Make sure the message is hidden all the time even if the form is submitted without reloading the page.
+    $('#ldapSearchBox .infomessage').addClass('hidden');
     $.post(importLDAPUsersForm.attr('action'), importLDAPUsersForm.serialize())
      .done(function(users) {
       importLoading.addClass('hidden');
@@ -743,10 +751,6 @@ ul#importedUsersList {
             &lt;/div&gt;
           &lt;/div&gt;
           &lt;div class="modal-body"&gt;
-            &lt;div class="box infomessage"&gt;
-              $services.localization.render('importUsers.modal.form.description',
-                [$resultsNumber, "&lt;a href='$configURL' target='_blank'&gt;", '&lt;/a&gt;'])
-            &lt;/div&gt;
             &lt;form class="xform" id="searchLDAPUsers" action="$formAction"&gt;
               &lt;div class="hidden"&gt;
                 &lt;input type="hidden" name="form_token" value="$services.csrf.token"/&gt;
@@ -791,6 +795,9 @@ ul#importedUsersList {
                 &lt;input type="hidden" name="addOIDCObj" value="$addOIDCObj"&gt;
               &lt;/div&gt;
               &lt;div class="box hidden" id="ldapSearchBox"&gt;
+                &lt;div class="box infomessage hidden"&gt;
+                  $services.localization.render('importUsers.modal.form.description')
+                &lt;/div&gt;
                 &lt;div id="searchResultsLoading" class="hidden"&gt;
                   &lt;span class="glyphicon glyphicon-repeat normal-right-spinner"&gt;&lt;/span&gt;
                   &lt;span class="hint"&gt;$services.localization.render('importUsers.modal.fieldValue.loadingResults')&lt;/span&gt;

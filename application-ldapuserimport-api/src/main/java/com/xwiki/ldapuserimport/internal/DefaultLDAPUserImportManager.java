@@ -273,21 +273,33 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         String uidFieldName = configuration.getLDAPParam(LDAP_UID_ATTR, CN);
         ldapUtils.setUidAttributeName(uidFieldName);
         ldapUtils.setBaseDN(configuration.getLDAPParam(LDAP_BASE_DN, ""));
-        SortedMap<String, Map<String, String>> allUsersMap = new TreeMap<>();
+        Map<String, Map<String, String>> usersMap = new HashMap<>();
         LDAPEntry resultEntry = null;
 
         try {
             resultEntry = result.next();
             if (resultEntry != null) {
                 Map<String, String> fieldsMap = getFieldsMap(configuration);
+                int maxDisplayedUsersNb = getMaxDisplayedUsersNb();
+                boolean hasMore;
                 do {
                     Map<String, String> user =
                         getUserDetails(connection, fieldsMap, ldapUtils, context, uidFieldName, resultEntry);
                     if (user != null) {
-                        allUsersMap.put(user.get(UID), user);
+                        usersMap.put(user.get(UID), user);
                     }
-                    resultEntry = result.hasMore() ? result.next() : null;
-                } while (resultEntry != null);
+                    hasMore = result.hasMore();
+                    resultEntry = hasMore ? result.next() : null;
+                } while (resultEntry != null && usersMap.size() < maxDisplayedUsersNb);
+                // Only do the sorting on the UI side when we have less results than the limit or exactly the limit.
+                // hasMore is false when usersMap.size() <= maxDisplayedUsersNb.
+                if (!hasMore) {
+                    SortedMap<String, Map<String, String>> sortedUsersMap = new TreeMap<>();
+                    for (String userId : usersMap.keySet()) {
+                        sortedUsersMap.put(userId, usersMap.get(userId));
+                    }
+                    return sortedUsersMap;
+                }
             } else {
                 /*
                  * For some weird reason result.hasMore() can be true before the first call to next() even if nothing is
@@ -302,18 +314,20 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 logger.warn(((LDAPReferralException) e).getFailedReferral());
             }
         }
+
+        return usersMap;
+    }
+
+    /**
+     * @return the maximum number of users to be displayed in the import wizard
+     */
+    private int getMaxDisplayedUsersNb()
+    {
         int resultsNumber = getLDAPImportConfiguration().getIntValue("resultsNumber");
         if (resultsNumber == 0) {
             resultsNumber = 20;
         }
-        SortedMap<String, Map<String, String>> limitedUsersMap = new TreeMap<>();
-        for (String userId : allUsersMap.keySet()) {
-            if (limitedUsersMap.size() < resultsNumber) {
-                limitedUsersMap.put(userId, allUsersMap.get(userId));
-            }
-        }
-
-        return limitedUsersMap;
+        return resultsNumber;
     }
 
     private Map<String, String> getUserDetails(XWikiLDAPConnection connection, Map<String, String> fieldsMap,
@@ -507,5 +521,11 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             }
         }
         return configurationSource;
+    }
+
+    @Override
+    public boolean displayedMax(int displayedUsersNb)
+    {
+        return getMaxDisplayedUsersNb() == displayedUsersNb;
     }
 }

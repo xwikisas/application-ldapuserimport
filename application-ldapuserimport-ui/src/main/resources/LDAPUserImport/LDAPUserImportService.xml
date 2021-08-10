@@ -79,7 +79,10 @@
         #set ($user.value.displayMessage = $message)
       #end
       #set ($statusCode = 200)
-      $jsontool.serialize($users)
+      $jsontool.serialize({
+        'users': $users,
+        'displayedMax': $services.ldapuserimport.displayedMax($users.size())
+      })
     #end
   #else
     #set ($statusCode = 400)

@@ -56,4 +56,13 @@ public interface LDAPUserImportManager
      * @return true if has import right, false otherwise
      */
     boolean hasImport();
+
+    /**
+     * Check if the list of displayed users reached the top limit represented by the resultsNumber in the configuration.
+     * Compare the size of displayed list with the top limit.
+     *
+     * @param displayedUsersNb the number of users displayed in the import wizard
+     * @return true if the list of displayed users reached the top limit, false otherwise
+     */
+    boolean displayedMax(int displayedUsersNb);
 }
