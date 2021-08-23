@@ -126,6 +126,21 @@
         <validationRegExp/>
         <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
       </resultsNumber>
+      <triggerGroupsUpdate>
+        <customDisplay/>
+        <defaultValue/>
+        <disabled>0</disabled>
+        <displayFormType>checkbox</displayFormType>
+        <displayType/>
+        <hint>If this option is checked, then update on the XWiki groups that are part of the LDAP groups mapping will be executed at a given time (4:40 AM, by default)</hint>
+        <name>triggerGroupsUpdate</name>
+        <number>7</number>
+        <prettyName>Trigger groups update</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </triggerGroupsUpdate>
       <usersAllowedToImport>
         <cache>0</cache>
         <customDisplay/>
@@ -165,6 +180,9 @@
     </property>
     <property>
       <resultsNumber/>
+    </property>
+    <property>
+      <triggerGroupsUpdate>0</triggerGroupsUpdate>
     </property>
     <property>
       <usersAllowedToImport/>

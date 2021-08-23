@@ -84,4 +84,9 @@ public interface LDAPUserImportManager
      * @return true if the update was successful, false otherwise
      */
     boolean updateGroup(String xWikiGroupName);
+
+    /**
+     * Update all the XWiki groups that are included in the groups mapping.
+     */
+    void updateGroups();
 }

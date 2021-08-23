@@ -675,4 +675,15 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             }
         }
     }
+
+    @Override
+    public void updateGroups()
+    {
+        boolean triggerGroupsUpdate = getLDAPImportConfiguration().getIntValue("triggerGroupsUpdate") != 0;
+        if (triggerGroupsUpdate) {
+            for (String xWikiGroupName : getXWikiMappedGroups()) {
+                updateGroup(xWikiGroupName);
+            }
+        }
+    }
 }

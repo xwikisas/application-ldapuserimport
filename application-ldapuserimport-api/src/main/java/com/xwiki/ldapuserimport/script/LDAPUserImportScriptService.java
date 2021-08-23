@@ -121,4 +121,12 @@ public class LDAPUserImportScriptService implements ScriptService
     {
         return manager.updateGroup(xWikiGroupName);
     }
+
+    /**
+     * Update all the XWiki groups that are included in the groups mapping.
+     */
+    public void updateGroups()
+    {
+        manager.updateGroups();
+    }
 }

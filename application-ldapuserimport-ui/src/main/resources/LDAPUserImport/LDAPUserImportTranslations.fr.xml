@@ -67,6 +67,8 @@ LDAPUserImport.LDAPUserImportConfigClass_enableSingleFieldSearch.hint=Si cette o
 LDAPUserImport.LDAPUserImportConfigClass_addOIDCObject.hint=Si cette option est activée, si le connecteur OIDC est installé dans le wiki princiapl, un objet OIDC sera ajoutée afin que l'utilisateur soit reconnu lors d'une authentification par ODIC.
 LDAPUserImport.LDAPUserImportConfigClass_usersAllowedToImport.hint=Décidez quels sont les utilisateurs autorisés à créer des comptes utilisateurs à partir de l'annuaire LDAP. Par défault, seuls les administrateurs globaux sont autorisés.
 LDAPUserImport.LDAPUserImportConfigClass_pageNameFormatter.hint=Le modèle de nom de page XWiki. La valeur par défaut est ${uid}, consultez la documentation pour plus de détails.
+LDAPUserImport.LDAPUserImportConfigClass_triggerGroupsUpdate=Déclencher la mise à jour des groupes
+LDAPUserImport.LDAPUserImportConfigClass_triggerGroupsUpdate.hint=Si cette option est cochée, une mise à jour sur les groupes XWiki faisant partie des groupes LDAP correspondants sera exécutée à une heure donnée (4h30, par défaut).
 
 importUsers.groupUpdate.updateButton=Importer/mettre à jour le groupe
 importUsers.groupUpdate.updateButton.hint=Synchronisez le groupe s'il fait partie du mappage de groupe LDAP.

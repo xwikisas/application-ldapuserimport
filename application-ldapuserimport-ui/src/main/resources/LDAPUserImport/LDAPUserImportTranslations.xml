@@ -65,6 +65,8 @@ LDAPUserImport.LDAPUserImportConfigClass_enableSingleFieldSearch.hint=If this op
 LDAPUserImport.LDAPUserImportConfigClass_addOIDCObject.hint=If this option is checked, then an OpenID Connect related object will be added in the profile of the new created user, in case any OpenID Connect Authenticator is installed in the main wiki.
 LDAPUserImport.LDAPUserImportConfigClass_usersAllowedToImport.hint=Use this option to specify who is able to import users from LDAP. By default, this is restricted only to Global admin users.
 LDAPUserImport.LDAPUserImportConfigClass_pageNameFormatter.hint=The XWiki page name pattern. Default value is ${uid}, see the documentation for more details.
+LDAPUserImport.LDAPUserImportConfigClass_triggerGroupsUpdate=Trigger groups update
+LDAPUserImport.LDAPUserImportConfigClass_triggerGroupsUpdate.hint=If this option is checked, an update on the XWiki groups that are part of the LDAP groups mapping will be executed at a given time (4:30 AM, by default).
 
 importUsers.groupUpdate.updateButton=Import/update group
 importUsers.groupUpdate.updateButton.hint=Synchronize the group if it is part of LDAP group mapping.
