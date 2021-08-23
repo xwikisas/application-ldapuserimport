@@ -19,6 +19,7 @@
  */
 package com.xwiki.ldapuserimport;
 
+import java.util.List;
 import java.util.Map;
 import org.xwiki.component.annotation.Role;
 
@@ -45,10 +46,9 @@ public interface LDAPUserImportManager
      * 
      * @param usersList the list of users to be imported
      * @param groupName the group to add users in
-     * @param addOIDCObj whether to add or not the OIDC object in user profile
      * @return a map of imported user profiles and URLs
      */
-    Map<String, Map<String, String>> importUsers(String[] usersList, String groupName, boolean addOIDCObj);
+    Map<String, Map<String, String>> importUsers(String[] usersList, String groupName);
 
     /**
      * Check if the current user is allowed to import users.
@@ -65,4 +65,23 @@ public interface LDAPUserImportManager
      * @return true if the list of displayed users reached the top limit, false otherwise
      */
     boolean displayedMax(int displayedUsersNb);
+
+    /**
+     * Get a list of all the XWiki groups that are included in the groups mapping.
+     *
+     * @return a list of XWiki groups
+     */
+    List<String> getXWikiMappedGroups();
+
+    /**
+     * @param xWikiGroupName the group name
+     * @return the number of users to be synchronized from a group
+     */
+    int getGroupMemberSize(String xWikiGroupName);
+
+    /**
+     * @param xWikiGroupName the group name
+     * @return true if the update was successful, false otherwise
+     */
+    boolean updateGroup(String xWikiGroupName);
 }

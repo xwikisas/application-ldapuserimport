@@ -66,5 +66,15 @@ LDAPUserImport.LDAPUserImportConfigClass_ldapUserAttributes.hint=La liste des ch
 LDAPUserImport.LDAPUserImportConfigClass_enableSingleFieldSearch.hint=Si cette option est activée, l'administrateur pourra choisir dans quel champ LDAP rechercher. Si elle n'est pas activée la recherche se fera dans tous les champs.
 LDAPUserImport.LDAPUserImportConfigClass_addOIDCObject.hint=Si cette option est activée, si le connecteur OIDC est installé dans le wiki princiapl, un objet OIDC sera ajoutée afin que l'utilisateur soit reconnu lors d'une authentification par ODIC.
 LDAPUserImport.LDAPUserImportConfigClass_usersAllowedToImport.hint=Décidez quels sont les utilisateurs autorisés à créer des comptes utilisateurs à partir de l'annuaire LDAP. Par défault, seuls les administrateurs globaux sont autorisés.
-LDAPUserImport.LDAPUserImportConfigClass_pageNameFormatter.hint=Le modèle de nom de page XWiki. La valeur par défaut est ${uid}, consultez la documentation pour plus de détails. </content>
+LDAPUserImport.LDAPUserImportConfigClass_pageNameFormatter.hint=Le modèle de nom de page XWiki. La valeur par défaut est ${uid}, consultez la documentation pour plus de détails.
+
+importUsers.groupUpdate.updateButton=Importer/mettre à jour le groupe
+importUsers.groupUpdate.updateButton.hint=Synchronisez le groupe s'il fait partie du mappage de groupe LDAP.
+importUsers.groupUpdate.title=Importer/mettre à jour le groupe
+importUsers.groupUpdate.confirmationModal.info=utilisateurs ont été trouvés dans le groupe LDAP et vont être importés ou mis à jour.
+importUsers.groupUpdate.confirmationModal.confirm=Confirmer
+importUsers.groupUpdate.loadingMembersSize=Vérification des utilisateurs ...
+importUsers.groupUpdate.updatingGroup=Mise à jour de groupe ...
+importUsers.groupUpdate.updatingGroup.success=Groupe mis à jour avec succès.
+importUsers.groupUpdate.updatingGroup.fail=Échec de la mise à jour du groupe.</content>
 </xwikidoc>

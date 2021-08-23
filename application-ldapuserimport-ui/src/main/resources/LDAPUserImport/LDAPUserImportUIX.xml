@@ -401,7 +401,174 @@
 });</code>
     </property>
     <property>
-      <name/>
+      <name>Import Users Wizard</name>
+    </property>
+    <property>
+      <parse>1</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>LDAPUserImport.LDAPUserImportUIX</name>
+    <number>2</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>c47c1eb7-3b74-445d-9090-f842bd8bf69a</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>require(['jquery'], function($) {
+  var serviceURL = new XWiki.Document('LDAPUserImportService', 'LDAPUserImport').getURL('get');
+  var groupsTable = $('#groupstable');
+  var formToken = $('html').data('xwiki-form-token');
+  var confirmGroupUpdateButton = $('#confirmGroupUpdate');
+  var groupMembersSizeLoading = $('#groupMembersSizeLoading');
+  var groupUpdateLoading = $('#groupUpdateLoading');
+  var updateStatus = $('#updateGroupModal .modal-body #updateGroupStatus');
+  if (groupsTable.length &gt; 0) {
+    // Get the XWiki groups mapped to LDAP groups.
+    $.post(serviceURL,
+      {
+        'outputSyntax': 'plain',
+        'action': 'getMappedXWikiGroups',
+        'form_token': formToken
+      }
+    ).done(function(data) {
+      var ldapUpdateGroupButton = $('.actionupdategroup');
+      $.each(data.mappedXWikiGroups, function(index, groupName) {
+        var button = ldapUpdateGroupButton.clone();
+        button.removeClass('hidden');
+        button.attr({'data-xWikiGroupName': groupName})
+        var groupNameCell = groupsTable.find(".group[data-reference$='" + groupName + "']").parent();
+        var groupActionsCell = groupNameCell.siblings('td.actions');
+        groupActionsCell.append(button);
+      })
+    });
+  }
+  // Trigger the import/group update.
+  groupsTable.on('click', '.actionupdategroup', function(event) {
+    var xWikiGroupName = $(this).data('xwikigroupname');
+    // Hide the confirmation button by default and make it visibile when there are users to update.
+    confirmGroupUpdateButton.addClass('hidden');
+    confirmGroupUpdateButton.attr({'data-xWikiGroupName': xWikiGroupName});
+    groupMembersSizeLoading.removeClass('hidden');
+    $.post(serviceURL,
+      {
+        'outputSyntax': 'plain',
+        'action': 'getGroupMemberSize',
+        'xWikiGroupName': xWikiGroupName,
+        'form_token': formToken
+      }
+    ).done(function(data) {
+      groupMembersSizeLoading.addClass('hidden');
+      var groupMemberSize = data.groupMemberSize;
+      // FIXME: Find a better way to translate with params in JS.
+      updateStatus.html(data.groupMemberSize + " $services.localization.render('importUsers.groupUpdate.confirmationModal.info')");
+      if (groupMemberSize &gt; 0) {
+        confirmGroupUpdateButton.removeClass('hidden');
+      }
+    });
+  });
+  // Trigger the group update.
+  confirmGroupUpdateButton.click(function() {
+    groupMembersSizeLoading.addClass('hidden');
+    groupUpdateLoading.removeClass('hidden');
+    var xWikiGroupName = $(this).data('xwikigroupname');
+    // Make sure the status is always clean, even when updating multiple groups without reloading the page.
+    updateStatus.html('');
+    $.post(serviceURL,
+      {
+        'outputSyntax': 'plain',
+        'action': 'updateGroup',
+        'xWikiGroupName': xWikiGroupName,
+        'form_token': formToken
+      }
+    ).done(function(data) {
+      groupUpdateLoading.addClass('hidden');
+      confirmGroupUpdateButton.addClass('hidden');
+      updateStatus.html(data.message);
+    });
+  });
+});</code>
+    </property>
+    <property>
+      <name>Import/Update Group</name>
     </property>
     <property>
       <parse>1</parse>
@@ -559,6 +726,13 @@ ul#importedUsersList {
   100% {
     transform: rotate(359deg);
   }
+}
+/* FIXME: Update the following section when the minimal supported version becomes XWiki 11.8
+ * Mostly, it should be cleanup, as the new versions use Font-Awesome icons.
+ */
+#groupstable-display a.actionupdategroup {
+  background-image: url(/xwiki/resources/icons/silk/arrow_refresh.png);
+  text-transform: none;
 }</code>
     </property>
     <property>
@@ -695,6 +869,23 @@ ul#importedUsersList {
     </property>
     <property>
       <content>{{velocity output="false"}}
+#macro (updateGroupButton)
+  {{html clean="false"}}
+    #if ($services.extension.core.getCoreExtension('org.xwiki.platform:xwiki-platform-model').id.version.compareTo('11.7') &lt;= 0)
+      ## FIXME: find a solution to remove the ## from the end of new line without introducing new space between icon and
+      ## label (visible on hover when underline text decoration is present).
+      &lt;a href="#" class="action actionupdategroup hidden" data-toggle="modal" data-target="#updateGroupModal"
+        title="$services.localization.render('importUsers.groupUpdate.updateButton.hint')"&gt;##
+        $services.localization.render('importUsers.groupUpdate.updateButton')
+      &lt;/a&gt;
+    #else
+      &lt;a href="#" class="action actionupdategroup hidden" title="$services.localization.render('importUsers.groupUpdate.updateButton.hint')"&gt;
+        &lt;span class="action-icon"&gt;$services.icon.renderHTML('refresh')&lt;/span&gt;
+        &lt;span class="action-label"&gt;$services.localization.render('importUsers.groupUpdate.updateButton')&lt;/span&gt;
+      &lt;/a&gt;
+    #end
+  {{/html}}
+#end
 #macro (importUsersModal)
   #set ($discard = $xwiki.linkx.use($services.webjars.url('selectize.js', 'css/selectize.bootstrap3.css'),
   {'type': 'text/css', 'rel': 'stylesheet'}))
@@ -708,7 +899,6 @@ ul#importedUsersList {
   #set ($configDoc = $xwiki.getDocument('LDAPUserImport.WebHome'))
   #set ($configObj = $configDoc.getObject('LDAPUserImport.LDAPUserImportConfigClass'))
   #set ($allFields = $configObj.getValue('ldapUserAttributes'))
-  #set ($addOIDCObj = $configObj.getValue('addOIDCObject'))
   #set ($resultsNumber = $configObj.getValue('resultsNumber'))
   ## There is a default number expected also in Java, even if the user will clean this property in the configuration.
   ## This assignment is purely for display purposes.
@@ -771,7 +961,6 @@ ul#importedUsersList {
                 &lt;input type="hidden" name="outputSyntax" value="plain"/&gt;
                 &lt;input type="hidden" name="action" value="import"/&gt;
                 &lt;input type="hidden" name="groupReference" value="$!groupReference"/&gt;
-                &lt;input type="hidden" name="addOIDCObj" value="$addOIDCObj"&gt;
               &lt;/div&gt;
               &lt;div class="box hidden" id="ldapSearchBox"&gt;
                 &lt;div class="box infomessage hidden"&gt;
@@ -802,6 +991,45 @@ ul#importedUsersList {
     &lt;/div&gt;
   {{/html}}
 #end
+#macro (updateGroupConfirmationModal)
+  {{html clean="false"}}
+    &lt;div class="modal" id="updateGroupModal" tabindex="-1" role="dialog"
+        aria-labelledby="updateGroupModal-label" data-backdrop="static" data-keyboard="false"&gt;
+      &lt;div class="modal-dialog" role="document"&gt;
+        &lt;div class="modal-content"&gt;
+          &lt;div class="modal-header"&gt;
+            &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
+              &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;
+            &lt;/button&gt;
+            &lt;div class="modal-title" id="updateGroupModal-label"&gt;
+              $escapetool.xml($services.localization.render('importUsers.groupUpdate.title'))
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class="modal-body"&gt;
+            &lt;div id="groupMembersSizeLoading" class="hidden"&gt;
+              &lt;span class="glyphicon glyphicon-repeat normal-right-spinner"&gt;&lt;/span&gt;
+              &lt;span class="hint"&gt;$services.localization.render('importUsers.groupUpdate.loadingMembersSize')&lt;/span&gt;
+            &lt;/div&gt;
+            &lt;div id="groupUpdateLoading" class="hidden"&gt;
+              &lt;span class="glyphicon glyphicon-repeat normal-right-spinner"&gt;&lt;/span&gt;
+              &lt;span class="hint"&gt;$services.localization.render('importUsers.groupUpdate.updatingGroup')&lt;/span&gt;
+            &lt;/div&gt;
+            &lt;div id="updateGroupStatus"&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class="modal-footer"&gt;
+            &lt;button type="button" id="confirmGroupUpdate" class="btn btn-primary hidden"&gt;
+              $escapetool.xml($services.localization.render('importUsers.groupUpdate.confirmationModal.confirm'))
+            &lt;/button&gt;
+            &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
+              $escapetool.xml($services.localization.render('importUsers.modal.close'))
+            &lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  {{/html}}
+#end
 {{/velocity}}
 
 {{velocity}}
@@ -812,6 +1040,8 @@ ul#importedUsersList {
     #set ($discard = $xwiki.jsx.use('LDAPUserImport.LDAPUserImportUIX'))
     #set ($discard = $xwiki.ssx.use('LDAPUserImport.LDAPUserImportUIX'))
     #importUsersModal
+    #updateGroupButton
+    #updateGroupConfirmationModal
   #end
 #end
 {{/velocity}}</content>

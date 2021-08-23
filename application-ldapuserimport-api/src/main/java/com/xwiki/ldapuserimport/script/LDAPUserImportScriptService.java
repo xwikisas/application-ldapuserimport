@@ -19,6 +19,7 @@
  */
 package com.xwiki.ldapuserimport.script;
 
+import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -61,13 +62,12 @@ public class LDAPUserImportScriptService implements ScriptService
      * 
      * @param usersList the list of users to be imported
      * @param groupName the group to add users in
-     * @param addOIDCObj whether to add or not the OIDC object in user profile
      * @return a map of imported user profiles and URLs
      */
-    public Map<String, Map<String, String>> importUsers(String[] usersList, String groupName, boolean addOIDCObj)
+    public Map<String, Map<String, String>> importUsers(String[] usersList, String groupName)
     {
         if (hasImport()) {
-            return manager.importUsers(usersList, groupName, addOIDCObj);
+            return manager.importUsers(usersList, groupName);
         }
         return null;
     }
@@ -92,5 +92,33 @@ public class LDAPUserImportScriptService implements ScriptService
     public boolean displayedMax(int displayedUsersNb)
     {
         return manager.displayedMax(displayedUsersNb);
+    }
+
+    /**
+     * Get a list of all the XWiki groups that are included in the groups mapping.
+     *
+     * @return a list of XWiki groups
+     */
+    public List<String> getXWikiMappedGroups()
+    {
+        return manager.getXWikiMappedGroups();
+    }
+
+    /**
+     * @param xWikiGroupName the group name
+     * @return the number of users to be synchronized from a group
+     */
+    public int getGroupMemberSize(String xWikiGroupName)
+    {
+        return manager.getGroupMemberSize(xWikiGroupName);
+    }
+
+    /**
+     * @param xWikiGroupName the group name
+     * @return true if the update was successful, false otherwise
+     */
+    public boolean updateGroup(String xWikiGroupName)
+    {
+        return manager.updateGroup(xWikiGroupName);
     }
 }

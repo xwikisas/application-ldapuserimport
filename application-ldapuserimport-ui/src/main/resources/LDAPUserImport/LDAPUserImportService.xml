@@ -46,7 +46,7 @@
     #set ($excludedFields = ['exists', 'uid', 'dn', 'userProfile', 'userProfileURL'])
     #set ($statusCode = 500)
     #if ($request.action == 'import')
-      #set ($users = $services.ldapuserimport.importUsers($request.parameterMap.user, $request.groupReference, $request.addOIDCObj))
+      #set ($users = $services.ldapuserimport.importUsers($request.parameterMap.user, $request.groupReference))
       #foreach ($user in $users.entrySet())
         #set ($params = [])
         #foreach ($item in $user.value.entrySet())
@@ -59,6 +59,19 @@
       #end
       #set ($statusCode = 200)
       $jsontool.serialize($users)
+    #elseif ($request.action == 'getMappedXWikiGroups')
+      #set ($statusCode = 200)
+      $jsontool.serialize({'mappedXWikiGroups': $services.ldapuserimport.getXWikiMappedGroups()})
+    #elseif ($request.action == 'getGroupMemberSize')
+      #set ($statusCode = 200)
+      $jsontool.serialize({'groupMemberSize': $services.ldapuserimport.getGroupMemberSize($request.xWikiGroupName)})
+    #elseif ($request.action == 'updateGroup')
+      #set ($statusCode = 200)
+      #set ($message = $services.localization.render('importUsers.groupUpdate.updatingGroup.success'))
+      #if ($services.ldapuserimport.updateGroup($request.xWikiGroupName))
+        #set ($message = $services.localization.render('importUsers.groupUpdate.updatingGroup.fail'))
+      #end
+      $jsontool.serialize({'message': $message})
     #else
       #set ($users = $services.ldapuserimport.getUsers($request.singleField, $request.allFields, $request.searchInput))
       #foreach ($user in $users.entrySet())
