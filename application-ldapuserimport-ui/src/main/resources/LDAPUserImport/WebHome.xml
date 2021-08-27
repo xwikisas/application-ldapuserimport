@@ -179,7 +179,7 @@
       <pageNameFormatter/>
     </property>
     <property>
-      <resultsNumber/>
+      <resultsNumber>0</resultsNumber>
     </property>
     <property>
       <triggerGroupsUpdate>0</triggerGroupsUpdate>

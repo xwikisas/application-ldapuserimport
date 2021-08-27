@@ -32,18 +32,17 @@ public interface LDAPUserImportManager
 {
     /**
      * Get all the users that have the searched value contained in any of the provided fields value.
-     * 
+     *
      * @param singleField the field to only filter when the single field search is enabled
      * @param allFields the list of all configured fields
      * @param searchInput the value to search for
      * @return a map containing all the matching users with information from all fields
      */
-
     Map<String, Map<String, String>> getUsers(String singleField, String allFields, String searchInput);
 
     /**
      * Import the selected users.
-     * 
+     *
      * @param usersList the list of users to be imported
      * @param groupName the group to add users in
      * @return a map of imported user profiles and URLs
@@ -52,7 +51,7 @@ public interface LDAPUserImportManager
 
     /**
      * Check if the current user is allowed to import users.
-     * 
+     *
      * @return true if has import right, false otherwise
      */
     boolean hasImport();
@@ -67,26 +66,49 @@ public interface LDAPUserImportManager
     boolean displayedMax(int displayedUsersNb);
 
     /**
-     * Get a list of all the XWiki groups that are included in the groups mapping.
+     * Get a list of all the XWiki groups that are included in the LDAP groups mapping.
      *
      * @return a list of XWiki groups
      */
     List<String> getXWikiMappedGroups();
 
     /**
+     * Get the number of LDAP users that will be created or updated in the current XWiki group.
+     *
      * @param xWikiGroupName the group name
      * @return the number of users to be synchronized from a group
      */
     int getGroupMemberSize(String xWikiGroupName);
 
     /**
+     * Create or update users from LDAP in the current XWiki group.
+     *
      * @param xWikiGroupName the group name
      * @return true if the update was successful, false otherwise
      */
     boolean updateGroup(String xWikiGroupName);
 
     /**
-     * Update all the XWiki groups that are included in the groups mapping.
+     * Create or update users from LDAP in all the XWiki groups that are included in the groups mapping.
      */
     void updateGroups();
+
+    /**
+     * Get all the LDAP groups from a domain. Each group contains information about the relation with the current XWiki
+     * group (associated or not).
+     *
+     * @param searchInput the value to search for
+     * @param xWikiGroupName the group name
+     * @return the list of groups
+     */
+    Map<String, Map<String, String>> getLDAPGroups(String searchInput, String xWikiGroupName);
+
+    /**
+     * Associate a list of LDAP groups to an XWiki group.
+     *
+     * @param ldapGroupsList the list of LDAP Groups to be assigned
+     * @param xWikiGroupName the group name
+     * @return true if the groups association succeeded, false otherwise
+     */
+    boolean associateGroups(String[] ldapGroupsList, String xWikiGroupName);
 }

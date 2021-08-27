@@ -378,7 +378,7 @@
           resultsContainer.html(resultsList);
         });
         // Hide the Import button, after import was performed.
-        $('#importButton').addClass('hidden');
+        importButton.addClass('hidden');
 
         // Make sure to update the current livetable to see new users.
         $('#importUsersModal').on('click', "[data-dismiss='modal']", function() {
@@ -502,6 +502,13 @@
   var groupUpdateLoading = $('#groupUpdateLoading');
   var updateStatus = $('#updateGroupModal .modal-body #updateGroupStatus');
   if (groupsTable.length &gt; 0) {
+    // Display the associate groups button.
+    var associateGroupsButton = $('.actionassociategroups');
+    $.each($('#groupstable-display tr td.actions'), function(index, value) {
+      var associateGroupsButtonClone = associateGroupsButton.clone();
+      associateGroupsButtonClone.removeClass('hidden');
+      $(this).append(associateGroupsButtonClone);
+    });
     // Get the XWiki groups mapped to LDAP groups.
     $.post(serviceURL,
       {
@@ -512,13 +519,13 @@
     ).done(function(data) {
       var ldapUpdateGroupButton = $('.actionupdategroup');
       $.each(data.mappedXWikiGroups, function(index, groupName) {
-        var button = ldapUpdateGroupButton.clone();
-        button.removeClass('hidden');
-        button.attr({'data-xWikiGroupName': groupName})
+        var ldapUpdateGroupButtonClone = ldapUpdateGroupButton.clone();
+        ldapUpdateGroupButtonClone.removeClass('hidden');
+        ldapUpdateGroupButtonClone.attr({'data-xWikiGroupName': groupName})
         var groupNameCell = groupsTable.find(".group[data-reference$='" + groupName + "']").parent();
         var groupActionsCell = groupNameCell.siblings('td.actions');
-        groupActionsCell.append(button);
-      })
+        groupActionsCell.append(ldapUpdateGroupButtonClone);
+      });
     });
   }
   // Trigger the import/group update.
@@ -569,6 +576,212 @@
     </property>
     <property>
       <name>Import/Update Group</name>
+    </property>
+    <property>
+      <parse>1</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>LDAPUserImport.LDAPUserImportUIX</name>
+    <number>3</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>c4e53796-dfdd-4dc4-9701-8cb277aff101</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>require(['jquery'], function ($) {
+  var groupsTable = $('#groupstable');
+  var resultsContainer = $('#groupSearchResults');
+  var searchLoading = $('#groupSearchResultsLoading');
+  var groupsResultsLoading = $('#groupsResultsLoading');
+  var associateButton = $('#associateButton');
+
+  // Set the XWiki group name in the associateLDAPGroups form
+  $('#groupstable').on('click', '.actionassociategroups', function() {
+    var xWikiGroupName = $(this).closest('tr').find('.name .group').data('reference');
+    var localXWikiGroupName = xWikiGroupName.split(':')[1];
+    $('#searchLDAPGroups').find('input[name=xWikiGroupName]').val(localXWikiGroupName);
+    $('#associateLDAPGroups').find('input[name=xWikiGroupName]').val(localXWikiGroupName);
+  });
+
+  // Get group results from LDAP.
+  $('#searchLDAPGroups').submit(function(event) {
+    event.preventDefault();
+    var searchLDAPGroupsForm = $(this);
+    $('#ldapGroupSearchBox').removeClass('hidden');
+    searchLoading.removeClass('hidden');
+    resultsContainer.addClass('hidden');
+    // Make sure the message is hidden all the time even if the form is submitted without reloading the page.
+    $('#ldapGroupSearchBox .infomessage').addClass('hidden');
+    // The group associate button should be displayed in relation with the results, thus it should be hidden by default for each
+    // search operation.
+    associateButton.addClass('hidden');
+    var displayAssociateButton = false;
+    $.post(searchLDAPGroupsForm.attr('action'), searchLDAPGroupsForm.serialize())
+     .done(function(data) {
+      var groups = data.groups;
+      if (data.displayedMax) {
+        $('#ldapGroupSearchBox .infomessage').removeClass('hidden');
+      }
+      searchLoading.addClass('hidden');
+      resultsContainer.removeClass('hidden');
+      if (groups == null || $.isEmptyObject(groups)) {
+        resultsContainer.html("$services.localization.render('importUsers.associateGroups.modal.fieldValue.noResults')");
+      } else {
+        var resultsList = $('&lt;ul/&gt;').attr({'id': 'groupsList'});
+        $.each(groups, function(index, value) {
+          var tooltipInfo = '';
+          $.each(value, function(i, v) {
+            if (i !== 'displayMessage')
+            tooltipInfo += i + ' = ' + v + '\n';
+          })
+          var displayedText = value['displayMessage'] + ' ';
+          var itemCSSClass = 'notAssociated';
+          var listItem = $('&lt;li/&gt;');
+          // If the group is associated, it will be represented as plain text.
+          // If the group is not associated, it will be represented as a label and a checkbox to be selected for association.
+          if (value.isAssociated === 'true') {
+            listItem.html(displayedText);
+            itemCSSClass = 'associated';
+          } else {
+            displayAssociateButton = true;
+            var checkbox = $('&lt;input/&gt;').attr({
+              'type': 'checkbox',
+              'name': 'group',
+              'id': index,
+              'value': value['dn']
+            });
+            var label = $('&lt;label/&gt;').attr({
+              'for': index,
+              'title': tooltipInfo
+            }).text(displayedText );
+            listItem.append(checkbox);
+            listItem.append(label);
+          }
+          listItem.attr({'class': itemCSSClass});
+          resultsList.append(listItem);
+        });
+        resultsContainer.html(resultsList);
+        // Show the Associate button, after search was performed with results.
+        if (displayAssociateButton) {
+          associateButton.removeClass('hidden');
+        }
+      }
+    });
+  });
+
+  // Perform the groups association.
+  $('#associateLDAPGroups').submit(function(event) {
+    event.preventDefault();
+    groupsResultsLoading.removeClass('hidden');
+    resultsContainer.addClass('hidden');
+    var associateLDAPGroupsForm = $(this);
+    associateButton.prop('disabled', true);
+    var xWikiGroupName = associateLDAPGroupsForm.find('input[name=xWikiGroupName]').val();
+    // Make sure the message is hidden all the time even if the form is submitted without reloading the page.
+    $('#ldapGroupSearchBox .infomessage').addClass('hidden');
+    $.post(associateLDAPGroupsForm.attr('action'), associateLDAPGroupsForm.serialize())
+     .done(function(data) {
+      associateButton.addClass('hidden');
+      if (data.status === 'success') {
+        groupsResultsLoading.html(data.message);
+        var ldapUpdateGroupButton = $('.actionupdategroup');
+        var ldapUpdateGroupButtonClone = ldapUpdateGroupButton.clone();
+        ldapUpdateGroupButtonClone.removeClass('hidden');
+        ldapUpdateGroupButtonClone.attr({'data-xWikiGroupName': xWikiGroupName})
+        var groupNameCell = groupsTable.find(".group[data-reference$='" + xWikiGroupName + "']").parent();
+        var groupActionsCell = groupNameCell.siblings('td.actions');
+        if (groupActionsCell.find('.actionupdategroup').length  === 0) {
+          groupActionsCell.append(ldapUpdateGroupButtonClone);
+        }
+        associateButton.prop('disabled', false);
+      } else {
+        groupsResultsLoading.html(data.message);
+      }
+    });
+  });
+});</code>
+    </property>
+    <property>
+      <name>Assign LDAP groups to XWiki group</name>
     </property>
     <property>
       <parse>1</parse>
@@ -676,7 +889,7 @@
       <cache>long</cache>
     </property>
     <property>
-      <code>ul#usersList {
+      <code>ul#usersList, ul#groupsList {
   list-style: none;
   padding: 0;
   li {
@@ -685,11 +898,11 @@
       float: right;
     }
   }
-  li.imported {
+  li.imported, li.associated {
     color: #840b0b;
     padding-left: 25px;
   }
-   li.notImported {
+   li.notImported, li.notAssociated {
     color: #055705;
   }
 }
@@ -697,11 +910,13 @@ ul#importedUsersList {
   list-style: none;
   padding: 0;
 }
-#ldapSearchBox {
+#ldapSearchBox, #ldapGroupSearchBox {
   padding: 20px;
 }
-#importUsersModal .modal-dialog {
-  width: 50%;
+#importUsersModal, #associateGroupsModal {
+  .modal-dialog {
+    width: 50%;
+  }
 }
 #triggerSearch {
   margin-bottom: 20px;
@@ -732,6 +947,10 @@ ul#importedUsersList {
  */
 #groupstable-display a.actionupdategroup {
   background-image: url(/xwiki/resources/icons/silk/arrow_refresh.png);
+  text-transform: none;
+}
+#groupstable-display a.actionassociategroups {
+  background-image: url(/xwiki/resources/icons/silk/arrow_switch.png);
   text-transform: none;
 }</code>
     </property>
@@ -870,22 +1089,37 @@ ul#importedUsersList {
     <property>
       <content>{{velocity output="false"}}
 #macro (updateGroupButton)
-  {{html clean="false"}}
-    #if ($services.extension.core.getCoreExtension('org.xwiki.platform:xwiki-platform-model').id.version.compareTo('11.7') &lt;= 0)
-      ## FIXME: find a solution to remove the ## from the end of new line without introducing new space between icon and
-      ## label (visible on hover when underline text decoration is present).
-      &lt;a href="#" class="action actionupdategroup hidden" data-toggle="modal" data-target="#updateGroupModal"
-        title="$services.localization.render('importUsers.groupUpdate.updateButton.hint')"&gt;##
-        $services.localization.render('importUsers.groupUpdate.updateButton')
-      &lt;/a&gt;
-    #else
-      &lt;a href="#" class="action actionupdategroup hidden" title="$services.localization.render('importUsers.groupUpdate.updateButton.hint')"&gt;
-        &lt;span class="action-icon"&gt;$services.icon.renderHTML('refresh')&lt;/span&gt;
-        &lt;span class="action-label"&gt;$services.localization.render('importUsers.groupUpdate.updateButton')&lt;/span&gt;
-      &lt;/a&gt;
-    #end
-  {{/html}}
+  #if ($services.extension.core.getCoreExtension('org.xwiki.platform:xwiki-platform-model').id.version.compareTo('11.7') &lt;= 0)
+    ## FIXME: find a solution to remove the ## from the end of new line without introducing new space between icon and
+    ## label (visible on hover when underline text decoration is present).
+    &lt;a href="#" class="action actionupdategroup hidden" data-toggle="modal" data-target="#updateGroupModal"
+      title="$services.localization.render('importUsers.groupUpdate.livetableActionButton.hint')"&gt;##
+      $services.localization.render('importUsers.groupUpdate.livetableActionButton')
+    &lt;/a&gt;
+  #else
+    &lt;a href="#" class="action actionupdategroup hidden" title="$services.localization.render('importUsers.groupUpdate.livetableActionButton.hint')"&gt;
+      &lt;span class="action-icon"&gt;$services.icon.renderHTML('refresh')&lt;/span&gt;
+      &lt;span class="action-label"&gt;$services.localization.render('importUsers.groupUpdate.livetableActionButton')&lt;/span&gt;
+    &lt;/a&gt;
+  #end
 #end
+
+#macro (associateGroupsButton)
+  #if ($services.extension.core.getCoreExtension('org.xwiki.platform:xwiki-platform-model').id.version.compareTo('11.7') &lt;= 0)
+    ## FIXME: find a solution to remove the ## from the end of new line without introducing new space between icon and
+    ## label (visible on hover when underline text decoration is present).
+    &lt;a href="#" class="action actionassociategroups hidden" data-toggle="modal" data-target="#associateGroupsModal"
+      title="$services.localization.render('importUsers.associateGroups.livetableActionButton.hint')"&gt;##
+      $services.localization.render('importUsers.associateGroups.livetableActionButton')
+    &lt;/a&gt;
+  #else
+    &lt;a href="#" class="action actionassociategroups hidden" title="$services.localization.render('importUsers.associateGroups.livetableActionButton.hint')"&gt;
+      &lt;span class="action-icon"&gt;$services.icon.renderHTML('exchange')&lt;/span&gt;
+      &lt;span class="action-label"&gt;$services.localization.render('importUsers.associateGroups.livetableActionButton')&lt;/span&gt;
+    &lt;/a&gt;
+  #end
+#end
+
 #macro (importUsersModal)
   #set ($discard = $xwiki.linkx.use($services.webjars.url('selectize.js', 'css/selectize.bootstrap3.css'),
   {'type': 'text/css', 'rel': 'stylesheet'}))
@@ -894,8 +1128,6 @@ ul#importedUsersList {
   #if ($doc.getObjects('XWiki.XWikiGroups').size() &gt; 0)
     #set ($groupReference = $doc.documentReference)
   #end
-  #set ($serviceDoc = $xwiki.getDocument('LDAPUserImport.LDAPUserImportService'))
-  #set ($formAction = $serviceDoc.getURL('get'))
   #set ($configDoc = $xwiki.getDocument('LDAPUserImport.WebHome'))
   #set ($configObj = $configDoc.getObject('LDAPUserImport.LDAPUserImportConfigClass'))
   #set ($allFields = $configObj.getValue('ldapUserAttributes'))
@@ -906,129 +1138,197 @@ ul#importedUsersList {
     #set ($resultsNumber = 20)
   #end
   #set ($configURL = $xwiki.getURL('XWiki.XWikiPreferences', 'admin', 'editor=globaladmin&amp;section=ldapuserimport'))
-  {{html clean="false"}}
-    &lt;div class="modal" id="importUsersModal" tabindex="-1" role="dialog"
-        aria-labelledby="importUsersModal-label" data-backdrop="static" data-keyboard="false"&gt;
-      &lt;div class="modal-dialog" role="document"&gt;
-        &lt;div class="modal-content"&gt;
-          &lt;div class="modal-header"&gt;
-            &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
-              &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;
-            &lt;/button&gt;
-            &lt;div class="modal-title" id="importUsersModal-label"&gt;
-              $escapetool.xml($services.localization.render('importUsers.title'))
-            &lt;/div&gt;
+  &lt;div class="modal" id="importUsersModal" tabindex="-1" role="dialog"
+      aria-labelledby="importUsersModal-label" data-backdrop="static" data-keyboard="false"&gt;
+    &lt;div class="modal-dialog" role="document"&gt;
+      &lt;div class="modal-content"&gt;
+        &lt;div class="modal-header"&gt;
+          &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
+            &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;
+          &lt;/button&gt;
+          &lt;div class="modal-title" id="importUsersModal-label"&gt;
+            $escapetool.xml($services.localization.render('importUsers.title'))
           &lt;/div&gt;
-          &lt;div class="modal-body"&gt;
-            &lt;form class="xform" id="searchLDAPUsers" action="$formAction"&gt;
-              &lt;div class="hidden"&gt;
-                &lt;input type="hidden" name="form_token" value="$services.csrf.token"/&gt;
-                &lt;input type="hidden" name="outputSyntax" value="plain"/&gt;
-              &lt;/div&gt;
-              &lt;dl&gt;
-                #if ($configObj.getValue('enableSingleFieldSearch') == 1 &amp;&amp; "$!allFields" != '')
-                  &lt;dt&gt;
-                    &lt;label for="singleField"&gt;
-                      $services.localization.render('importUsers.modal.field.label')
-                    &lt;/label&gt;
-                  &lt;/dt&gt;
-                  &lt;dd&gt;
-                    &lt;select class="xwiki-selectize" id="singleField" name="singleField"&gt;
-                      &lt;option value=""&gt;$services.localization.render('importUsers.modal.field.label')&lt;/option&gt;
-                      #foreach ($attr in $allFields.split(','))
-                        &lt;option value="$attr"&gt;$attr&lt;/option&gt;
-                      #end
-                    &lt;/select&gt;
-                  &lt;/dd&gt;
-                #end
-                &lt;input type="hidden" id="allFields" value="$allFields"/&gt;
+        &lt;/div&gt;
+        &lt;div class="modal-body"&gt;
+          &lt;form class="xform" id="searchLDAPUsers" action="$formAction"&gt;
+            &lt;div class="hidden"&gt;
+              &lt;input type="hidden" name="form_token" value="$services.csrf.token"/&gt;
+              &lt;input type="hidden" name="outputSyntax" value="plain"/&gt;
+            &lt;/div&gt;
+            &lt;dl&gt;
+              #if ($configObj.getValue('enableSingleFieldSearch') == 1 &amp;&amp; "$!allFields" != '')
                 &lt;dt&gt;
-                  &lt;label for="searchInput"&gt;
-                    $services.localization.render('importUsers.modal.fieldValue.label')
+                  &lt;label for="singleField"&gt;
+                    $services.localization.render('importUsers.modal.field.label')
                   &lt;/label&gt;
                 &lt;/dt&gt;
                 &lt;dd&gt;
-                  &lt;input type="text" id="searchInput" name="searchInput" required
-                    placeholder="$escapetool.xml($services.localization.render('importUsers.modal.fieldValue.search'))" /&gt;
+                  &lt;select class="xwiki-selectize" id="singleField" name="singleField"&gt;
+                    &lt;option value=""&gt;$services.localization.render('importUsers.modal.field.label')&lt;/option&gt;
+                    #foreach ($attr in $allFields.split(','))
+                      &lt;option value="$attr"&gt;$attr&lt;/option&gt;
+                    #end
+                  &lt;/select&gt;
                 &lt;/dd&gt;
-              &lt;/dl&gt;
-              &lt;input type="submit" id="triggerSearch" class="btn btn-primary"
-                value="$services.localization.render('importUsers.modal.fieldValue.search')"/&gt;
-            &lt;/form&gt;
-            &lt;form class="xform" id="importLDAPUsers" action="$formAction"&gt;
-              &lt;div class="hidden"&gt;
-                &lt;input type="hidden" name="form_token" value="$services.csrf.token"/&gt;
-                &lt;input type="hidden" name="outputSyntax" value="plain"/&gt;
-                &lt;input type="hidden" name="action" value="import"/&gt;
-                &lt;input type="hidden" name="groupReference" value="$!groupReference"/&gt;
+              #end
+              &lt;input type="hidden" id="allFields" value="$allFields"/&gt;
+              &lt;dt&gt;
+                &lt;label for="searchInput"&gt;
+                  $services.localization.render('importUsers.modal.fieldValue.label')
+                &lt;/label&gt;
+              &lt;/dt&gt;
+              &lt;dd&gt;
+                &lt;input type="text" id="searchInput" name="searchInput" required
+                  placeholder="$escapetool.xml($services.localization.render('importUsers.modal.fieldValue.search'))" /&gt;
+              &lt;/dd&gt;
+            &lt;/dl&gt;
+            &lt;input type="submit" id="triggerSearch" class="btn btn-primary"
+              value="$services.localization.render('importUsers.modal.fieldValue.search')"/&gt;
+          &lt;/form&gt;
+          &lt;form class="xform" id="importLDAPUsers" action="$formAction"&gt;
+            &lt;div class="hidden"&gt;
+              &lt;input type="hidden" name="form_token" value="$services.csrf.token"/&gt;
+              &lt;input type="hidden" name="outputSyntax" value="plain"/&gt;
+              &lt;input type="hidden" name="action" value="import"/&gt;
+              &lt;input type="hidden" name="groupReference" value="$!groupReference"/&gt;
+            &lt;/div&gt;
+            &lt;div class="box hidden" id="ldapSearchBox"&gt;
+              &lt;div class="box infomessage hidden"&gt;
+                $services.localization.render('importUsers.modal.form.description')
               &lt;/div&gt;
-              &lt;div class="box hidden" id="ldapSearchBox"&gt;
-                &lt;div class="box infomessage hidden"&gt;
-                  $services.localization.render('importUsers.modal.form.description')
-                &lt;/div&gt;
-                &lt;div id="searchResultsLoading" class="hidden"&gt;
-                  &lt;span class="glyphicon glyphicon-repeat normal-right-spinner"&gt;&lt;/span&gt;
-                  &lt;span class="hint"&gt;$services.localization.render('importUsers.modal.fieldValue.loadingResults')&lt;/span&gt;
-                &lt;/div&gt;
-                &lt;div id="importResultsLoading" class="hidden"&gt;
-                  &lt;span class="glyphicon glyphicon-repeat normal-right-spinner"&gt;&lt;/span&gt;
-                  &lt;span class="hint"&gt;$services.localization.render('importUsers.modal.fieldValue.importingResults')&lt;/span&gt;
-                &lt;/div&gt;
-                &lt;div id="searchResults"&gt;
-                &lt;/div&gt;
+              &lt;div id="searchResultsLoading" class="hidden"&gt;
+                &lt;span class="glyphicon glyphicon-repeat normal-right-spinner"&gt;&lt;/span&gt;
+                &lt;span class="hint"&gt;$services.localization.render('importUsers.modal.fieldValue.loadingResults')&lt;/span&gt;
               &lt;/div&gt;
-              &lt;input type="submit" id="importButton" class="btn btn-primary hidden"
-                value="$escapetool.xml($services.localization.render('import'))"&gt;
-            &lt;/form&gt;
-          &lt;/div&gt;
-          &lt;div class="modal-footer"&gt;
-            &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
-              $escapetool.xml($services.localization.render('importUsers.modal.close'))
-            &lt;/button&gt;
-          &lt;/div&gt;
+              &lt;div id="importResultsLoading" class="hidden"&gt;
+                &lt;span class="glyphicon glyphicon-repeat normal-right-spinner"&gt;&lt;/span&gt;
+                &lt;span class="hint"&gt;$services.localization.render('importUsers.modal.fieldValue.importingResults')&lt;/span&gt;
+              &lt;/div&gt;
+              &lt;div id="searchResults"&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;input type="submit" id="importButton" class="btn btn-primary hidden"
+              value="$escapetool.xml($services.localization.render('import'))"&gt;
+          &lt;/form&gt;
+        &lt;/div&gt;
+        &lt;div class="modal-footer"&gt;
+          &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
+            $escapetool.xml($services.localization.render('importUsers.modal.close'))
+          &lt;/button&gt;
         &lt;/div&gt;
       &lt;/div&gt;
     &lt;/div&gt;
-  {{/html}}
+  &lt;/div&gt;
 #end
+
 #macro (updateGroupConfirmationModal)
-  {{html clean="false"}}
-    &lt;div class="modal" id="updateGroupModal" tabindex="-1" role="dialog"
-        aria-labelledby="updateGroupModal-label" data-backdrop="static" data-keyboard="false"&gt;
-      &lt;div class="modal-dialog" role="document"&gt;
-        &lt;div class="modal-content"&gt;
-          &lt;div class="modal-header"&gt;
-            &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
-              &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;
-            &lt;/button&gt;
-            &lt;div class="modal-title" id="updateGroupModal-label"&gt;
-              $escapetool.xml($services.localization.render('importUsers.groupUpdate.title'))
-            &lt;/div&gt;
+  &lt;div class="modal" id="updateGroupModal" tabindex="-1" role="dialog"
+      aria-labelledby="updateGroupModal-label" data-backdrop="static" data-keyboard="false"&gt;
+    &lt;div class="modal-dialog" role="document"&gt;
+      &lt;div class="modal-content"&gt;
+        &lt;div class="modal-header"&gt;
+          &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
+            &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;
+          &lt;/button&gt;
+          &lt;div class="modal-title" id="updateGroupModal-label"&gt;
+            $escapetool.xml($services.localization.render('importUsers.groupUpdate.title'))
           &lt;/div&gt;
-          &lt;div class="modal-body"&gt;
-            &lt;div id="groupMembersSizeLoading" class="hidden"&gt;
-              &lt;span class="glyphicon glyphicon-repeat normal-right-spinner"&gt;&lt;/span&gt;
-              &lt;span class="hint"&gt;$services.localization.render('importUsers.groupUpdate.loadingMembersSize')&lt;/span&gt;
-            &lt;/div&gt;
-            &lt;div id="groupUpdateLoading" class="hidden"&gt;
-              &lt;span class="glyphicon glyphicon-repeat normal-right-spinner"&gt;&lt;/span&gt;
-              &lt;span class="hint"&gt;$services.localization.render('importUsers.groupUpdate.updatingGroup')&lt;/span&gt;
-            &lt;/div&gt;
-            &lt;div id="updateGroupStatus"&gt;
-            &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class="modal-body"&gt;
+          &lt;div id="groupMembersSizeLoading" class="hidden"&gt;
+            &lt;span class="glyphicon glyphicon-repeat normal-right-spinner"&gt;&lt;/span&gt;
+            &lt;span class="hint"&gt;$services.localization.render('importUsers.groupUpdate.loadingMembersSize')&lt;/span&gt;
           &lt;/div&gt;
-          &lt;div class="modal-footer"&gt;
-            &lt;button type="button" id="confirmGroupUpdate" class="btn btn-primary hidden"&gt;
-              $escapetool.xml($services.localization.render('importUsers.groupUpdate.confirmationModal.confirm'))
-            &lt;/button&gt;
-            &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
-              $escapetool.xml($services.localization.render('importUsers.modal.close'))
-            &lt;/button&gt;
+          &lt;div id="groupUpdateLoading" class="hidden"&gt;
+            &lt;span class="glyphicon glyphicon-repeat normal-right-spinner"&gt;&lt;/span&gt;
+            &lt;span class="hint"&gt;$services.localization.render('importUsers.groupUpdate.updatingGroup')&lt;/span&gt;
           &lt;/div&gt;
+          &lt;div id="updateGroupStatus"&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class="modal-footer"&gt;
+          &lt;button type="button" id="confirmGroupUpdate" class="btn btn-primary hidden"&gt;
+            $escapetool.xml($services.localization.render('importUsers.groupUpdate.confirmationModal.confirm'))
+          &lt;/button&gt;
+          &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
+            $escapetool.xml($services.localization.render('importUsers.modal.close'))
+          &lt;/button&gt;
         &lt;/div&gt;
       &lt;/div&gt;
     &lt;/div&gt;
-  {{/html}}
+  &lt;/div&gt;
+#end
+
+#macro (associateGroupsConfirmationModal)
+  &lt;div class="modal" id="associateGroupsModal" tabindex="-1" role="dialog"
+      aria-labelledby="associateGroupsModal-label" data-backdrop="static" data-keyboard="false"&gt;
+    &lt;div class="modal-dialog" role="document"&gt;
+      &lt;div class="modal-content"&gt;
+        &lt;div class="modal-header"&gt;
+          &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
+            &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;
+          &lt;/button&gt;
+          &lt;div class="modal-title" id="associateGroupsModal-label"&gt;
+            $escapetool.xml($services.localization.render('importUsers.associateGroups.title'))
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class="modal-body"&gt;
+          &lt;form class="xform" id="searchLDAPGroups" action="$formAction"&gt;
+            &lt;div class="hidden"&gt;
+              &lt;input type="hidden" name="form_token" value="$services.csrf.token"/&gt;
+              &lt;input type="hidden" name="outputSyntax" value="plain"/&gt;
+              &lt;input type="hidden" name="action" value="getLDAPGroups"/&gt;
+              &lt;input type="hidden" name="xWikiGroupName"/&gt;
+            &lt;/div&gt;
+            &lt;dl&gt;
+              &lt;dt&gt;
+                &lt;label for="searchInput"&gt;
+                  $services.localization.render('importUsers.modal.fieldValue.label')
+                &lt;/label&gt;
+              &lt;/dt&gt;
+              &lt;dd&gt;
+                &lt;input type="text" id="searchInput" name="searchInput" required
+                  placeholder="$escapetool.xml($services.localization.render('importUsers.modal.fieldValue.search'))" /&gt;
+              &lt;/dd&gt;
+            &lt;/dl&gt;
+            &lt;input type="submit" id="triggerGroupsSearch" class="btn btn-primary"
+              value="$services.localization.render('importUsers.modal.fieldValue.search')"/&gt;
+          &lt;/form&gt;
+          &lt;form class="xform" id="associateLDAPGroups" action="$formAction"&gt;
+            &lt;div class="hidden"&gt;
+              &lt;input type="hidden" name="form_token" value="$services.csrf.token"/&gt;
+              &lt;input type="hidden" name="outputSyntax" value="plain"/&gt;
+              &lt;input type="hidden" name="action" value="associateGroups"/&gt;
+              &lt;input type="hidden" name="xWikiGroupName"/&gt;
+            &lt;/div&gt;
+            &lt;div class="box hidden" id="ldapGroupSearchBox"&gt;
+              &lt;div class="box infomessage hidden"&gt;
+                $services.localization.render('importUsers.modal.form.description')
+              &lt;/div&gt;
+              &lt;div id="groupSearchResultsLoading" class="hidden"&gt;
+                &lt;span class="glyphicon glyphicon-repeat normal-right-spinner"&gt;&lt;/span&gt;
+                &lt;span class="hint"&gt;$services.localization.render('importUsers.modal.fieldValue.loadingResults')&lt;/span&gt;
+              &lt;/div&gt;
+              &lt;div id="groupsResultsLoading" class="hidden"&gt;
+                &lt;span class="glyphicon glyphicon-repeat normal-right-spinner"&gt;&lt;/span&gt;
+                &lt;span class="hint"&gt;$services.localization.render('importUsers.modal.fieldValue.importingResults')&lt;/span&gt;
+              &lt;/div&gt;
+              &lt;div id="groupSearchResults"&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;input type="submit" id="associateButton" class="btn btn-primary hidden"
+              value="$escapetool.xml($services.localization.render('importUsers.associateGroups.modal.associateButton'))"&gt;
+          &lt;/form&gt;
+        &lt;/div&gt;
+        &lt;div class="modal-footer"&gt;
+          &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
+            $escapetool.xml($services.localization.render('importUsers.modal.close'))
+          &lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
 #end
 {{/velocity}}
 
@@ -1039,9 +1339,15 @@ ul#importedUsersList {
     ($doc.fullName == 'XWiki.XWikiPreferences' &amp;&amp; ($request.section == 'Users' || $request.section == 'Groups')))
     #set ($discard = $xwiki.jsx.use('LDAPUserImport.LDAPUserImportUIX'))
     #set ($discard = $xwiki.ssx.use('LDAPUserImport.LDAPUserImportUIX'))
-    #importUsersModal
-    #updateGroupButton
-    #updateGroupConfirmationModal
+    #set ($serviceDoc = $xwiki.getDocument('LDAPUserImport.LDAPUserImportService'))
+    #set ($formAction = $serviceDoc.getURL('get'))
+    {{html clean="false"}}
+      #importUsersModal()
+      #updateGroupButton()
+      #updateGroupConfirmationModal()
+      #associateGroupsButton()
+      #associateGroupsConfirmationModal()
+    {{/html}}
   #end
 #end
 {{/velocity}}</content>

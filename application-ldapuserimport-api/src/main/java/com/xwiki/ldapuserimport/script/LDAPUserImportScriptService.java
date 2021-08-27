@@ -43,7 +43,7 @@ public class LDAPUserImportScriptService implements ScriptService
 
     /**
      * Get all the users that have the searched value contained in any of the provided fields value.
-     * 
+     *
      * @param singleField the field to only filter when the single field search is enabled
      * @param allFields the list of all configured fields
      * @param searchInput the value to search for
@@ -59,7 +59,7 @@ public class LDAPUserImportScriptService implements ScriptService
 
     /**
      * Import the selected users.
-     * 
+     *
      * @param usersList the list of users to be imported
      * @param groupName the group to add users in
      * @return a map of imported user profiles and URLs
@@ -74,7 +74,7 @@ public class LDAPUserImportScriptService implements ScriptService
 
     /**
      * Check if the current user is allowed to import users.
-     * 
+     *
      * @return true if has import right, false otherwise
      */
     public boolean hasImport()
@@ -95,7 +95,7 @@ public class LDAPUserImportScriptService implements ScriptService
     }
 
     /**
-     * Get a list of all the XWiki groups that are included in the groups mapping.
+     * Get a list of all the XWiki groups that are included in the LDAP groups mapping.
      *
      * @return a list of XWiki groups
      */
@@ -105,6 +105,8 @@ public class LDAPUserImportScriptService implements ScriptService
     }
 
     /**
+     * Get the number of LDAP users that will be created or updated in the current XWiki group.
+     *
      * @param xWikiGroupName the group name
      * @return the number of users to be synchronized from a group
      */
@@ -114,6 +116,8 @@ public class LDAPUserImportScriptService implements ScriptService
     }
 
     /**
+     * Create or update users from LDAP in the current XWiki group.
+     *
      * @param xWikiGroupName the group name
      * @return true if the update was successful, false otherwise
      */
@@ -123,10 +127,38 @@ public class LDAPUserImportScriptService implements ScriptService
     }
 
     /**
-     * Update all the XWiki groups that are included in the groups mapping.
+     * Create or update users from LDAP in all the XWiki groups that are included in the groups mapping.
      */
     public void updateGroups()
     {
         manager.updateGroups();
+    }
+
+    /**
+     * Get all the LDAP groups from a domain. Each group contains information about the relation with the current XWiki
+     * group (associated or not).
+     *
+     * @param searchInput the value to search for
+     * @param xWikiGroupName the group name
+     * @return the list of groups
+     */
+    public Map<String, Map<String, String>> getLDAPGroups(String searchInput, String xWikiGroupName)
+    {
+        return manager.getLDAPGroups(searchInput, xWikiGroupName);
+    }
+
+    /**
+     * Associate a list of LDAP groups to an XWiki group.
+     *
+     * @param ldapGroupsList the list of LDAP Groups to be assigned
+     * @param xWikiGroupName the group name
+     * @return true if the groups association succeeded, false otherwise
+     */
+    public boolean associateGroups(String[] ldapGroupsList, String xWikiGroupName)
+    {
+        if (hasImport()) {
+            return manager.associateGroups(ldapGroupsList, xWikiGroupName);
+        }
+        return false;
     }
 }

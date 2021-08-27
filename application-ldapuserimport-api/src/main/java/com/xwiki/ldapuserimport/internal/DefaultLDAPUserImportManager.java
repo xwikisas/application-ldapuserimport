@@ -69,6 +69,17 @@ import com.xwiki.ldapuserimport.LDAPUserImportManager;
 @Singleton
 public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 {
+    private static final String XWIKI_PREFERENCES = "XWikiPreferences";
+
+    private static final String ACTIVE_DIRECTORY_HINT = "activedirectory";
+
+    private static final String LDAP_GROUP_CLASSES_KEY = "ldap_group_classes";
+
+    private static final String FILTER_CLOSING_MARK = "))";
+
+    private static final String LDAP_GROUP_CLASSES = "group,groupOfNames,groupOfUniqueNames,dynamicGroup,"
+        + "dynamicGroupAux,groupWiseDistributionList,posixGroup,apple-group";
+
     private static final String USERNAME = "username";
 
     private static final String LDAP_FIELDS_MAPPING = "ldap_fields_mapping";
@@ -91,8 +102,11 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 
     private static final String XWIKI = "XWiki";
 
+    private static final LocalDocumentReference PREFERENCES_REFERENCE =
+        new LocalDocumentReference(XWIKI, XWIKI_PREFERENCES);
+
     private static final DocumentReference GLOBAL_PREFERENCES =
-        new DocumentReference(MAIN_WIKI_NAME, XWIKI, "XWikiPreferences");
+        new DocumentReference(MAIN_WIKI_NAME, XWIKI, XWIKI_PREFERENCES);
 
     private static final String LDAP_UID_ATTR = "ldap_UID_attr";
 
@@ -155,22 +169,22 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 
             String[] attributeNameTable = getAttributeNameTable(configuration);
 
-            StringBuilder filter;
+            String filter;
             if (StringUtils.isNoneBlank(singleField)) {
-                filter = getFilter(searchInput, singleField);
+                filter = getUsersFilter(searchInput, singleField);
             } else if (StringUtils.isNoneBlank(allFields)) {
-                filter = getFilter(searchInput, allFields);
+                filter = getUsersFilter(searchInput, allFields);
             } else {
-                filter = getFilter(searchInput, String.join(FIELDS_SEPARATOR, attributeNameTable));
+                filter = getUsersFilter(searchInput, String.join(FIELDS_SEPARATOR, attributeNameTable));
             }
 
-            PagedLDAPSearchResults result = connection.searchPaginated(base, LDAPConnection.SCOPE_SUB,
-                filter.toString(), attributeNameTable, false);
+            PagedLDAPSearchResults result =
+                connection.searchPaginated(base, LDAPConnection.SCOPE_SUB, filter, attributeNameTable, false);
             if (result.hasMore()) {
                 return getUsers(configuration, connection, result, context);
             } else {
                 logger.warn("There are no result for base dn: [{}], search scope: [{}], filter: [{}], fields: [{}]",
-                    base, LDAPConnection.SCOPE_SUB, filter.toString(), attributeNameTable);
+                    base, LDAPConnection.SCOPE_SUB, filter, attributeNameTable);
                 return null;
             }
         } catch (XWikiLDAPException e) {
@@ -251,20 +265,29 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     /**
      * Filter pattern: (&({0}={1})(|({2}=*{3}*)({4}=*{5}*)({6}=*{7}*)...)).
      */
-    private StringBuilder getFilter(String searchInput, String searchFields)
+    private String getUsersFilter(String searchInput, String searchFields)
     {
-        String escapedSearchInput = XWikiLDAPConnection.escapeLDAPSearchFilter(searchInput);
-        StringBuilder filter = new StringBuilder("(&");
-        filter.append("(objectClass=*)(|");
+        StringBuilder filter = new StringBuilder("(&(objectClass=*)(|");
         for (String filed : Arrays.asList(searchFields.split(FIELDS_SEPARATOR))) {
-            filter.append("(");
-            filter.append(XWikiLDAPConnection.escapeLDAPSearchFilter(filed));
-            filter.append("=*");
-            filter.append(escapedSearchInput);
-            filter.append("*)");
+            filter.append(String.format("(%s=*%s*)", XWikiLDAPConnection.escapeLDAPSearchFilter(filed),
+                XWikiLDAPConnection.escapeLDAPSearchFilter(searchInput)));
         }
-        filter.append("))");
-        return filter;
+        filter.append(FILTER_CLOSING_MARK);
+        return filter.toString();
+    }
+
+    /**
+     * Filter pattern: (&(cn=*{0}*)(|(objectClass=class1)(objectClass=class2)...(objectClass=classN))).
+     */
+    private String getGroupsFilter(String searchInput, String objectClasses)
+    {
+        StringBuilder filter =
+            new StringBuilder(String.format("(&(cn=*%s*)(|", XWikiLDAPConnection.escapeLDAPSearchFilter(searchInput)));
+        for (String objectClass : objectClasses.split(FIELDS_SEPARATOR)) {
+            filter.append(String.format("(objectClass=%s)", objectClass));
+        }
+        filter.append(FILTER_CLOSING_MARK);
+        return filter.toString();
     }
 
     private Map<String, Map<String, String>> getUsers(XWikiLDAPConfig configuration, XWikiLDAPConnection connection,
@@ -522,13 +545,12 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 
     private ConfigurationSource getConfigurationSource()
     {
-        String activeDirectoryHint = "activedirectory";
-        if (componentManagerProvider.get().hasComponent(ConfigurationSource.class, activeDirectoryHint)) {
+        if (componentManagerProvider.get().hasComponent(ConfigurationSource.class, ACTIVE_DIRECTORY_HINT)) {
             try {
-                return componentManagerProvider.get().getInstance(ConfigurationSource.class, activeDirectoryHint);
+                return componentManagerProvider.get().getInstance(ConfigurationSource.class, ACTIVE_DIRECTORY_HINT);
             } catch (ComponentLookupException e) {
                 logger.error("Failed to get [{}] configuration source. Using the default LDAP configuration source",
-                    activeDirectoryHint, e);
+                    ACTIVE_DIRECTORY_HINT, e);
             }
         }
         return configurationSource;
@@ -685,5 +707,162 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 updateGroup(xWikiGroupName);
             }
         }
+    }
+
+    @Override
+    public Map<String, Map<String, String>> getLDAPGroups(String searchInput, String xWikiGroupName)
+    {
+        XWikiContext context = contextProvider.get();
+        String currentWikiId = context.getWikiId();
+        // Make sure to use the main wiki configuration source.
+        context.setWikiId(context.getMainXWiki());
+
+        XWikiLDAPConfig configuration = getConfiguration();
+        XWikiLDAPConnection connection = new XWikiLDAPConnection(configuration);
+
+        Map<String, Map<String, String>> ldapGroups = new HashMap<>();
+
+        try {
+            connection.open(configuration.getLDAPBindDN(), configuration.getLDAPBindPassword(), context);
+            String filter =
+                getGroupsFilter(searchInput, configuration.getLDAPParam(LDAP_GROUP_CLASSES_KEY, LDAP_GROUP_CLASSES));
+            String base = configuration.getLDAPParam(LDAP_BASE_DN, "");
+
+            String[] attributeNameTable = new String[] {CN, "description"};
+
+            PagedLDAPSearchResults result =
+                connection.searchPaginated(base, LDAPConnection.SCOPE_SUB, filter, attributeNameTable, false);
+            if (result.hasMore()) {
+                ldapGroups = getLDAPGroups(configuration, connection, result, context, xWikiGroupName);
+            } else {
+                logger.warn("There are no result for base dn: [{}], search scope: [{}], filter: [{}], fields: [{}].",
+                    base, LDAPConnection.SCOPE_SUB, filter, CN);
+                return null;
+            }
+        } catch (XWikiLDAPException e) {
+            logger.error(e.getFullMessage());
+        } catch (Exception e) {
+            logger.warn("Failed to search for value [{}] in the fields [{}].", e);
+        } finally {
+            connection.close();
+            context.setWikiId(currentWikiId);
+        }
+        return ldapGroups;
+    }
+
+    private Map<String, Map<String, String>> getLDAPGroups(XWikiLDAPConfig configuration,
+        XWikiLDAPConnection connection, PagedLDAPSearchResults result, XWikiContext context, String xWikiGroupName)
+    {
+        LDAPEntry resultEntry = null;
+        Map<String, Map<String, String>> groupsMap = new HashMap<>();
+
+        try {
+            resultEntry = result.next();
+            if (resultEntry != null) {
+                int maxDisplayedUsersNb = getMaxDisplayedUsersNb();
+                boolean hasMore;
+                Map<String, Set<String>> groupMappings = configuration.getGroupMappings();
+                do {
+                    Map<String, String> group =
+                        getLDAPGroupDetails(connection, xWikiGroupName, resultEntry, groupMappings);
+                    groupsMap.put(group.get(CN), group);
+                    hasMore = result.hasMore();
+                    resultEntry = hasMore ? result.next() : null;
+                } while (resultEntry != null && groupsMap.size() < maxDisplayedUsersNb);
+                // Only do the sorting on the UI side when we have less results than the limit or exactly the limit.
+                // hasMore is false when groupsMap.size() <= maxDisplayedUsersNb.
+                if (!hasMore) {
+                    SortedMap<String, Map<String, String>> sortedGroupsMap = new TreeMap<>();
+                    for (String groupId : groupsMap.keySet()) {
+                        sortedGroupsMap.put(groupId, groupsMap.get(groupId));
+                    }
+                    return sortedGroupsMap;
+                }
+            }
+        } catch (Exception e) {
+            logger.warn(FAILED_TO_GET_RESULTS, e);
+            if (e instanceof LDAPReferralException) {
+                logger.warn(((LDAPReferralException) e).getFailedReferral());
+            }
+        }
+        return groupsMap;
+    }
+
+    private Map<String, String> getLDAPGroupDetails(XWikiLDAPConnection connection, String xWikiGroupName,
+        LDAPEntry resultEntry, Map<String, Set<String>> groupMappings)
+    {
+        List<XWikiLDAPSearchAttribute> searchAttributeList = new ArrayList<>();
+        connection.ldapToXWikiAttribute(searchAttributeList, resultEntry.getAttributeSet());
+
+        Map<String, String> group = new HashMap<>();
+        for (XWikiLDAPSearchAttribute attribute : searchAttributeList) {
+            group.put(attribute.name, attribute.value);
+        }
+        String ldapGroupDN = resultEntry.getDN();
+        group.put("dn", ldapGroupDN);
+        boolean isAssociated = false;
+        if (groupMappings.get(xWikiGroupName) != null && groupMappings.get(xWikiGroupName).contains(ldapGroupDN)) {
+            isAssociated = true;
+        }
+        group.put("isAssociated", Boolean.toString(isAssociated));
+        return group;
+    }
+
+    @Override
+    public boolean associateGroups(String[] ldapGroupsArray, String xWikiGroupName)
+    {
+        if (ldapGroupsArray.length > 0) {
+            XWikiContext context = contextProvider.get();
+            String currentWikiId = context.getWikiId();
+            // Make sure to use the main wiki configuration source.
+            context.setWikiId(context.getMainXWiki());
+
+            DocumentReference configSourceDocRef = GLOBAL_PREFERENCES;
+
+            if (componentManagerProvider.get().hasComponent(ConfigurationSource.class, ACTIVE_DIRECTORY_HINT)) {
+                configSourceDocRef = new DocumentReference(MAIN_WIKI_NAME, Arrays.asList("ActiveDirectory", "Code"),
+                    "ActiveDirectoryConfig");
+            }
+
+            try {
+
+                XWikiDocument configSourceDoc = context.getWiki().getDocument(configSourceDocRef, context);
+
+                Set<String> ldapGroupsSetToAdd = new HashSet<String>(Arrays.asList(ldapGroupsArray));
+                Map<String, Set<String>> groupMapping = getConfiguration().getGroupMappings();
+                Set<String> ldapGroupsSet = new HashSet<>();
+                if (groupMapping.get(xWikiGroupName) != null) {
+                    ldapGroupsSet.addAll(groupMapping.get(xWikiGroupName));
+                }
+                ldapGroupsSet.addAll(ldapGroupsSetToAdd);
+
+                groupMapping.put(xWikiGroupName, ldapGroupsSet);
+
+                StringBuffer groupMappingStringBuffer = new StringBuffer();
+
+                for (Entry<String, Set<String>> entry : groupMapping.entrySet()) {
+                    for (String ldapGroupDN : entry.getValue()) {
+                        groupMappingStringBuffer.append(entry.getKey()).append(EQUAL_STRING).append(ldapGroupDN)
+                            .append("|");
+                    }
+                }
+
+                // Remove the last pipe separator from the mapping.
+                String groupMappingString = StringUtils.chop(groupMappingStringBuffer.toString());
+
+                BaseObject preferencesObject = configSourceDoc.getXObject(PREFERENCES_REFERENCE);
+
+                preferencesObject.setLargeStringValue("ldap_group_mapping", groupMappingString);
+
+                context.getWiki().saveDocument(configSourceDoc,
+                    "Updated the LDAP group mapping by LDAP User Import app", context);
+                return true;
+            } catch (XWikiException e) {
+                logger.error("Failed to associate LDAP group to XWiki group", e);
+            } finally {
+                context.setWikiId(currentWikiId);
+            }
+        }
+        return false;
     }
 }
