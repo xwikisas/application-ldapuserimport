@@ -124,14 +124,8 @@
   /*
    * Inject a button for user import in the Users and Groups administration sections.
    */
-  var importUsersButton = $('&lt;button/&gt;').attr({
-    'id': 'importUserButton',
-    'class': 'btn btn-primary',
-    'type': 'button',
-    'data-toggle': 'modal',
-    'data-target': '#importUsersModal'
-  });
-  importUsersButton.text("$services.localization.render('importUsers.title')");
+  var importUsersButton = $('#importUsersButton');
+  var importUsersSection = $('#groupEditImportUserSection');
 
   /*
    * Append the Import User button in several needed places.
@@ -142,27 +136,29 @@
     $("button[data-target='#createUserModal']"),
     $('#inviteUserButton')],
     function() {
-      $(this).parent().append(importUsersButton);
+      // The same element cannot be appended in different places.
+      var importUsersButtonClone = importUsersButton.clone();
+      importUsersButtonClone.removeClass('hidden');
+      $(this).parent().append(importUsersButtonClone);
     }
   );
   /*
    * Append the Import User button in several needed places.
    * 1. In any Group page, edit mode, splitting the screen in 2, sharing width with Add members form.
-   * 2. In any Group's pop-up edit modal,  splitting the screen in 2, sharing width with Add members form.
+   * 2. In any Group's pop-up edit modal, splitting the screen in 2, sharing width with Add members form.
    */
 
   var updateAddMembersForm = function() {
     var editForm = $('#addMembers').closest('.xform').not('#inviteUserForm');
     if (editForm.size() &gt; 0) {
       editForm.wrap("&lt;div class='row'&gt;&lt;/div&gt;").addClass('col-sm-6');
-      var importSection = $('&lt;div/&gt;').attr({'class': 'col-sm-6'});
-      var importInfo = $('&lt;p/&gt;').attr({'class': 'importInfo'});
-      importInfo.text("$services.localization.render('importUsers.info')");
-      importSection.append(importInfo);
+      var importUsersSectionClone = importUsersSection.clone();
+      importUsersSectionClone.removeClass('hidden');
       // The same element cannot be appended in different places.
       var importUsersButtonClone = importUsersButton.clone();
-      importSection.append(importUsersButtonClone);
-      editForm.parent().append(importSection);
+      importUsersButtonClone.removeClass('hidden');
+      importUsersSectionClone.append(importUsersButtonClone);
+      editForm.parent().append(importUsersSectionClone);
     }
   };
 
@@ -173,7 +169,7 @@
     updateAddMembersForm();
   });
   // Hide the Edit Group modal, when using the Import Users feature.
-  $('#editGroupModal').on('click', '#importUserButton', function() {
+  $('#editGroupModal').on('click', '#importUsersButton', function() {
     $('#editGroupModal').modal('hide');
   });
 });</code>
@@ -182,7 +178,7 @@
       <name>Inject button</name>
     </property>
     <property>
-      <parse>1</parse>
+      <parse>0</parse>
     </property>
     <property>
       <use>onDemand</use>
@@ -303,8 +299,8 @@
       }
       searchLoading.addClass('hidden');
       resultsContainer.removeClass('hidden');
-      if (users == null || $.isEmptyObject(users)) {
-        resultsContainer.html("$services.localization.render('importUsers.modal.fieldValue.noResults')");
+      if ($.isEmptyObject(users)) {
+        resultsContainer.html(data.noResults);
       } else {
         var resultsList = $('&lt;ul/&gt;').attr({'id': 'usersList'});
         $.each(users, function(index, value) {
@@ -361,11 +357,12 @@
     // Make sure the message is hidden all the time even if the form is submitted without reloading the page.
     $('#ldapSearchBox .infomessage').addClass('hidden');
     $.post(importLDAPUsersForm.attr('action'), importLDAPUsersForm.serialize())
-     .done(function(users) {
+     .done(function(data) {
       importLoading.addClass('hidden');
       resultsContainer.removeClass('hidden');
-      if (users == null) {
-        resultsContainer.html("$services.localization.render('importUsers.modal.user.failedImport')");
+      var users = data.users;
+      if ($.isEmptyObject(users)) {
+        resultsContainer.html(data.noResults);
       } else {
         var resultsList = $('&lt;ul/&gt;').attr({'id': 'importedUsersList'});
         $.each(users, function(index, value) {
@@ -404,7 +401,7 @@
       <name>Import Users Wizard</name>
     </property>
     <property>
-      <parse>1</parse>
+      <parse>0</parse>
     </property>
     <property>
       <use>onDemand</use>
@@ -545,9 +542,8 @@
     ).done(function(data) {
       groupMembersSizeLoading.addClass('hidden');
       var groupMemberSize = data.groupMemberSize;
-      // FIXME: Find a better way to translate with params in JS.
-      updateStatus.html(data.groupMemberSize + " $services.localization.render('importUsers.groupUpdate.confirmationModal.info')");
-      if (groupMemberSize &gt; 0) {
+      updateStatus.html(data.groupMemberSizeInfo);
+      if (data.groupMemberSize &gt; 0) {
         confirmGroupUpdateButton.removeClass('hidden');
       }
     });
@@ -578,7 +574,7 @@
       <name>Import/Update Group</name>
     </property>
     <property>
-      <parse>1</parse>
+      <parse>0</parse>
     </property>
     <property>
       <use>onDemand</use>
@@ -703,8 +699,8 @@
       }
       searchLoading.addClass('hidden');
       resultsContainer.removeClass('hidden');
-      if (groups == null || $.isEmptyObject(groups)) {
-        resultsContainer.html("$services.localization.render('importUsers.associateGroups.modal.fieldValue.noResults')");
+      if ($.isEmptyObject(groups)) {
+        resultsContainer.html(data.noResults);
       } else {
         var resultsList = $('&lt;ul/&gt;').attr({'id': 'groupsList'});
         $.each(groups, function(index, value) {
@@ -784,7 +780,7 @@
       <name>Assign LDAP groups to XWiki group</name>
     </property>
     <property>
-      <parse>1</parse>
+      <parse>0</parse>
     </property>
     <property>
       <use>onDemand</use>
@@ -1088,6 +1084,19 @@ ul#importedUsersList {
     </property>
     <property>
       <content>{{velocity output="false"}}
+#macro (importUserButton)
+  &lt;button id="importUsersButton" class="btn btn-primary hidden" data-toggle="modal" data-target="#importUsersModal"
+    type="button"&gt;
+    $services.localization.render('importUsers.title')
+  &lt;/button&gt;
+#end
+
+#macro (groupEditImportUserSection)
+  &lt;div id="groupEditImportUserSection" class="col-sm-6 hidden"&gt;
+    &lt;p class="importInfo"&gt;$services.localization.render('importUsers.info')&lt;/p&gt;
+  &lt;/div&gt;
+#end
+
 #macro (updateGroupButton)
   #if ($services.extension.core.getCoreExtension('org.xwiki.platform:xwiki-platform-model').id.version.compareTo('11.7') &lt;= 0)
     ## FIXME: find a solution to remove the ## from the end of new line without introducing new space between icon and
@@ -1120,7 +1129,7 @@ ul#importedUsersList {
   #end
 #end
 
-#macro (importUsersModal)
+#macro (importUsersModalMacro)
   #set ($discard = $xwiki.linkx.use($services.webjars.url('selectize.js', 'css/selectize.bootstrap3.css'),
   {'type': 'text/css', 'rel': 'stylesheet'}))
   #set ($discard = $xwiki.ssfx.use('uicomponents/suggest/xwiki.selectize.css', true))
@@ -1155,6 +1164,7 @@ ul#importedUsersList {
             &lt;div class="hidden"&gt;
               &lt;input type="hidden" name="form_token" value="$services.csrf.token"/&gt;
               &lt;input type="hidden" name="outputSyntax" value="plain"/&gt;
+              &lt;input type="hidden" name="action" value="searchUsers"/&gt;
             &lt;/div&gt;
             &lt;dl&gt;
               #if ($configObj.getValue('enableSingleFieldSearch') == 1 &amp;&amp; "$!allFields" != '')
@@ -1190,7 +1200,7 @@ ul#importedUsersList {
             &lt;div class="hidden"&gt;
               &lt;input type="hidden" name="form_token" value="$services.csrf.token"/&gt;
               &lt;input type="hidden" name="outputSyntax" value="plain"/&gt;
-              &lt;input type="hidden" name="action" value="import"/&gt;
+              &lt;input type="hidden" name="action" value="importUsers"/&gt;
               &lt;input type="hidden" name="groupReference" value="$!groupReference"/&gt;
             &lt;/div&gt;
             &lt;div class="box hidden" id="ldapSearchBox"&gt;
@@ -1342,11 +1352,13 @@ ul#importedUsersList {
     #set ($serviceDoc = $xwiki.getDocument('LDAPUserImport.LDAPUserImportService'))
     #set ($formAction = $serviceDoc.getURL('get'))
     {{html clean="false"}}
-      #importUsersModal()
+      #importUserButton()
+      #importUsersModalMacro()
       #updateGroupButton()
       #updateGroupConfirmationModal()
       #associateGroupsButton()
       #associateGroupsConfirmationModal()
+      #groupEditImportUserSection()
     {{/html}}
   #end
 #end

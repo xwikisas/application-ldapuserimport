@@ -45,7 +45,8 @@
     ## Exclude some helper fields from being displayed in the feedback list.
     #set ($excludedFields = ['exists', 'uid', 'dn', 'userProfile', 'userProfileURL'])
     #set ($statusCode = 500)
-    #if ($request.action == 'import')
+    #if ($request.action == 'importUsers')
+      #set ($noResultsMessage = $services.localization.render('importUsers.modal.fieldValue.noResults'))
       #set ($users = $services.ldapuserimport.importUsers($request.parameterMap.user, $request.groupReference))
       #foreach ($user in $users.entrySet())
         #set ($params = [])
@@ -58,13 +59,20 @@
         #set ($user.value.displayMessage = $message)
       #end
       #set ($statusCode = 200)
-      $jsontool.serialize($users)
+      $jsontool.serialize({
+        'noResults': $noResultsMessage,
+        'users': $users
+      })
     #elseif ($request.action == 'getMappedXWikiGroups')
       #set ($statusCode = 200)
       $jsontool.serialize({'mappedXWikiGroups': $services.ldapuserimport.getXWikiMappedGroups()})
     #elseif ($request.action == 'getGroupMemberSize')
+      #set ($groupMemberSize = $services.ldapuserimport.getGroupMemberSize($request.xWikiGroupName))
       #set ($statusCode = 200)
-      $jsontool.serialize({'groupMemberSize': $services.ldapuserimport.getGroupMemberSize($request.xWikiGroupName)})
+      $jsontool.serialize({
+        'groupMemberSize': $groupMemberSize,
+        'groupMemberSizeInfo': $services.localization.render('importUsers.groupUpdate.confirmationModal.info', [$groupMemberSize])
+      })
     #elseif ($request.action == 'updateGroup')
       #set ($statusCode = 200)
       #set ($message = $services.localization.render('importUsers.groupUpdate.updatingGroup.success'))
@@ -73,6 +81,7 @@
       #end
       $jsontool.serialize({'message': $message})
     #elseif ($request.action == 'getLDAPGroups')
+      #set ($noResultsMessage = $services.localization.render('importUsers.associateGroups.modal.fieldValue.noResults'))
       #set ($statusCode = 200)
       #set ($groups = $services.ldapuserimport.getLDAPGroups($request.searchInput, $request.xWikiGroupName))
       #foreach ($group in $groups.entrySet())
@@ -84,6 +93,7 @@
         #set ($group.value.displayMessage = $message)
       #end
       $jsontool.serialize({
+        'noResults': $noResultsMessage,
         'groups': $groups,
         'displayedMax': $services.ldapuserimport.displayedMax($groups.size())
       })
@@ -96,8 +106,9 @@
         #set ($status = 'success')
       #end
       $jsontool.serialize({'message': $message, 'status': $status})
-    #else
+    #elseif ($request.action == 'searchUsers')
       #set ($users = $services.ldapuserimport.getUsers($request.singleField, $request.allFields, $request.searchInput))
+      #set ($noResultsMessage = $services.localization.render('importUsers.modal.fieldValue.noResults'))
       #foreach ($user in $users.entrySet())
         #set ($params = [])
         #foreach ($item in $user.value.entrySet())
@@ -114,6 +125,7 @@
       #end
       #set ($statusCode = 200)
       $jsontool.serialize({
+        'noResults': $noResultsMessage,
         'users': $users,
         'displayedMax': $services.ldapuserimport.displayedMax($users.size())
       })

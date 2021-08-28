@@ -21,6 +21,7 @@ package com.xwiki.ldapuserimport.internal;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -185,7 +186,6 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             } else {
                 logger.warn("There are no result for base dn: [{}], search scope: [{}], filter: [{}], fields: [{}]",
                     base, LDAPConnection.SCOPE_SUB, filter, attributeNameTable);
-                return null;
             }
         } catch (XWikiLDAPException e) {
             logger.error(e.getFullMessage());
@@ -195,7 +195,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             connection.close();
             context.setWikiId(currentWikiId);
         }
-        return null;
+        return Collections.emptyMap();
     }
 
     private XWikiLDAPConfig getConfiguration()
@@ -297,7 +297,6 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         String uidFieldName = configuration.getLDAPParam(LDAP_UID_ATTR, CN);
         ldapUtils.setUidAttributeName(uidFieldName);
         ldapUtils.setBaseDN(configuration.getLDAPParam(LDAP_BASE_DN, ""));
-        Map<String, Map<String, String>> usersMap = new HashMap<>();
         LDAPEntry resultEntry = null;
 
         try {
@@ -306,10 +305,11 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 Map<String, String> fieldsMap = getFieldsMap(configuration);
                 int maxDisplayedUsersNb = getMaxDisplayedUsersNb();
                 boolean hasMore;
+                Map<String, Map<String, String>> usersMap = new HashMap<>();
                 do {
                     Map<String, String> user =
                         getUserDetails(connection, fieldsMap, ldapUtils, context, uidFieldName, resultEntry);
-                    if (user != null) {
+                    if (!user.isEmpty()) {
                         usersMap.put(user.get(UID), user);
                     }
                     hasMore = result.hasMore();
@@ -324,6 +324,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                     }
                     return sortedUsersMap;
                 }
+                return usersMap;
             } else {
                 /*
                  * For some weird reason result.hasMore() can be true before the first call to next() even if nothing is
@@ -338,8 +339,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 logger.warn(((LDAPReferralException) e).getFailedReferral());
             }
         }
-
-        return usersMap;
+        return Collections.emptyMap();
     }
 
     /**
@@ -365,7 +365,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             DocumentReference userReference = new DocumentReference(MAIN_WIKI_NAME, XWIKI, userPageName);
             return getUserDetails(fieldsMap, searchAttributeList, userReference, context);
         }
-        return null;
+        return Collections.emptyMap();
     }
 
     private Map<String, String> getUserDetails(Map<String, String> fieldsMap, List<XWikiLDAPSearchAttribute> attributes,
@@ -402,7 +402,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     }
 
     @Override
-    public SortedMap<String, Map<String, String>> importUsers(String[] usersList, String groupName)
+    public Map<String, Map<String, String>> importUsers(String[] usersList, String groupName)
     {
         if (usersList.length > 0) {
             XWikiContext context = contextProvider.get();
@@ -448,7 +448,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 context.setWikiId(currentWikiId);
             }
         }
-        return null;
+        return Collections.emptyMap();
     }
 
     private void setPageNameFormatter(XWikiLDAPConfig configuration)
@@ -754,17 +754,17 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         XWikiLDAPConnection connection, PagedLDAPSearchResults result, XWikiContext context, String xWikiGroupName)
     {
         LDAPEntry resultEntry = null;
-        Map<String, Map<String, String>> groupsMap = new HashMap<>();
 
         try {
             resultEntry = result.next();
             if (resultEntry != null) {
                 int maxDisplayedUsersNb = getMaxDisplayedUsersNb();
                 boolean hasMore;
-                Map<String, Set<String>> groupMappings = configuration.getGroupMappings();
+                Map<String, Map<String, String>> groupsMap = new HashMap<>();
+                Map<String, Set<String>> ldapGroupMapping = configuration.getGroupMappings();
                 do {
                     Map<String, String> group =
-                        getLDAPGroupDetails(connection, xWikiGroupName, resultEntry, groupMappings);
+                        getLDAPGroupDetails(connection, xWikiGroupName, resultEntry, ldapGroupMapping);
                     groupsMap.put(group.get(CN), group);
                     hasMore = result.hasMore();
                     resultEntry = hasMore ? result.next() : null;
@@ -778,6 +778,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                     }
                     return sortedGroupsMap;
                 }
+                return groupsMap;
             }
         } catch (Exception e) {
             logger.warn(FAILED_TO_GET_RESULTS, e);
@@ -785,7 +786,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 logger.warn(((LDAPReferralException) e).getFailedReferral());
             }
         }
-        return groupsMap;
+        return Collections.emptyMap();
     }
 
     private Map<String, String> getLDAPGroupDetails(XWikiLDAPConnection connection, String xWikiGroupName,

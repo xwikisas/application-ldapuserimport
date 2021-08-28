@@ -19,6 +19,7 @@
  */
 package com.xwiki.ldapuserimport.script;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
@@ -54,7 +55,7 @@ public class LDAPUserImportScriptService implements ScriptService
         if (hasImport()) {
             return manager.getUsers(singleField, allFields, searchInput);
         }
-        return null;
+        return Collections.emptyMap();
     }
 
     /**
@@ -69,7 +70,7 @@ public class LDAPUserImportScriptService implements ScriptService
         if (hasImport()) {
             return manager.importUsers(usersList, groupName);
         }
-        return null;
+        return Collections.emptyMap();
     }
 
     /**
@@ -123,7 +124,10 @@ public class LDAPUserImportScriptService implements ScriptService
      */
     public boolean updateGroup(String xWikiGroupName)
     {
-        return manager.updateGroup(xWikiGroupName);
+        if (hasImport()) {
+            return manager.updateGroup(xWikiGroupName);
+        }
+        return false;
     }
 
     /**
