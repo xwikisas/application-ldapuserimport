@@ -941,11 +941,11 @@ ul#importedUsersList {
 /* FIXME: Update the following section when the minimal supported version becomes XWiki 11.8
  * Mostly, it should be cleanup, as the new versions use Font-Awesome icons.
  */
-#groupstable-display a.actionupdategroup {
+#groupstable-display a.actionupdategroup.oldGroupButton {
   background-image: url(/xwiki/resources/icons/silk/arrow_refresh.png);
   text-transform: none;
 }
-#groupstable-display a.actionassociategroups {
+#groupstable-display a.actionassociategroups.oldGroupButton {
   background-image: url(/xwiki/resources/icons/silk/arrow_switch.png);
   text-transform: none;
 }</code>
@@ -1101,12 +1101,15 @@ ul#importedUsersList {
   #if ($services.extension.core.getCoreExtension('org.xwiki.platform:xwiki-platform-model').id.version.compareTo('11.7') &lt;= 0)
     ## FIXME: find a solution to remove the ## from the end of new line without introducing new space between icon and
     ## label (visible on hover when underline text decoration is present).
-    &lt;a href="#" class="action actionupdategroup hidden" data-toggle="modal" data-target="#updateGroupModal"
+    &lt;a href="#" class="action actionupdategroup oldGroupButton hidden" data-toggle="modal" data-target="#updateGroupModal"
       title="$services.localization.render('importUsers.groupUpdate.livetableActionButton.hint')"&gt;##
       $services.localization.render('importUsers.groupUpdate.livetableActionButton')
     &lt;/a&gt;
   #else
-    &lt;a href="#" class="action actionupdategroup hidden" title="$services.localization.render('importUsers.groupUpdate.livetableActionButton.hint')"&gt;
+    ## FIXME: find a solution to remove the ## from the end of new line without introducing new space between icon and
+    ## label (visible on hover when underline text decoration is present).
+    &lt;a href="#" class="action actionupdategroup hidden" data-toggle="modal" data-target="#updateGroupModal"
+      title="$services.localization.render('importUsers.groupUpdate.livetableActionButton.hint')"&gt;
       &lt;span class="action-icon"&gt;$services.icon.renderHTML('refresh')&lt;/span&gt;
       &lt;span class="action-label"&gt;$services.localization.render('importUsers.groupUpdate.livetableActionButton')&lt;/span&gt;
     &lt;/a&gt;
@@ -1117,13 +1120,17 @@ ul#importedUsersList {
   #if ($services.extension.core.getCoreExtension('org.xwiki.platform:xwiki-platform-model').id.version.compareTo('11.7') &lt;= 0)
     ## FIXME: find a solution to remove the ## from the end of new line without introducing new space between icon and
     ## label (visible on hover when underline text decoration is present).
-    &lt;a href="#" class="action actionassociategroups hidden" data-toggle="modal" data-target="#associateGroupsModal"
+    &lt;a href="#" class="action actionassociategroups oldGroupButton hidden" data-toggle="modal" data-target="#associateGroupsModal"
       title="$services.localization.render('importUsers.associateGroups.livetableActionButton.hint')"&gt;##
       $services.localization.render('importUsers.associateGroups.livetableActionButton')
     &lt;/a&gt;
   #else
-    &lt;a href="#" class="action actionassociategroups hidden" title="$services.localization.render('importUsers.associateGroups.livetableActionButton.hint')"&gt;
-      &lt;span class="action-icon"&gt;$services.icon.renderHTML('exchange')&lt;/span&gt;
+    ## FIXME: find a solution to remove the ## from the end of new line without introducing new space between icon and
+    ## label (visible on hover when underline text decoration is present).
+    &lt;a href="#" class="action actionassociategroups hidden" data-toggle="modal" data-target="#associateGroupsModal"
+      title="$services.localization.render('importUsers.associateGroups.livetableActionButton.hint')"&gt;##
+      ## The "exchange" icon is not mapped in the XWiki icon theme.
+      &lt;span class="action-icon"&gt;&lt;span class="fa fa-exchange"&gt;&lt;/span&gt;&lt;/span&gt;##
       &lt;span class="action-label"&gt;$services.localization.render('importUsers.associateGroups.livetableActionButton')&lt;/span&gt;
     &lt;/a&gt;
   #end
