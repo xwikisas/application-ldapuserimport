@@ -278,6 +278,7 @@
   var resultsContainer = $('#searchResults');
   var searchLoading = $('#searchResultsLoading');
   var importLoading = $('#importResultsLoading');
+  var importButton = $('#importButton');
   // Get user results from LDAP.
   $('#searchLDAPUsers').submit(function(event) {
     event.preventDefault();
@@ -289,7 +290,7 @@
     $('#ldapSearchBox .infomessage').addClass('hidden');
     // The import button should be displayed in relation with the results, thus it should be hidden by default for each
     // search operation.
-    $('#importButton').addClass('hidden');
+    importButton.addClass('hidden');
     var displayImportButton = false;
     $.post(searchLDAPUsersForm.attr('action'), searchLDAPUsersForm.serialize())
      .done(function(data) {
@@ -340,7 +341,7 @@
         resultsContainer.html(resultsList);
         // Show the Import button, after search was performed with results.
         if (displayImportButton) {
-          $('#importButton').removeClass('hidden');
+          importButton.removeClass('hidden');
         }
       }
     });
@@ -352,7 +353,6 @@
     importLoading.removeClass('hidden');
     resultsContainer.addClass('hidden');
     var importLDAPUsersForm = $(this);
-    var importButton = $('#importButton');
     importButton.prop('disabled', true);
     // Make sure the message is hidden all the time even if the form is submitted without reloading the page.
     $('#ldapSearchBox .infomessage').addClass('hidden');
@@ -667,7 +667,7 @@
   var groupsTable = $('#groupstable');
   var resultsContainer = $('#groupSearchResults');
   var searchLoading = $('#groupSearchResultsLoading');
-  var groupsResultsLoading = $('#groupsResultsLoading');
+  var associateResultsLoading = $('#associateResultsLoading');
   var associateButton = $('#associateButton');
 
   // Set the XWiki group name in the associateLDAPGroups form
@@ -747,7 +747,7 @@
   // Perform the groups association.
   $('#associateLDAPGroups').submit(function(event) {
     event.preventDefault();
-    groupsResultsLoading.removeClass('hidden');
+    associateResultsLoading.removeClass('hidden');
     resultsContainer.addClass('hidden');
     var associateLDAPGroupsForm = $(this);
     associateButton.prop('disabled', true);
@@ -756,9 +756,11 @@
     $('#ldapGroupSearchBox .infomessage').addClass('hidden');
     $.post(associateLDAPGroupsForm.attr('action'), associateLDAPGroupsForm.serialize())
      .done(function(data) {
+      associateResultsLoading.addClass('hidden');
+      resultsContainer.removeClass('hidden');
       associateButton.addClass('hidden');
+      resultsContainer.html(data.message);
       if (data.status === 'success') {
-        groupsResultsLoading.html(data.message);
         var ldapUpdateGroupButton = $('.actionupdategroup');
         var ldapUpdateGroupButtonClone = ldapUpdateGroupButton.clone();
         ldapUpdateGroupButtonClone.removeClass('hidden');
@@ -769,8 +771,6 @@
           groupActionsCell.append(ldapUpdateGroupButtonClone);
         }
         associateButton.prop('disabled', false);
-      } else {
-        groupsResultsLoading.html(data.message);
       }
     });
   });
@@ -1320,7 +1320,7 @@ ul#importedUsersList {
                 &lt;span class="glyphicon glyphicon-repeat normal-right-spinner"&gt;&lt;/span&gt;
                 &lt;span class="hint"&gt;$services.localization.render('importUsers.modal.fieldValue.loadingResults')&lt;/span&gt;
               &lt;/div&gt;
-              &lt;div id="groupsResultsLoading" class="hidden"&gt;
+              &lt;div id="associateResultsLoading" class="hidden"&gt;
                 &lt;span class="glyphicon glyphicon-repeat normal-right-spinner"&gt;&lt;/span&gt;
                 &lt;span class="hint"&gt;$services.localization.render('importUsers.modal.fieldValue.importingResults')&lt;/span&gt;
               &lt;/div&gt;
