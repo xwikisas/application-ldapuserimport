@@ -68,7 +68,7 @@ LDAPUserImport.LDAPUserImportConfigClass_pageNameFormatter.hint=The XWiki page n
 LDAPUserImport.LDAPUserImportConfigClass_triggerGroupsUpdate=Trigger groups update
 LDAPUserImport.LDAPUserImportConfigClass_triggerGroupsUpdate.hint=If this option is checked, an update on the XWiki groups that are part of the LDAP groups mapping will be executed at a given time (4:30 AM, by default).
 
-importUsers.groupUpdate.livetableActionButton=Import/update group
+importUsers.groupUpdate.livetableActionButton=Update
 importUsers.groupUpdate.livetableActionButton.hint=Synchronize the group if it is part of LDAP group mapping.
 importUsers.groupUpdate.title=Import/update group
 importUsers.groupUpdate.confirmationModal.info={0} users have been found in the LDAP group and will be imported or updated.
@@ -79,7 +79,7 @@ importUsers.groupUpdate.updatingGroup.success=Group successfully updated.
 importUsers.groupUpdate.updatingGroup.fail=Group update failed.
 
 importUsers.associateGroups.title=Associate LDAP Group
-importUsers.associateGroups.livetableActionButton=Associate LDAP Group
+importUsers.associateGroups.livetableActionButton=Associate
 importUsers.associateGroups.livetableActionButton.hint=Associate this group with one ore many LDAP groups to synchronize users from them.
 importUsers.associateGroups.modal.alreadyAssociated={0} ({1}) is already assigned.
 importUsers.associateGroups.modal.toAssociate={0} ({1})

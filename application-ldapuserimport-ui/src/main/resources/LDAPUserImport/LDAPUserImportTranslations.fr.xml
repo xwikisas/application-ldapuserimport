@@ -70,7 +70,7 @@ LDAPUserImport.LDAPUserImportConfigClass_pageNameFormatter.hint=Le modèle de no
 LDAPUserImport.LDAPUserImportConfigClass_triggerGroupsUpdate=Déclencher la mise à jour des groupes
 LDAPUserImport.LDAPUserImportConfigClass_triggerGroupsUpdate.hint=Si cette option est cochée, une mise à jour sur les groupes XWiki faisant partie des groupes LDAP correspondants sera exécutée à une heure donnée (4h30, par défaut).
 
-importUsers.groupUpdate.livetableActionButton=Importer/mettre à jour le groupe
+importUsers.groupUpdate.livetableActionButton=Mettre à jour
 importUsers.groupUpdate.livetableActionButton.hint=Synchronisez le groupe s'il fait partie du mappage de groupe LDAP.
 importUsers.groupUpdate.title=Importer/mettre à jour le groupe
 importUsers.groupUpdate.confirmationModal.info={0} utilisateurs ont été trouvés dans le groupe LDAP et vont être importés ou mis à jour.
@@ -81,7 +81,7 @@ importUsers.groupUpdate.updatingGroup.success=Groupe mis à jour avec succès.
 importUsers.groupUpdate.updatingGroup.fail=Échec de la mise à jour du groupe.
 
 importUsers.associateGroups.title=Associer le Groupe LDAP
-importUsers.associateGroups.livetableActionButton=Associer le Groupe LDAP
+importUsers.associateGroups.livetableActionButton=Associer
 importUsers.associateGroups.livetableActionButton.hint=Associer ce groupe à un ou plusieurs groupes LDAP pour synchroniser les utilisateurs à partir d'eux.
 importUsers.associateGroups.modal.alreadyAssociated={0} ({1}) est déjà associé.
 importUsers.associateGroups.modal.toAssociate={0} ({1})
