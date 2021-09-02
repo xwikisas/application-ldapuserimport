@@ -88,5 +88,5 @@ importUsers.associateGroups.modal.toAssociate={0} ({1})
 importUsers.associateGroups.modal.associateButton=Associer
 importUsers.associateGroups.modal.fieldValue.noResults=Aucun groupe n'a été trouvé
 importUsers.associateGroups.modal.associationFail=Échec de l'association des groupes.
-importUsers.associateGroups.modal.associationSuccess=Groupes associés avec succès.</content>
+importUsers.associateGroups.modal.associationSuccess=Les groupes ont été associés avec succès</content>
 </xwikidoc>
