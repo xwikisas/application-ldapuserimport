@@ -498,33 +498,45 @@
   var groupMembersSizeLoading = $('#groupMembersSizeLoading');
   var groupUpdateLoading = $('#groupUpdateLoading');
   var updateStatus = $('#updateGroupModal .modal-body #updateGroupStatus');
-  if (groupsTable.length &gt; 0) {
-    // Display the associate groups button.
-    var associateGroupsButton = $('.actionassociategroups');
-    $.each($('#groupstable-display tr td.actions'), function(index, value) {
-      var associateGroupsButtonClone = associateGroupsButton.clone();
-      associateGroupsButtonClone.removeClass('hidden');
-      $(this).append(associateGroupsButtonClone);
-    });
-    // Get the XWiki groups mapped to LDAP groups.
-    $.post(serviceURL,
-      {
-        'outputSyntax': 'plain',
-        'action': 'getMappedXWikiGroups',
-        'form_token': formToken
-      }
-    ).done(function(data) {
-      var ldapUpdateGroupButton = $('.actionupdategroup');
-      $.each(data.mappedXWikiGroups, function(index, groupName) {
-        var ldapUpdateGroupButtonClone = ldapUpdateGroupButton.clone();
-        ldapUpdateGroupButtonClone.removeClass('hidden');
-        ldapUpdateGroupButtonClone.attr({'data-xWikiGroupName': groupName})
-        var groupNameCell = groupsTable.find(".group[data-reference$='" + groupName + "']").parent();
-        var groupActionsCell = groupNameCell.siblings('td.actions');
-        groupActionsCell.append(ldapUpdateGroupButtonClone);
+
+  var addAssociateGroupsButtons = function() {
+    if (groupsTable.length &gt; 0) {
+      var associateGroupsButton = $('.actionassociategroups');
+      $.each($('#groupstable-display tr td.actions'), function(index, value) {
+        var associateGroupsButtonClone = associateGroupsButton.clone();
+        associateGroupsButtonClone.removeClass('hidden');
+        $(this).append(associateGroupsButtonClone);
       });
-    });
-  }
+    }
+  };
+
+  var addUpdateGroupButtons = function() {
+    if (groupsTable.length &gt; 0) {
+      // Get the XWiki groups mapped to LDAP groups.
+      $.post(serviceURL,
+        {
+          'outputSyntax': 'plain',
+          'action': 'getMappedXWikiGroups',
+          'form_token': formToken
+        }
+      ).done(function(data) {
+        var ldapUpdateGroupButton = $('.actionupdategroup');
+        $.each(data.mappedXWikiGroups, function(index, groupName) {
+          var ldapUpdateGroupButtonClone = ldapUpdateGroupButton.clone();
+          ldapUpdateGroupButtonClone.removeClass('hidden');
+          ldapUpdateGroupButtonClone.attr({'data-xWikiGroupName': groupName})
+          var groupNameCell = groupsTable.find(".group[data-reference$='" + groupName + "']").parent();
+          var groupActionsCell = groupNameCell.siblings('td.actions');
+          groupActionsCell.append(ldapUpdateGroupButtonClone);
+        });
+      });
+    }
+  };
+  addAssociateGroupsButtons();
+  $(document).on('xwiki:livetable:displayComplete', addAssociateGroupsButtons);
+  addUpdateGroupButtons();
+  $(document).on('xwiki:livetable:displayComplete', addUpdateGroupButtons);
+
   // Trigger the import/group update.
   groupsTable.on('click', '.actionupdategroup', function(event) {
     var xWikiGroupName = $(this).data('xwikigroupname');
@@ -761,16 +773,18 @@
       associateButton.addClass('hidden');
       resultsContainer.html(data.message);
       if (data.status === 'success') {
-        var ldapUpdateGroupButton = $('.actionupdategroup');
-        var ldapUpdateGroupButtonClone = ldapUpdateGroupButton.clone();
-        ldapUpdateGroupButtonClone.removeClass('hidden');
-        ldapUpdateGroupButtonClone.attr({'data-xWikiGroupName': xWikiGroupName})
-        var groupNameCell = groupsTable.find(".group[data-reference$='" + xWikiGroupName + "']").parent();
-        var groupActionsCell = groupNameCell.siblings('td.actions');
-        if (groupActionsCell.find('.actionupdategroup').length  === 0) {
-          groupActionsCell.append(ldapUpdateGroupButtonClone);
-        }
         associateButton.prop('disabled', false);
+      }
+    });
+  });
+  // Make sure to update the current livetable to see the updates.
+  $.each([$('#updateGroupModal'), $('#associateGroupsModal')], function() {
+    $(this).on('click', "[data-dismiss='modal']", function() {
+      var livetable = window['livetable_' + $('.xwiki-livetable').attr('id')];
+      if ($.type(livetable) !== 'undefined') {
+        livetable.refresh();
+      } else {
+        location.reload();
       }
     });
   });
