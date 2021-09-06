@@ -491,6 +491,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             try {
                 BaseObject oIDCObj = userDoc.getXObject(OIDC_CLASS, true, context);
                 oIDCObj.setStringValue("subject", subject);
+                oIDCObj.setStringValue("issuer", getLDAPImportConfiguration().getStringValue("OIDCIssuer"));
                 context.getWiki().saveDocument(userDoc, "OIDC user object added.", context);
             } catch (XWikiException e) {
                 logger.warn("Failed to attach OIDC object of [{}] type to the [{}] user profile.", OIDC_CLASS, userDoc,
