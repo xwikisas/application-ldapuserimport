@@ -403,7 +403,10 @@
       <categoryIcon/>
     </property>
     <property>
-      <codeToExecute/>
+      <codeToExecute>## Hide the OIDC fields from the LDAP User Import config, when the OIDC Authenticator is missing.
+#if (!$xwiki.exists('XWiki.OIDC.UserClass'))
+  #set ($discard = $xwiki.jsx.use('LDAPUserImport.WebHome'))
+#end</codeToExecute>
     </property>
     <property>
       <configurationClass>LDAPUserImport.LDAPUserImportConfigClass</configurationClass>
@@ -434,6 +437,113 @@
     </property>
     <property>
       <sectionOrder/>
+    </property>
+  </object>
+  <object>
+    <name>LDAPUserImport.WebHome</name>
+    <number>0</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>1f9a98e4-3960-473c-806a-a5864fbd349c</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>require(['jquery'], function ($) {
+  $.each(
+    [
+      $('input[id=LDAPUserImport\\.WebHome_LDAPUserImport\\.LDAPUserImportConfigClass_0_addOIDCObject]'),
+      $('label[for=LDAPUserImport\\.WebHome_LDAPUserImport\\.LDAPUserImportConfigClass_0_OIDCIssuer]'),
+      $('input[id=LDAPUserImport\\.WebHome_LDAPUserImport\\.LDAPUserImportConfigClass_0_OIDCIssuer]')
+    ],
+    function() {
+      $(this).closest('dt, dd').addClass('hidden');
+    }
+  );
+});
+</code>
+    </property>
+    <property>
+      <name/>
+    </property>
+    <property>
+      <parse/>
+    </property>
+    <property>
+      <use>onDemand</use>
     </property>
   </object>
 </xwikidoc>
