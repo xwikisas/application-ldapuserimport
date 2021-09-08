@@ -70,6 +70,8 @@ import com.xwiki.ldapuserimport.LDAPUserImportManager;
 @Singleton
 public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 {
+    private static final String MEMBER = "member";
+
     private static final String XWIKI_PREFERENCES = "XWikiPreferences";
 
     private static final String ACTIVE_DIRECTORY_HINT = "activedirectory";
@@ -500,6 +502,15 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         }
     }
 
+    /**
+     * Add the users in the XWiki group all the time, no matter what is in LDAP. WARNING: When the LDAP group mapping is
+     * set and the mapping contains the current group, the user may be removed on group synchronization when the
+     * membership is compared to the LDAP group one.
+     *
+     * @param groupName the XWiki group
+     * @param users the list of users to be added in a group
+     * @throws XWikiException in case of exception
+     */
     private void addUsersInGroup(String groupName, Map<String, Map<String, String>> users) throws XWikiException
     {
         if (StringUtils.isNoneBlank(groupName)) {
@@ -511,7 +522,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 String userFullName = user.getValue().get(USER_PROFILE_KEY);
                 if (!context.getWiki().getUser(userFullName, context).isUserInGroup(groupName)) {
                     BaseObject memberObject = groupDocument.newXObject(GROUP_CLASS_REFERENCE, context);
-                    memberObject.setStringValue("member", userFullName);
+                    memberObject.setStringValue(MEMBER, userFullName);
                     shouldSave = true;
                 }
             }
@@ -626,17 +637,25 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         ldapUtils.setUidAttributeName(uidAttributeName);
         ldapUtils.setBaseDN(configuration.getLDAPParam(LDAP_BASE_DN, ""));
 
-        List<String> usersToImportList = new ArrayList<>();
-        Map<String, Map<String, String>> usersToSynchronizeMap = new HashMap<>();
+        List<String> newUsersList = new ArrayList<>();
+        Map<String, Map<String, String>> existingUsersMap = new HashMap<>();
+        Map<String, String> groupMembersMap = new HashMap<>();
 
-        splitUsersList(context, uidAttributeName, ldapUtils, getGroupMembers(xWikiGroupName), usersToImportList,
-            usersToSynchronizeMap);
+        Map<String, String> users = getGroupMembers(xWikiGroupName);
+        // Fill the list of new users to be imported, the map of existing users to be synchronized and the users that
+        // are members of the current group to update the group membership (can contain non-LDAP users).
+        splitUsersList(context, uidAttributeName, ldapUtils, users, newUsersList, existingUsersMap, groupMembersMap);
 
-        String[] usersToImportArray = usersToImportList.toArray(new String[usersToImportList.size()]);
-        importUsers(usersToImportArray, xWikiGroupName);
+        String[] newUsersArray = newUsersList.toArray(new String[newUsersList.size()]);
+        // Call with null to not add users in group as the membership synch is done by synchronizeGroupMemberShip().
+        importUsers(newUsersArray, null);
 
         synchronizeUsers(xWikiGroupName, context, currentWikiId, configuration, connection, ldapUtils,
-            usersToSynchronizeMap);
+            existingUsersMap);
+
+        synchronizeGroupMembership(xWikiGroupName, groupMembersMap, configuration, connection, ldapUtils, context);
+
+        context.setWikiId(currentWikiId);
         return false;
     }
 
@@ -660,7 +679,6 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 userDoc = context.getWiki().getDocument(userReference, context);
                 addOIDCObject(userDoc, userId, context);
             }
-            addUsersInGroup(xWikiGroupName, usersToSynchronizeMap);
         } catch (XWikiException e) {
             logger.error(e.getFullMessage());
         } finally {
@@ -669,9 +687,47 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         }
     }
 
+    private void synchronizeGroupMembership(String xWikiGroupName, Map<String, String> groupMembersMap,
+        XWikiLDAPConfig configuration, XWikiLDAPConnection connection, XWikiLDAPUtils ldapUtils, XWikiContext context)
+    {
+        Map<String, Set<String>> groupMappings = configuration.getGroupMappings();
+        // Filter the group mapping to update only the membership of the users in the current group.
+        Map<String, Set<String>> filteredGroupMapping = new HashMap<>();
+        filteredGroupMapping.put(xWikiGroupName, groupMappings.get(xWikiGroupName));
+
+        try {
+            // Add all the XWiki users that are not LDAP users to be also synchronized(removed) in the current group.
+            DocumentReference xwikiGroupReference = documentReferenceResolver.resolve(xWikiGroupName);
+            XWikiDocument groupDoc = context.getWiki().getDocument(xwikiGroupReference, context);
+            List<BaseObject> xobjects = groupDoc.getXObjects(documentReferenceResolver.resolve("XWiki.XWikiGroups"));
+            if (xobjects != null) {
+                for (BaseObject memberObj : xobjects) {
+                    if (memberObj != null) {
+                        String existingMember = memberObj.getStringValue(MEMBER);
+                        if (StringUtils.isNoneBlank(existingMember) && !groupMembersMap.containsKey(existingMember)) {
+                            groupMembersMap.put(existingMember, existingMember);
+                        }
+                    }
+                }
+            }
+
+            connection.open(configuration.getLDAPBindDN(), configuration.getLDAPBindPassword(), context);
+            for (Entry<String, String> user : groupMembersMap.entrySet()) {
+                String xwikiUserName = user.getKey();
+                String userDN = user.getValue();
+                ldapUtils.syncGroupsMembership(xwikiUserName, userDN, filteredGroupMapping, context);
+            }
+        } catch (XWikiException e) {
+            logger.error(e.getFullMessage());
+        } finally {
+            connection.close();
+        }
+
+    }
+
     private void splitUsersList(XWikiContext context, String uidAttributeName, XWikiLDAPUtils ldapUtils,
         Map<String, String> users, List<String> usersToImportList,
-        Map<String, Map<String, String>> usersToSynchronizeMap)
+        Map<String, Map<String, String>> usersToSynchronizeMap, Map<String, String> groupMembersMap)
     {
         for (String userDN : users.keySet()) {
             String[] userDNFields = userDN.split(FIELDS_SEPARATOR);
@@ -685,6 +741,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                     String userPageName = ldapUtils.getUserPageName(searchAttributeList, context);
                     DocumentReference userReference = new DocumentReference(MAIN_WIKI_NAME, XWIKI, userPageName);
                     boolean userExists = context.getWiki().exists(userReference, context);
+                    groupMembersMap.put(userReference.toString(), userDN);
                     if (!userExists) {
                         usersToImportList.add(userPageName);
                     } else {
