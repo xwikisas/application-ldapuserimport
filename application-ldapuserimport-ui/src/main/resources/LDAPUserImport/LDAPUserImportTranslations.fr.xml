@@ -71,6 +71,8 @@ LDAPUserImport.LDAPUserImportConfigClass_usersAllowedToImport.hint=Décidez quel
 LDAPUserImport.LDAPUserImportConfigClass_pageNameFormatter.hint=Le modèle de nom de page XWiki. La valeur par défaut est ${uid}, consultez la documentation pour plus de détails.
 LDAPUserImport.LDAPUserImportConfigClass_triggerGroupsUpdate=Déclencher la mise à jour des groupes
 LDAPUserImport.LDAPUserImportConfigClass_triggerGroupsUpdate.hint=Si cette option est cochée, une mise à jour sur les groupes XWiki faisant partie des groupes LDAP correspondants sera exécutée à une heure donnée (4h30, par défaut).
+LDAPUserImport.LDAPUserImportConfigClass_forceXWikiUsersGroupMembershipUpdate=Forcer la mise à jour des membres du groupe d'utilisateurs XWiki
+LDAPUserImport.LDAPUserImportConfigClass_forceXWikiUsersGroupMembershipUpdate.hint=C'est une opération dangereuse car elle peut supprimer les utilisateurs admin du XWikiAdminGroup, si le mappage des groupes LDAP contient ce groupe.
 
 importUsers.groupUpdate.livetableActionButton=Mettre à jour
 importUsers.groupUpdate.livetableActionButton.hint=Synchronisez le groupe s'il fait partie du mappage de groupe LDAP.

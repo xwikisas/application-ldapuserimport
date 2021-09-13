@@ -96,6 +96,21 @@
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
     </enableSingleFieldSearch>
+    <forceXWikiUsersGroupMembershipUpdate>
+      <customDisplay/>
+      <defaultValue/>
+      <disabled>0</disabled>
+      <displayFormType>checkbox</displayFormType>
+      <displayType/>
+      <hint>This is a dangerous operation as it can remove admin users from the XWikiAdminGroup, if the LDAP groups mapping contains this group.</hint>
+      <name>forceXWikiUsersGroupMembershipUpdate</name>
+      <number>9</number>
+      <prettyName>Force XWiki users group membership update</prettyName>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+    </forceXWikiUsersGroupMembershipUpdate>
     <ldapUserAttributes>
       <contenttype>---</contenttype>
       <customDisplay/>

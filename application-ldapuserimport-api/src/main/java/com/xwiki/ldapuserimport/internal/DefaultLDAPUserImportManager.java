@@ -708,10 +708,11 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 
         try {
             // Add all the XWiki users that are not LDAP users to be also synchronized(removed) in the current group.
-            DocumentReference xwikiGroupReference = documentReferenceResolver.resolve(xWikiGroupName);
-            XWikiDocument groupDoc = context.getWiki().getDocument(xwikiGroupReference, context);
-            List<BaseObject> xobjects = groupDoc.getXObjects(documentReferenceResolver.resolve("XWiki.XWikiGroups"));
-            if (xobjects != null) {
+            if (getLDAPImportConfiguration().getIntValue("forceXWikiUsersGroupMembershipUpdate") != 0) {
+                DocumentReference xwikiGroupReference = documentReferenceResolver.resolve(xWikiGroupName);
+                XWikiDocument groupDoc = context.getWiki().getDocument(xwikiGroupReference, context);
+                List<BaseObject> xobjects =
+                    groupDoc.getXObjects(documentReferenceResolver.resolve("XWiki.XWikiGroups"));
                 for (BaseObject memberObj : xobjects) {
                     if (memberObj != null) {
                         String existingMember = memberObj.getStringValue(MEMBER);

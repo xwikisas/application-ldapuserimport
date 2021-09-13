@@ -69,6 +69,8 @@ LDAPUserImport.LDAPUserImportConfigClass_usersAllowedToImport.hint=Use this opti
 LDAPUserImport.LDAPUserImportConfigClass_pageNameFormatter.hint=The XWiki page name pattern. Default value is ${uid}, see the documentation for more details.
 LDAPUserImport.LDAPUserImportConfigClass_triggerGroupsUpdate=Trigger groups update
 LDAPUserImport.LDAPUserImportConfigClass_triggerGroupsUpdate.hint=If this option is checked, an update on the XWiki groups that are part of the LDAP groups mapping will be executed at a given time (4:30 AM, by default).
+LDAPUserImport.LDAPUserImportConfigClass_forceXWikiUsersGroupMembershipUpdate=Force XWiki users group membership update
+LDAPUserImport.LDAPUserImportConfigClass_forceXWikiUsersGroupMembershipUpdate.hint=This is a dangerous operation as it can remove admin users from the XWikiAdminGroup, if the LDAP groups mapping contains this group.
 
 importUsers.groupUpdate.livetableActionButton=Update
 importUsers.groupUpdate.livetableActionButton.hint=Synchronize the group if it is part of LDAP group mapping.
