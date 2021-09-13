@@ -288,6 +288,7 @@
     resultsContainer.addClass('hidden');
     // Make sure the message is hidden all the time even if the form is submitted without reloading the page.
     $('#ldapSearchBox .infomessage').addClass('hidden');
+    $('#ldapSearchBox .ldapError').addClass('hidden');
     // The import button should be displayed in relation with the results, thus it should be hidden by default for each
     // search operation.
     importButton.addClass('hidden');
@@ -344,6 +345,9 @@
           importButton.removeClass('hidden');
         }
       }
+    }).fail(function(data) {
+      searchLoading.addClass('hidden');
+      $('#ldapSearchBox .ldapError').removeClass('hidden').html(data.responseText);
     });
   });
 
@@ -393,7 +397,14 @@
         });
         importButton.prop('disabled', false);
       }
+    }).fail(function(data) {
+      $('#importResultsLoading').addClass('hidden');
+      $('#ldapSearchBox .ldapError').removeClass('hidden').html(data.responseText);
+      importButton.prop('disabled', false);
     });
+  });
+  $('.modal').on('click', '.xwikirenderingerror', function() {
+    $(this).siblings('.xwikirenderingerrordescription').toggleClass('hidden');
   });
 });</code>
     </property>
@@ -494,6 +505,7 @@
   var serviceURL = new XWiki.Document('LDAPUserImportService', 'LDAPUserImport').getURL('get');
   var groupsTable = $('#groupstable');
   var formToken = $('html').data('xwiki-form-token');
+  var searchLoading = $('#groupSearchResultsLoading');
   var confirmGroupUpdateButton = $('#confirmGroupUpdate');
   var groupMembersSizeLoading = $('#groupMembersSizeLoading');
   var groupUpdateLoading = $('#groupUpdateLoading');
@@ -503,9 +515,11 @@
     if (groupsTable.length &gt; 0) {
       var associateGroupsButton = $('.actionassociategroups');
       $.each($('#groupstable-display tr td.actions'), function(index, value) {
-        var associateGroupsButtonClone = associateGroupsButton.clone();
-        associateGroupsButtonClone.removeClass('hidden');
-        $(this).append(associateGroupsButtonClone);
+        if ($(this).find('.actionassociategroups').length === 0) {
+          var associateGroupsButtonClone = associateGroupsButton.clone();
+          associateGroupsButtonClone.removeClass('hidden');
+          $(this).append(associateGroupsButtonClone);
+        }
       });
     }
   };
@@ -527,7 +541,9 @@
           ldapUpdateGroupButtonClone.attr({'data-xWikiGroupName': groupName})
           var groupNameCell = groupsTable.find(".group[data-reference$='" + groupName + "']").parent();
           var groupActionsCell = groupNameCell.siblings('td.actions');
-          groupActionsCell.append(ldapUpdateGroupButtonClone);
+          if (groupActionsCell.find('.actionupdategroup').length === 0) {
+            groupActionsCell.append(ldapUpdateGroupButtonClone);
+          }
         });
       });
     }
@@ -540,8 +556,11 @@
   // Trigger the import/group update.
   groupsTable.on('click', '.actionupdategroup', function(event) {
     var xWikiGroupName = $(this).data('xwikigroupname');
+    // Make sure the status is always clean, even when updating multiple groups without reloading the page.
+    updateStatus.html('');
     // Hide the confirmation button by default and make it visibile when there are users to update.
     confirmGroupUpdateButton.addClass('hidden');
+    $('#updateGroupModal .ldapError').addClass('hidden')
     confirmGroupUpdateButton.attr({'data-xWikiGroupName': xWikiGroupName});
     groupMembersSizeLoading.removeClass('hidden');
     $.post(serviceURL,
@@ -558,6 +577,9 @@
       if (data.groupMemberSize &gt; 0) {
         confirmGroupUpdateButton.removeClass('hidden');
       }
+    }).fail(function(data) {
+      groupMembersSizeLoading.addClass('hidden');
+      $('#updateGroupModal .ldapError').removeClass('hidden').html(data.responseText);
     });
   });
   // Trigger the group update.
@@ -578,6 +600,9 @@
       groupUpdateLoading.addClass('hidden');
       confirmGroupUpdateButton.addClass('hidden');
       updateStatus.html(data.message);
+    }).fail(function(data) {
+      groupUpdateLoading.addClass('hidden');
+      $('#updateGroupModal .ldapError').removeClass('hidden').html(data.responseText);
     });
   });
 });</code>
@@ -699,6 +724,7 @@
     resultsContainer.addClass('hidden');
     // Make sure the message is hidden all the time even if the form is submitted without reloading the page.
     $('#ldapGroupSearchBox .infomessage').addClass('hidden');
+    $('#ldapGroupSearchBox .ldapError').addClass('hidden');
     // The group associate button should be displayed in relation with the results, thus it should be hidden by default for each
     // search operation.
     associateButton.addClass('hidden');
@@ -753,6 +779,9 @@
           associateButton.removeClass('hidden');
         }
       }
+    }).fail(function(data) {
+      searchLoading.addClass('hidden');
+      $('#ldapGroupSearchBox .ldapError').removeClass('hidden').html(data.responseText);
     });
   });
 
@@ -766,6 +795,7 @@
     var xWikiGroupName = associateLDAPGroupsForm.find('input[name=xWikiGroupName]').val();
     // Make sure the message is hidden all the time even if the form is submitted without reloading the page.
     $('#ldapGroupSearchBox .infomessage').addClass('hidden');
+    $('#ldapGroupSearchBox .ldapError').addClass('hidden');
     $.post(associateLDAPGroupsForm.attr('action'), associateLDAPGroupsForm.serialize())
      .done(function(data) {
       associateResultsLoading.addClass('hidden');
@@ -775,6 +805,9 @@
       if (data.status === 'success') {
         associateButton.prop('disabled', false);
       }
+    }).fail(function(data) {
+      associateResultsLoading.addClass('hidden');
+      $('#ldapGroupSearchBox .ldapError').removeClass('hidden').html(data.responseText);
     });
   });
   // Make sure to update the current livetable to see the updates.
@@ -951,6 +984,9 @@ ul#importedUsersList {
   100% {
     transform: rotate(359deg);
   }
+}
+.xwikirenderingerror {
+  cursor: pointer;
 }
 /* FIXME: Update the following section when the minimal supported version becomes XWiki 11.8
  * Mostly, it should be cleanup, as the new versions use Font-Awesome icons.
@@ -1228,6 +1264,7 @@ ul#importedUsersList {
               &lt;div class="box infomessage hidden"&gt;
                 $services.localization.render('importUsers.modal.form.description')
               &lt;/div&gt;
+              &lt;div class="ldapError hidden"&gt;&lt;/div&gt;
               &lt;div id="searchResultsLoading" class="hidden"&gt;
                 &lt;span class="glyphicon glyphicon-repeat normal-right-spinner"&gt;&lt;/span&gt;
                 &lt;span class="hint"&gt;$services.localization.render('importUsers.modal.fieldValue.loadingResults')&lt;/span&gt;
@@ -1267,6 +1304,7 @@ ul#importedUsersList {
           &lt;/div&gt;
         &lt;/div&gt;
         &lt;div class="modal-body"&gt;
+          &lt;div class="ldapError hidden"&gt;&lt;/div&gt;
           &lt;div id="groupMembersSizeLoading" class="hidden"&gt;
             &lt;span class="glyphicon glyphicon-repeat normal-right-spinner"&gt;&lt;/span&gt;
             &lt;span class="hint"&gt;$services.localization.render('importUsers.groupUpdate.loadingMembersSize')&lt;/span&gt;
@@ -1337,6 +1375,7 @@ ul#importedUsersList {
               &lt;div class="box infomessage hidden"&gt;
                 $services.localization.render('importUsers.modal.form.description')
               &lt;/div&gt;
+              &lt;div class="ldapError hidden"&gt;&lt;/div&gt;
               &lt;div id="groupSearchResultsLoading" class="hidden"&gt;
                 &lt;span class="glyphicon glyphicon-repeat normal-right-spinner"&gt;&lt;/span&gt;
                 &lt;span class="hint"&gt;$services.localization.render('importUsers.modal.fieldValue.loadingResults')&lt;/span&gt;

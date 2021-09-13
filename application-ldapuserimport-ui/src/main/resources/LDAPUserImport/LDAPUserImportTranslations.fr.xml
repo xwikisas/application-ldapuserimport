@@ -38,6 +38,8 @@
   <hidden>true</hidden>
   <content>importUsers.title=Importer des utilisateurs
 importUsers.info=Importer des utilisateurs de l'annuaire LDAP
+importUsers.error.expand=Cliquez pour obtenir plus de détails sur l'erreur.
+importUsers.error.invalidCSRF=Jeton CSRF erroné, veuillez recharger la page.
 importUsers.modal.form.description=Des résultats supplémentaires sont disponibles pour cette recherche. Veuillez fournir une requête plus précise.
 importUsers.modal.field.label=Champ de recherche LDAP
 importUsers.modal.fieldValue.label=Texte recherché

@@ -38,103 +38,108 @@
   <hidden>true</hidden>
   <content>{{velocity wiki="false"}}
 #if ($xcontext.action == 'get')
-  #if ($request.outputSyntax == 'plain')
-    #set ($discard = $response.setContentType('application/json'))
-  #end
+  #set ($statusCode = 500)
   #if ($services.csrf.isTokenValid($request.form_token))
     ## Exclude some helper fields from being displayed in the feedback list.
     #set ($excludedFields = ['exists', 'uid', 'dn', 'userProfile', 'userProfileURL'])
-    #set ($statusCode = 500)
-    #if ($request.action == 'importUsers')
-      #set ($noResultsMessage = $services.localization.render('importUsers.modal.fieldValue.noResults'))
-      #set ($users = $services.ldapuserimport.importUsers($request.parameterMap.user, $request.groupReference))
-      #foreach ($user in $users.entrySet())
-        #set ($params = [])
-        #foreach ($item in $user.value.entrySet())
-          #if (!$excludedFields.contains($item.key))
-            #set ($discard = $params.add($item.value))
+    #try('ldapUserImportException')
+      #if ($request.action == 'importUsers')
+        #set ($noResultsMessage = $services.localization.render('importUsers.modal.fieldValue.noResults'))
+        #set ($users = $services.ldapuserimport.importUsers($request.parameterMap.user, $request.groupReference))
+        #foreach ($user in $users.entrySet())
+          #set ($params = [])
+          #foreach ($item in $user.value.entrySet())
+            #if (!$excludedFields.contains($item.key))
+              #set ($discard = $params.add($item.value))
+            #end
           #end
+          #set ($message = $services.localization.render('importUsers.modal.user.created', [$stringtool.join($params, ', ')]))
+          #set ($user.value.displayMessage = $message)
         #end
-        #set ($message = $services.localization.render('importUsers.modal.user.created', [$stringtool.join($params, ', ')]))
-        #set ($user.value.displayMessage = $message)
-      #end
-      #set ($statusCode = 200)
-      $jsontool.serialize({
-        'noResults': $noResultsMessage,
-        'users': $users
-      })
-    #elseif ($request.action == 'getMappedXWikiGroups')
-      #set ($statusCode = 200)
-      $jsontool.serialize({'mappedXWikiGroups': $services.ldapuserimport.getXWikiMappedGroups()})
-    #elseif ($request.action == 'getGroupMemberSize')
-      #set ($groupMemberSize = $services.ldapuserimport.getGroupMemberSize($request.xWikiGroupName))
-      #set ($statusCode = 200)
-      $jsontool.serialize({
-        'groupMemberSize': $groupMemberSize,
-        'groupMemberSizeInfo': $services.localization.render('importUsers.groupUpdate.confirmationModal.info', [$groupMemberSize])
-      })
-    #elseif ($request.action == 'updateGroup')
-      #set ($statusCode = 200)
-      #set ($message = $services.localization.render('importUsers.groupUpdate.updatingGroup.success'))
-      #if ($services.ldapuserimport.updateGroup($request.xWikiGroupName))
-        #set ($message = $services.localization.render('importUsers.groupUpdate.updatingGroup.fail'))
-      #end
-      $jsontool.serialize({'message': $message})
-    #elseif ($request.action == 'getLDAPGroups')
-      #set ($noResultsMessage = $services.localization.render('importUsers.associateGroups.modal.fieldValue.noResults'))
-      #set ($statusCode = 200)
-      #set ($groups = $services.ldapuserimport.getLDAPGroups($request.searchInput, $request.xWikiGroupName))
-      #foreach ($group in $groups.entrySet())
-        #if ($group.value.isAssociated == true)
-          #set ($message = $services.localization.render('importUsers.associateGroups.modal.alreadyAssociated', [$group.value.description, $group.value.cn]))
-        #else
-          #set ($message = $services.localization.render('importUsers.associateGroups.modal.toAssociate', [$group.value.description, $group.value.cn]))
+        $jsontool.serialize({
+          'noResults': $noResultsMessage,
+          'users': $users
+        })
+      #elseif ($request.action == 'getMappedXWikiGroups')
+        $jsontool.serialize({'mappedXWikiGroups': $services.ldapuserimport.xWikiMappedGroups})
+      #elseif ($request.action == 'getGroupMemberSize')
+        #set ($groupMemberSize = $services.ldapuserimport.getGroupMemberSize($request.xWikiGroupName))
+        $jsontool.serialize({
+          'groupMemberSize': $groupMemberSize,
+          'groupMemberSizeInfo': $services.localization.render('importUsers.groupUpdate.confirmationModal.info', [$groupMemberSize])
+        })
+      #elseif ($request.action == 'updateGroup')
+        #set ($message = $services.localization.render('importUsers.groupUpdate.updatingGroup.success'))
+        #if ($services.ldapuserimport.updateGroup($request.xWikiGroupName))
+          #set ($message = $services.localization.render('importUsers.groupUpdate.updatingGroup.fail'))
         #end
-        #set ($group.value.displayMessage = $message)
-      #end
-      $jsontool.serialize({
-        'noResults': $noResultsMessage,
-        'groups': $groups,
-        'displayedMax': $services.ldapuserimport.displayedMax($groups.size())
-      })
-    #elseif ($request.action == 'associateGroups')
-      #set ($statusCode = 200)
-      #set ($status = 'fail')
-      #set ($message = $services.localization.render('importUsers.associateGroups.modal.associationFail'))
-      #if ($services.ldapuserimport.associateGroups($request.parameterMap.group, $request.xWikiGroupName))
-        #set ($message = $services.localization.render('importUsers.associateGroups.modal.associationSuccess'))
-        #set ($status = 'success')
-      #end
-      $jsontool.serialize({'message': $message, 'status': $status})
-    #elseif ($request.action == 'searchUsers')
-      #set ($users = $services.ldapuserimport.getUsers($request.singleField, $request.allFields, $request.searchInput))
-      #set ($noResultsMessage = $services.localization.render('importUsers.modal.fieldValue.noResults'))
-      #foreach ($user in $users.entrySet())
-        #set ($params = [])
-        #foreach ($item in $user.value.entrySet())
-          #if (!$excludedFields.contains($item.key))
-            #set ($discard = $params.add($item.value))
+        $jsontool.serialize({'message': $message})
+      #elseif ($request.action == 'getLDAPGroups')
+        #set ($noResultsMessage = $services.localization.render('importUsers.associateGroups.modal.fieldValue.noResults'))
+        #set ($groups = $services.ldapuserimport.getLDAPGroups($request.searchInput, $request.xWikiGroupName))
+        #foreach ($group in $groups.entrySet())
+          #if ($group.value.isAssociated == true)
+            #set ($message = $services.localization.render('importUsers.associateGroups.modal.alreadyAssociated', [$group.value.description, $group.value.cn]))
+          #else
+            #set ($message = $services.localization.render('importUsers.associateGroups.modal.toAssociate', [$group.value.description, $group.value.cn]))
           #end
+          #set ($group.value.displayMessage = $message)
         #end
-        #if ($user.value.exists == true)
-          #set ($message = $services.localization.render('importUsers.modal.user.alreadyImported', [$stringtool.join($params, ', ')]))
-        #else
-          #set ($message = $services.localization.render('importUsers.modal.user.toImport', [$stringtool.join($params, ', ')]))
+        $jsontool.serialize({
+          'noResults': $noResultsMessage,
+          'groups': $groups,
+          'displayedMax': $services.ldapuserimport.displayedMax($groups.size())
+        })
+      #elseif ($request.action == 'associateGroups')
+        #set ($status = 'fail')
+        #set ($message = $services.localization.render('importUsers.associateGroups.modal.associationFail'))
+        #if ($services.ldapuserimport.associateGroups($request.parameterMap.group, $request.xWikiGroupName))
+          #set ($message = $services.localization.render('importUsers.associateGroups.modal.associationSuccess'))
+          #set ($status = 'success')
         #end
-        #set ($user.value.displayMessage = $message)
+        $jsontool.serialize({'message': $message, 'status': $status})
+      #elseif ($request.action == 'searchUsers')
+        #set ($users = $services.ldapuserimport.getUsers($request.singleField, $request.allFields, $request.searchInput))
+        #set ($noResultsMessage = $services.localization.render('importUsers.modal.fieldValue.noResults'))
+        #foreach ($user in $users.entrySet())
+          #set ($params = [])
+          #foreach ($item in $user.value.entrySet())
+            #if (!$excludedFields.contains($item.key))
+              #set ($discard = $params.add($item.value))
+            #end
+          #end
+          #if ($user.value.exists == true)
+            #set ($message = $services.localization.render('importUsers.modal.user.alreadyImported', [$stringtool.join($params, ', ')]))
+          #else
+            #set ($message = $services.localization.render('importUsers.modal.user.toImport', [$stringtool.join($params, ', ')]))
+          #end
+          #set ($user.value.displayMessage = $message)
+        #end
+        $jsontool.serialize({
+          'noResults': $noResultsMessage,
+          'users': $users,
+          'displayedMax': $services.ldapuserimport.displayedMax($users.size())
+        })
       #end
       #set ($statusCode = 200)
-      $jsontool.serialize({
-        'noResults': $noResultsMessage,
-        'users': $users,
-        'displayedMax': $services.ldapuserimport.displayedMax($users.size())
-      })
+      #if ($request.outputSyntax == 'plain')
+        #set ($discard = $response.setContentType('application/json'))
+      #end
+    #end
+    #if ("$!ldapUserImportException" != '')
+      &lt;div class="xwikirenderingerror" title="$services.localization.render('importUsers.error.expand')"&gt;
+        $exceptiontool.getRootCauseMessage($ldapUserImportException)
+      &lt;/div&gt;
+      &lt;div class="xwikirenderingerrordescription hidden"&gt;
+        &lt;pre&gt;$exceptiontool.getStackTrace($ldapUserImportException)&lt;/pre&gt;
+      &lt;/div&gt;
     #end
   #else
-    #set ($statusCode = 400)
+    &lt;div class="xwikirenderingerror"&gt;
+      $services.localization.render('importUsers.error.invalidCSRF')
+    &lt;/div&gt;
   #end
   #set ($discard = $response.setStatus($statusCode))
 #end
-{{/velocity}}
-</content>
+{{/velocity}}</content>
 </xwikidoc>

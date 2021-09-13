@@ -38,6 +38,8 @@
   <hidden>true</hidden>
   <content>importUsers.title=Import User
 importUsers.info=Import user from LDAP
+importUsers.error.expand=Click to get more details about the error.
+importUsers.error.invalidCSRF=Bad CSRF token, try to reload the page.
 importUsers.modal.form.description=There are more results for this search. Please provide a more precise query.
 importUsers.modal.field.label=Field to search in
 importUsers.modal.fieldValue.label=Search text 

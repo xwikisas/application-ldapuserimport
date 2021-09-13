@@ -37,8 +37,10 @@ public interface LDAPUserImportManager
      * @param allFields the list of all configured fields
      * @param searchInput the value to search for
      * @return a map containing all the matching users with information from all fields
+     * @throws Exception in case of exceptions
      */
-    Map<String, Map<String, String>> getUsers(String singleField, String allFields, String searchInput);
+    Map<String, Map<String, String>> getUsers(String singleField, String allFields, String searchInput)
+        throws Exception;
 
     /**
      * Import the selected users.
@@ -46,15 +48,17 @@ public interface LDAPUserImportManager
      * @param usersList the list of users to be imported
      * @param groupName the group to add users in
      * @return a map of imported user profiles and URLs
+     * @throws Exception in case of exceptions
      */
-    Map<String, Map<String, String>> importUsers(String[] usersList, String groupName);
+    Map<String, Map<String, String>> importUsers(String[] usersList, String groupName) throws Exception;
 
     /**
      * Check if the current user is allowed to import users.
      *
      * @return true if has import right, false otherwise
+     * @throws Exception in case of exceptions
      */
-    boolean hasImport();
+    boolean hasImport() throws Exception;
 
     /**
      * Check if the list of displayed users reached the top limit represented by the resultsNumber in the configuration.
@@ -62,36 +66,42 @@ public interface LDAPUserImportManager
      *
      * @param displayedUsersNb the number of users displayed in the import wizard
      * @return true if the list of displayed users reached the top limit, false otherwise
+     * @throws Exception in case of exceptions
      */
-    boolean displayedMax(int displayedUsersNb);
+    boolean displayedMax(int displayedUsersNb) throws Exception;
 
     /**
      * Get a list of all the XWiki groups that are included in the LDAP groups mapping.
      *
      * @return a list of XWiki groups
+     * @throws Exception in case of exceptions
      */
-    List<String> getXWikiMappedGroups();
+    List<String> getXWikiMappedGroups() throws Exception;
 
     /**
      * Get the number of LDAP users that will be created or updated in the current XWiki group.
      *
      * @param xWikiGroupName the group name
      * @return the number of users to be synchronized from a group
+     * @throws Exception in case of exceptions
      */
-    int getGroupMemberSize(String xWikiGroupName);
+    int getGroupMemberSize(String xWikiGroupName) throws Exception;
 
     /**
      * Create or update users from LDAP in the current XWiki group.
      *
      * @param xWikiGroupName the group name
      * @return true if the update was successful, false otherwise
+     * @throws Exception in case of exceptions
      */
-    boolean updateGroup(String xWikiGroupName);
+    boolean updateGroup(String xWikiGroupName) throws Exception;
 
     /**
      * Create or update users from LDAP in all the XWiki groups that are included in the groups mapping.
+     *
+     * @throws Exception in case of exceptions
      */
-    void updateGroups();
+    void updateGroups() throws Exception;
 
     /**
      * Get all the LDAP groups from a domain. Each group contains information about the relation with the current XWiki
@@ -100,8 +110,9 @@ public interface LDAPUserImportManager
      * @param searchInput the value to search for
      * @param xWikiGroupName the group name
      * @return the list of groups
+     * @throws Exception in case of exceptions
      */
-    Map<String, Map<String, String>> getLDAPGroups(String searchInput, String xWikiGroupName);
+    Map<String, Map<String, String>> getLDAPGroups(String searchInput, String xWikiGroupName) throws Exception;
 
     /**
      * Associate a list of LDAP groups to an XWiki group.
@@ -109,6 +120,7 @@ public interface LDAPUserImportManager
      * @param ldapGroupsList the list of LDAP Groups to be assigned
      * @param xWikiGroupName the group name
      * @return true if the groups association succeeded, false otherwise
+     * @throws Exception in case of exceptions
      */
-    boolean associateGroups(String[] ldapGroupsList, String xWikiGroupName);
+    boolean associateGroups(String[] ldapGroupsList, String xWikiGroupName) throws Exception;
 }

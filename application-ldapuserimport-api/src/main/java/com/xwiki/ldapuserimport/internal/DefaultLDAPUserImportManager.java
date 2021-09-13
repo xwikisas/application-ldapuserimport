@@ -155,6 +155,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
      */
     @Override
     public Map<String, Map<String, String>> getUsers(String singleField, String allFields, String searchInput)
+        throws Exception
     {
         XWikiContext context = contextProvider.get();
         String currentWikiId = context.getWikiId();
@@ -191,8 +192,10 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             }
         } catch (XWikiLDAPException e) {
             logger.error(e.getFullMessage());
+            throw e;
         } catch (Exception e) {
             logger.warn("Failed to search for value [{}] in the fields [{}]", searchInput, allFields, e);
+            throw e;
         } finally {
             connection.close();
             context.setWikiId(currentWikiId);
@@ -200,7 +203,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         return Collections.emptyMap();
     }
 
-    private XWikiLDAPConfig getConfiguration()
+    private XWikiLDAPConfig getConfiguration() throws Exception
     {
         XWikiLDAPConfig configuration = new XWikiLDAPConfig(null, getConfigurationSource());
         setPageNameFormatter(configuration);
@@ -293,7 +296,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     }
 
     private Map<String, Map<String, String>> getUsers(XWikiLDAPConfig configuration, XWikiLDAPConnection connection,
-        PagedLDAPSearchResults result, XWikiContext context)
+        PagedLDAPSearchResults result, XWikiContext context) throws Exception
     {
         XWikiLDAPUtils ldapUtils = new XWikiLDAPUtils(connection, configuration);
         String uidFieldName = configuration.getLDAPParam(LDAP_UID_ATTR, CN);
@@ -340,14 +343,16 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             if (e instanceof LDAPReferralException) {
                 logger.warn(((LDAPReferralException) e).getFailedReferral());
             }
+            throw e;
         }
         return Collections.emptyMap();
     }
 
     /**
      * @return the maximum number of users to be displayed in the import wizard
+     * @throws XWikiException
      */
-    private int getMaxDisplayedUsersNb()
+    private int getMaxDisplayedUsersNb() throws Exception
     {
         int resultsNumber = getLDAPImportConfiguration().getIntValue("resultsNumber");
         if (resultsNumber == 0) {
@@ -404,7 +409,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     }
 
     @Override
-    public Map<String, Map<String, String>> importUsers(String[] usersList, String groupName)
+    public Map<String, Map<String, String>> importUsers(String[] usersList, String groupName) throws Exception
     {
         if (usersList.length > 0) {
             XWikiContext context = contextProvider.get();
@@ -445,6 +450,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 return users;
             } catch (XWikiException e) {
                 logger.error(e.getFullMessage());
+                throw e;
             } finally {
                 connection.close();
                 context.setWikiId(currentWikiId);
@@ -453,7 +459,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         return Collections.emptyMap();
     }
 
-    private void setPageNameFormatter(XWikiLDAPConfig configuration)
+    private void setPageNameFormatter(XWikiLDAPConfig configuration) throws Exception
     {
         String pageNameFormatter = getLDAPImportConfiguration().getStringValue("pageNameFormatter");
         if (StringUtils.isNoneBlank(pageNameFormatter)) {
@@ -461,7 +467,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         }
     }
 
-    private BaseObject getLDAPImportConfiguration()
+    private BaseObject getLDAPImportConfiguration() throws XWikiException
     {
         XWikiContext context = contextProvider.get();
         XWikiDocument importConfigDoc;
@@ -471,8 +477,8 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             return importConfigObj;
         } catch (XWikiException e) {
             logger.warn("Failed to get LDAP Import configuration document [{}].", CONFIGURATION_REFERENCE, e);
+            throw e;
         }
-        return null;
     }
 
     /**
@@ -484,8 +490,9 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
      * @param userDoc the new created user profile document
      * @param subject the user UID to be stored in the OIDC subject property
      * @param context the main wiki context, to make sure the users are updated on the main wiki
+     * @throws XWikiException
      */
-    private void addOIDCObject(XWikiDocument userDoc, String subject, XWikiContext context)
+    private void addOIDCObject(XWikiDocument userDoc, String subject, XWikiContext context) throws Exception
     {
         boolean addOIDCObj = getLDAPImportConfiguration().getIntValue("addOIDCObject") != 0;
         boolean oIDCClassExists = context.getWiki().exists(OIDC_CLASS, context);
@@ -498,6 +505,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             } catch (XWikiException e) {
                 logger.warn("Failed to attach OIDC object of [{}] type to the [{}] user profile.", OIDC_CLASS, userDoc,
                     e);
+                throw e;
             }
         }
     }
@@ -511,7 +519,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
      * @param users the list of users to be added in a group
      * @throws XWikiException in case of exception
      */
-    private void addUsersInGroup(String groupName, Map<String, Map<String, String>> users) throws XWikiException
+    private void addUsersInGroup(String groupName, Map<String, Map<String, String>> users) throws Exception
     {
         if (StringUtils.isNoneBlank(groupName)) {
             XWikiContext context = contextProvider.get();
@@ -533,7 +541,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     }
 
     @Override
-    public boolean hasImport()
+    public boolean hasImport() throws Exception
     {
         String value = getLDAPImportConfiguration().getStringValue("usersAllowedToImport");
         boolean hasImport = false;
@@ -555,7 +563,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         return hasImport;
     }
 
-    private ConfigurationSource getConfigurationSource()
+    private ConfigurationSource getConfigurationSource() throws Exception
     {
         if (componentManagerProvider.get().hasComponent(ConfigurationSource.class, ACTIVE_DIRECTORY_HINT)) {
             try {
@@ -563,19 +571,20 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             } catch (ComponentLookupException e) {
                 logger.error("Failed to get [{}] configuration source. Using the default LDAP configuration source",
                     ACTIVE_DIRECTORY_HINT, e);
+                throw e;
             }
         }
         return configurationSource;
     }
 
     @Override
-    public boolean displayedMax(int displayedUsersNb)
+    public boolean displayedMax(int displayedUsersNb) throws Exception
     {
         return getMaxDisplayedUsersNb() == displayedUsersNb;
     }
 
     @Override
-    public List<String> getXWikiMappedGroups()
+    public List<String> getXWikiMappedGroups() throws Exception
     {
         XWikiContext context = contextProvider.get();
         String currentWikiId = context.getWikiId();
@@ -590,12 +599,12 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     }
 
     @Override
-    public int getGroupMemberSize(String xWikiGroupName)
+    public int getGroupMemberSize(String xWikiGroupName) throws Exception
     {
         return getGroupMembers(xWikiGroupName).size();
     }
 
-    private Map<String, String> getGroupMembers(String xWikiGroupName)
+    private Map<String, String> getGroupMembers(String xWikiGroupName) throws Exception
     {
         XWikiContext context = contextProvider.get();
         String currentWikiId = context.getWikiId();
@@ -615,15 +624,15 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             return members;
         } catch (XWikiException e) {
             logger.error(e.getFullMessage());
+            throw e;
         } finally {
             connection.close();
             context.setWikiId(currentWikiId);
         }
-        return null;
     }
 
     @Override
-    public boolean updateGroup(String xWikiGroupName)
+    public boolean updateGroup(String xWikiGroupName) throws Exception
     {
         XWikiContext context = contextProvider.get();
         String currentWikiId = context.getWikiId();
@@ -661,7 +670,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 
     private void synchronizeUsers(String xWikiGroupName, XWikiContext context, String currentWikiId,
         XWikiLDAPConfig configuration, XWikiLDAPConnection connection, XWikiLDAPUtils ldapUtils,
-        Map<String, Map<String, String>> usersToSynchronizeMap)
+        Map<String, Map<String, String>> usersToSynchronizeMap) throws Exception
     {
         try {
             connection.open(configuration.getLDAPBindDN(), configuration.getLDAPBindPassword(), context);
@@ -681,6 +690,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             }
         } catch (XWikiException e) {
             logger.error(e.getFullMessage());
+            throw e;
         } finally {
             connection.close();
             context.setWikiId(currentWikiId);
@@ -689,6 +699,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 
     private void synchronizeGroupMembership(String xWikiGroupName, Map<String, String> groupMembersMap,
         XWikiLDAPConfig configuration, XWikiLDAPConnection connection, XWikiLDAPUtils ldapUtils, XWikiContext context)
+        throws Exception
     {
         Map<String, Set<String>> groupMappings = configuration.getGroupMappings();
         // Filter the group mapping to update only the membership of the users in the current group.
@@ -719,6 +730,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             }
         } catch (XWikiException e) {
             logger.error(e.getFullMessage());
+            throw e;
         } finally {
             connection.close();
         }
@@ -757,7 +769,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     }
 
     @Override
-    public void updateGroups()
+    public void updateGroups() throws Exception
     {
         boolean triggerGroupsUpdate = getLDAPImportConfiguration().getIntValue("triggerGroupsUpdate") != 0;
         if (triggerGroupsUpdate) {
@@ -768,7 +780,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     }
 
     @Override
-    public Map<String, Map<String, String>> getLDAPGroups(String searchInput, String xWikiGroupName)
+    public Map<String, Map<String, String>> getLDAPGroups(String searchInput, String xWikiGroupName) throws Exception
     {
         XWikiContext context = contextProvider.get();
         String currentWikiId = context.getWikiId();
@@ -799,8 +811,10 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             }
         } catch (XWikiLDAPException e) {
             logger.error(e.getFullMessage());
+            throw e;
         } catch (Exception e) {
             logger.warn("Failed to search for value [{}] in the fields [{}].", e);
+            throw e;
         } finally {
             connection.close();
             context.setWikiId(currentWikiId);
@@ -810,6 +824,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 
     private Map<String, Map<String, String>> getLDAPGroups(XWikiLDAPConfig configuration,
         XWikiLDAPConnection connection, PagedLDAPSearchResults result, XWikiContext context, String xWikiGroupName)
+        throws Exception
     {
         LDAPEntry resultEntry = null;
 
@@ -843,6 +858,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             if (e instanceof LDAPReferralException) {
                 logger.warn(((LDAPReferralException) e).getFailedReferral());
             }
+            throw e;
         }
         return Collections.emptyMap();
     }
@@ -868,7 +884,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     }
 
     @Override
-    public boolean associateGroups(String[] ldapGroupsArray, String xWikiGroupName)
+    public boolean associateGroups(String[] ldapGroupsArray, String xWikiGroupName) throws Exception
     {
         if (ldapGroupsArray.length > 0) {
             XWikiContext context = contextProvider.get();
@@ -918,6 +934,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 return true;
             } catch (XWikiException e) {
                 logger.error("Failed to associate LDAP group to XWiki group", e);
+                throw e;
             } finally {
                 context.setWikiId(currentWikiId);
             }

@@ -28,6 +28,7 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.script.service.ScriptService;
+
 import com.xwiki.ldapuserimport.LDAPUserImportManager;
 
 /**
@@ -49,8 +50,10 @@ public class LDAPUserImportScriptService implements ScriptService
      * @param allFields the list of all configured fields
      * @param searchInput the value to search for
      * @return a map containing all the matching users with information from all fields
+     * @throws Exception in case of exceptions
      */
     public Map<String, Map<String, String>> getUsers(String singleField, String allFields, String searchInput)
+        throws Exception
     {
         if (hasImport()) {
             return manager.getUsers(singleField, allFields, searchInput);
@@ -64,8 +67,9 @@ public class LDAPUserImportScriptService implements ScriptService
      * @param usersList the list of users to be imported
      * @param groupName the group to add users in
      * @return a map of imported user profiles and URLs
+     * @throws Exception in case of exceptions
      */
-    public Map<String, Map<String, String>> importUsers(String[] usersList, String groupName)
+    public Map<String, Map<String, String>> importUsers(String[] usersList, String groupName) throws Exception
     {
         if (hasImport()) {
             return manager.importUsers(usersList, groupName);
@@ -77,8 +81,9 @@ public class LDAPUserImportScriptService implements ScriptService
      * Check if the current user is allowed to import users.
      *
      * @return true if has import right, false otherwise
+     * @throws Exception in case of exceptions
      */
-    public boolean hasImport()
+    public boolean hasImport() throws Exception
     {
         return manager.hasImport();
     }
@@ -89,8 +94,9 @@ public class LDAPUserImportScriptService implements ScriptService
      *
      * @param displayedUsersNb the number of users displayed in the import wizard
      * @return true if the list of displayed users reached the top limit, false otherwise
+     * @throws Exception in case of exceptions
      */
-    public boolean displayedMax(int displayedUsersNb)
+    public boolean displayedMax(int displayedUsersNb) throws Exception
     {
         return manager.displayedMax(displayedUsersNb);
     }
@@ -99,8 +105,9 @@ public class LDAPUserImportScriptService implements ScriptService
      * Get a list of all the XWiki groups that are included in the LDAP groups mapping.
      *
      * @return a list of XWiki groups
+     * @throws Exception in case of exceptions
      */
-    public List<String> getXWikiMappedGroups()
+    public List<String> getXWikiMappedGroups() throws Exception
     {
         return manager.getXWikiMappedGroups();
     }
@@ -110,8 +117,9 @@ public class LDAPUserImportScriptService implements ScriptService
      *
      * @param xWikiGroupName the group name
      * @return the number of users to be synchronized from a group
+     * @throws Exception in case of exceptions
      */
-    public int getGroupMemberSize(String xWikiGroupName)
+    public int getGroupMemberSize(String xWikiGroupName) throws Exception
     {
         return manager.getGroupMemberSize(xWikiGroupName);
     }
@@ -121,8 +129,9 @@ public class LDAPUserImportScriptService implements ScriptService
      *
      * @param xWikiGroupName the group name
      * @return true if the update was successful, false otherwise
+     * @throws Exception in case of exceptions
      */
-    public boolean updateGroup(String xWikiGroupName)
+    public boolean updateGroup(String xWikiGroupName) throws Exception
     {
         if (hasImport()) {
             return manager.updateGroup(xWikiGroupName);
@@ -132,8 +141,10 @@ public class LDAPUserImportScriptService implements ScriptService
 
     /**
      * Create or update users from LDAP in all the XWiki groups that are included in the groups mapping.
+     *
+     * @throws Exception in case of exceptions
      */
-    public void updateGroups()
+    public void updateGroups() throws Exception
     {
         manager.updateGroups();
     }
@@ -145,8 +156,9 @@ public class LDAPUserImportScriptService implements ScriptService
      * @param searchInput the value to search for
      * @param xWikiGroupName the group name
      * @return the list of groups
+     * @throws Exception in case of exceptions
      */
-    public Map<String, Map<String, String>> getLDAPGroups(String searchInput, String xWikiGroupName)
+    public Map<String, Map<String, String>> getLDAPGroups(String searchInput, String xWikiGroupName) throws Exception
     {
         return manager.getLDAPGroups(searchInput, xWikiGroupName);
     }
@@ -157,8 +169,9 @@ public class LDAPUserImportScriptService implements ScriptService
      * @param ldapGroupsList the list of LDAP Groups to be assigned
      * @param xWikiGroupName the group name
      * @return true if the groups association succeeded, false otherwise
+     * @throws Exception in case of exceptions
      */
-    public boolean associateGroups(String[] ldapGroupsList, String xWikiGroupName)
+    public boolean associateGroups(String[] ldapGroupsList, String xWikiGroupName) throws Exception
     {
         if (hasImport()) {
             return manager.associateGroups(ldapGroupsList, xWikiGroupName);
