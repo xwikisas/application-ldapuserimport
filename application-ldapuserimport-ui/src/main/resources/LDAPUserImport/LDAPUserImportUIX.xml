@@ -706,6 +706,16 @@
   var searchLoading = $('#groupSearchResultsLoading');
   var associateResultsLoading = $('#associateResultsLoading');
   var associateButton = $('#associateButton');
+  var escape = function (str) {
+    let result = '';
+    for (var i = str.length - 1; i &gt;= 0; i--) {
+      result = str[i] + result;
+      if (str[i] === '\\' || (str[i] === '|' &amp;&amp; str[i-1] !== '\\')) {
+        result = '\\' + result;
+      }
+    }
+    return result;
+  };
 
   // Set the XWiki group name in the associateLDAPGroups form
   $('#groupstable').on('click', '.actionassociategroups', function() {
@@ -756,12 +766,13 @@
             listItem.html(displayedText);
             itemCSSClass = 'associated';
           } else {
+            let escapedValue = escape(value.dn);
             displayAssociateButton = true;
             var checkbox = $('&lt;input/&gt;').attr({
               'type': 'checkbox',
               'name': 'group',
               'id': index,
-              'value': value['dn']
+              'value': escapedValue
             });
             var label = $('&lt;label/&gt;').attr({
               'for': index,
