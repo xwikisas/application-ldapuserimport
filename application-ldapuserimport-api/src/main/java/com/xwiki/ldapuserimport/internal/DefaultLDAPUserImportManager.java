@@ -911,11 +911,11 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 
                 Set<String> ldapGroupsSetToAdd = new HashSet<String>(Arrays.asList(ldapGroupsArray));
                 Map<String, Set<String>> groupMapping = getConfiguration().getGroupMappings();
-                for (String key : groupMapping.keySet()) {
+                for (Entry<String, Set<String>> entry : groupMapping.entrySet()) {
                     Set<String> modifiedSet =
-                        groupMapping.get(key).stream().map((value) -> StringUtils.replace(value, "\\", "\\\\"))
+                        entry.getValue().stream().map((value) -> StringUtils.replace(value, "\\", "\\\\"))
                             .collect(Collectors.toSet());
-                    groupMapping.put(key, modifiedSet);
+                    entry.setValue(modifiedSet);
                 }
                 Set<String> ldapGroupsSet = new HashSet<>();
                 if (groupMapping.get(xWikiGroupName) != null) {
