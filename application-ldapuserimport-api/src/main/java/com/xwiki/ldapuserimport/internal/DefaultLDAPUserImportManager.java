@@ -30,6 +30,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -909,6 +911,12 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 
                 Set<String> ldapGroupsSetToAdd = new HashSet<String>(Arrays.asList(ldapGroupsArray));
                 Map<String, Set<String>> groupMapping = getConfiguration().getGroupMappings();
+                for (Entry<String, Set<String>> entry : groupMapping.entrySet()) {
+                    Set<String> modifiedSet =
+                        entry.getValue().stream().map((value) -> StringUtils.replace(value, "\\", "\\\\"))
+                            .collect(Collectors.toSet());
+                    entry.setValue(modifiedSet);
+                }
                 Set<String> ldapGroupsSet = new HashSet<>();
                 if (groupMapping.get(xWikiGroupName) != null) {
                     ldapGroupsSet.addAll(groupMapping.get(xWikiGroupName));

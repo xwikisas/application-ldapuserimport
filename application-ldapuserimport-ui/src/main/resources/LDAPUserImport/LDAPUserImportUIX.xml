@@ -756,12 +756,13 @@
             listItem.html(displayedText);
             itemCSSClass = 'associated';
           } else {
+            let escapedValue = value.dn.replaceAll('\\', '\\\\');
             displayAssociateButton = true;
             var checkbox = $('&lt;input/&gt;').attr({
               'type': 'checkbox',
               'name': 'group',
               'id': index,
-              'value': value['dn']
+              'value': escapedValue
             });
             var label = $('&lt;label/&gt;').attr({
               'for': index,
