@@ -304,48 +304,39 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         String uidFieldName = configuration.getLDAPParam(LDAP_UID_ATTR, CN);
         ldapUtils.setUidAttributeName(uidFieldName);
         ldapUtils.setBaseDN(configuration.getLDAPParam(LDAP_BASE_DN, ""));
-        LDAPEntry resultEntry = null;
 
-        try {
-            resultEntry = result.next();
-            if (resultEntry != null) {
-                Map<String, String> fieldsMap = getFieldsMap(configuration);
-                int maxDisplayedUsersNb = getMaxDisplayedUsersNb();
-                boolean hasMore;
-                Map<String, Map<String, String>> usersMap = new HashMap<>();
-                do {
-                    Map<String, String> user =
-                        getUserDetails(connection, fieldsMap, ldapUtils, context, uidFieldName, resultEntry);
-                    if (!user.isEmpty()) {
-                        usersMap.put(user.get(UID), user);
-                    }
-                    hasMore = result.hasMore();
-                    resultEntry = hasMore ? result.next() : null;
-                } while (resultEntry != null && usersMap.size() < maxDisplayedUsersNb);
-                // Only do the sorting on the UI side when we have less results than the limit or exactly the limit.
-                // hasMore is false when usersMap.size() <= maxDisplayedUsersNb.
-                if (!hasMore) {
-                    SortedMap<String, Map<String, String>> sortedUsersMap = new TreeMap<>();
-                    for (String userId : usersMap.keySet()) {
-                        sortedUsersMap.put(userId, usersMap.get(userId));
-                    }
-                    return sortedUsersMap;
+        LDAPEntry resultEntry = tryToGetNextEntry(result);
+        if (resultEntry != null) {
+            Map<String, String> fieldsMap = getFieldsMap(configuration);
+            int maxDisplayedUsersNb = getMaxDisplayedUsersNb();
+            boolean hasMore;
+            Map<String, Map<String, String>> usersMap = new HashMap<>();
+            do {
+                Map<String, String> user =
+                    getUserDetails(connection, fieldsMap, ldapUtils, context, uidFieldName, resultEntry);
+                if (!user.isEmpty()) {
+                    usersMap.put(user.get(UID), user);
                 }
-                return usersMap;
-            } else {
-                /*
-                 * For some weird reason result.hasMore() can be true before the first call to next() even if nothing is
-                 * found.
-                 */
-                logger.warn("The LDAP request returned no result (hasMore() is true but first next() call "
-                    + "returned nothing)");
+                hasMore = result.hasMore();
+                resultEntry = hasMore ? tryToGetNextEntry(result) : null;
+            } while (resultEntry != null && usersMap.size() < maxDisplayedUsersNb);
+            // Only do the sorting on the UI side when we have less results than the limit or exactly the limit.
+            // hasMore is false when usersMap.size() <= maxDisplayedUsersNb.
+            if (!hasMore) {
+                SortedMap<String, Map<String, String>> sortedUsersMap = new TreeMap<>();
+                for (String userId : usersMap.keySet()) {
+                    sortedUsersMap.put(userId, usersMap.get(userId));
+                }
+                return sortedUsersMap;
             }
-        } catch (Exception e) {
-            logger.warn(FAILED_TO_GET_RESULTS, e);
-            if (e instanceof LDAPReferralException) {
-                logger.warn(((LDAPReferralException) e).getFailedReferral());
-            }
-            throw e;
+            return usersMap;
+        } else {
+            /*
+             * For some weird reason result.hasMore() can be true before the first call to next() even if nothing is
+             * found.
+             */
+            logger.warn("The LDAP request returned no result (hasMore() is true but first next() call "
+                + "returned nothing)");
         }
         return Collections.emptyMap();
     }
@@ -832,41 +823,46 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         XWikiLDAPConnection connection, PagedLDAPSearchResults result, XWikiContext context, String xWikiGroupName)
         throws Exception
     {
-        LDAPEntry resultEntry = null;
+        LDAPEntry resultEntry = tryToGetNextEntry(result);
+        if (resultEntry != null) {
+            int maxDisplayedUsersNb = getMaxDisplayedUsersNb();
+            boolean hasMore;
+            Map<String, Map<String, String>> groupsMap = new HashMap<>();
+            Map<String, Set<String>> ldapGroupMapping = configuration.getGroupMappings();
+            do {
+                Map<String, String> group =
+                    getLDAPGroupDetails(connection, xWikiGroupName, resultEntry, ldapGroupMapping);
+                groupsMap.put(group.get(CN), group);
+                hasMore = result.hasMore();
+                resultEntry = hasMore ? tryToGetNextEntry(result) : null;
+            } while (resultEntry != null && groupsMap.size() < maxDisplayedUsersNb);
+            // Only do the sorting on the UI side when we have less results than the limit or exactly the limit.
+            // hasMore is false when groupsMap.size() <= maxDisplayedUsersNb.
+            if (!hasMore) {
+                SortedMap<String, Map<String, String>> sortedGroupsMap = new TreeMap<>();
+                for (String groupId : groupsMap.keySet()) {
+                    sortedGroupsMap.put(groupId, groupsMap.get(groupId));
+                }
+                return sortedGroupsMap;
+            }
+            return groupsMap;
+        }
 
+        return Collections.emptyMap();
+    }
+
+    private LDAPEntry tryToGetNextEntry(PagedLDAPSearchResults result)
+    {
+        LDAPEntry resultEntry = null;
         try {
             resultEntry = result.next();
-            if (resultEntry != null) {
-                int maxDisplayedUsersNb = getMaxDisplayedUsersNb();
-                boolean hasMore;
-                Map<String, Map<String, String>> groupsMap = new HashMap<>();
-                Map<String, Set<String>> ldapGroupMapping = configuration.getGroupMappings();
-                do {
-                    Map<String, String> group =
-                        getLDAPGroupDetails(connection, xWikiGroupName, resultEntry, ldapGroupMapping);
-                    groupsMap.put(group.get(CN), group);
-                    hasMore = result.hasMore();
-                    resultEntry = hasMore ? result.next() : null;
-                } while (resultEntry != null && groupsMap.size() < maxDisplayedUsersNb);
-                // Only do the sorting on the UI side when we have less results than the limit or exactly the limit.
-                // hasMore is false when groupsMap.size() <= maxDisplayedUsersNb.
-                if (!hasMore) {
-                    SortedMap<String, Map<String, String>> sortedGroupsMap = new TreeMap<>();
-                    for (String groupId : groupsMap.keySet()) {
-                        sortedGroupsMap.put(groupId, groupsMap.get(groupId));
-                    }
-                    return sortedGroupsMap;
-                }
-                return groupsMap;
-            }
         } catch (Exception e) {
-            logger.warn(FAILED_TO_GET_RESULTS, e);
+            logger.debug(FAILED_TO_GET_RESULTS, e);
             if (e instanceof LDAPReferralException) {
-                logger.warn(((LDAPReferralException) e).getFailedReferral());
+                logger.debug(((LDAPReferralException) e).getFailedReferral());
             }
-            throw e;
         }
-        return Collections.emptyMap();
+        return resultEntry;
     }
 
     private Map<String, String> getLDAPGroupDetails(XWikiLDAPConnection connection, String xWikiGroupName,
