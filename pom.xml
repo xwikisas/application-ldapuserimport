@@ -25,7 +25,7 @@
   <parent>
     <groupId>com.xwiki.parent</groupId>
     <artifactId>xwikisas-parent-platform</artifactId>
-    <version>10.11</version>
+    <version>13.10-3</version>
   </parent>
   <groupId>com.xwiki.ldapuserimport</groupId>
   <artifactId>application-ldapuserimport</artifactId>
@@ -34,7 +34,7 @@
   <name>LDAP User Import Application - Parent POM</name>
   <description>Application to import users from LDAP</description>
   <properties>
-    <ldap.version>9.7.8</ldap.version>
+    <ldap.version>9.8.0</ldap.version>
   </properties>
   <issueManagement>
     <system>GitHub</system>
