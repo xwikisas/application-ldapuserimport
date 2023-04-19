@@ -1221,15 +1221,8 @@ ul#importedUsersList {
   #if ($doc.getObjects('XWiki.XWikiGroups').size() &gt; 0)
     #set ($groupReference = $doc.documentReference)
   #end
-  #set ($configDoc = $xwiki.getDocument('LDAPUserImport.WebHome'))
-  #set ($configObj = $configDoc.getObject('LDAPUserImport.LDAPUserImportConfigClass'))
-  #set ($allFields = $configObj.getValue('ldapUserAttributes'))
-  #set ($resultsNumber = $configObj.getValue('resultsNumber'))
-  ## There is a default number expected also in Java, even if the user will clean this property in the configuration.
-  ## This assignment is purely for display purposes.
-  #if ("$!resultsNumber" == '')
-    #set ($resultsNumber = 20)
-  #end
+  #set ($allFields = $services.ldapuserimport.configuration.getLDAPUserAttributes())
+  #set ($resultsNumber = $services.ldapuserimport.configuration.getMaxUserImportWizardResults())
   #set ($configURL = $xwiki.getURL('XWiki.XWikiPreferences', 'admin', 'editor=globaladmin&amp;section=ldapuserimport'))
   &lt;div class="modal" id="importUsersModal" tabindex="-1" role="dialog"
       aria-labelledby="importUsersModal-label" data-backdrop="static" data-keyboard="false"&gt;
@@ -1251,7 +1244,7 @@ ul#importedUsersList {
               &lt;input type="hidden" name="action" value="searchUsers"/&gt;
             &lt;/div&gt;
             &lt;dl&gt;
-              #if ($configObj.getValue('enableSingleFieldSearch') == 1 &amp;&amp; "$!allFields" != '')
+              #if ($services.ldapuserimport.configuration.getEnableSingleFieldSearch() &amp;&amp; "$!allFields" != '')
                 &lt;dt&gt;
                   &lt;label for="singleField"&gt;
                     $services.localization.render('importUsers.modal.field.label')
@@ -1260,13 +1253,13 @@ ul#importedUsersList {
                 &lt;dd&gt;
                   &lt;select class="xwiki-selectize" id="singleField" name="singleField"&gt;
                     &lt;option value=""&gt;$services.localization.render('importUsers.modal.field.label')&lt;/option&gt;
-                    #foreach ($attr in $allFields.split(','))
+                    #foreach ($attr in $allFields)
                       &lt;option value="$attr"&gt;$attr&lt;/option&gt;
                     #end
                   &lt;/select&gt;
                 &lt;/dd&gt;
               #end
-              &lt;input type="hidden" id="allFields" value="$allFields"/&gt;
+              &lt;input type="hidden" id="allFields" value="$escapetool.xml($stringtool.join($allFields, ','))"/&gt;
               &lt;dt&gt;
                 &lt;label for="searchInput"&gt;
                   $services.localization.render('importUsers.modal.fieldValue.label')

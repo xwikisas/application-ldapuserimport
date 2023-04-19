@@ -29,6 +29,7 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.script.service.ScriptService;
 
+import com.xwiki.ldapuserimport.LDAPUserImportConfiguration;
 import com.xwiki.ldapuserimport.LDAPUserImportManager;
 
 /**
@@ -42,6 +43,9 @@ public class LDAPUserImportScriptService implements ScriptService
 {
     @Inject
     private LDAPUserImportManager manager;
+
+    @Inject
+    private LDAPUserImportConfiguration configuration;
 
     /**
      * Get all the users that have the searched value contained in any of the provided fields value.
@@ -177,5 +181,14 @@ public class LDAPUserImportScriptService implements ScriptService
             return manager.associateGroups(ldapGroupsList, xWikiGroupName);
         }
         return false;
+    }
+
+    /**
+     * @return the configuration of the LDAP user importer
+     * @since 1.4
+     */
+    public LDAPUserImportConfiguration getConfiguration()
+    {
+        return configuration;
     }
 }
