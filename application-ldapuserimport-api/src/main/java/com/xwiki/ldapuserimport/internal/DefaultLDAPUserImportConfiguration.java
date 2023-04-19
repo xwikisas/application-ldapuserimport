@@ -25,9 +25,11 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
+import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
+import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.LocalDocumentReference;
 
@@ -41,8 +43,10 @@ import com.xwiki.ldapuserimport.LDAPUserImportConfiguration;
  * Default implementation of the {@link LDAPUserImportConfiguration}.
  *
  * @version $Id$
- * @since 1.3
+ * @since 1.4
  */
+@Component
+@Singleton
 public class DefaultLDAPUserImportConfiguration implements LDAPUserImportConfiguration
 {
     private static final String LDAP_USER_IMPORT = "LDAPUserImport";

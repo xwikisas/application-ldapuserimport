@@ -39,7 +39,7 @@ import com.xwiki.ldapuserimport.LDAPUserImportConfiguration;
  * {@link LDAPUserImportConfiguration}.
  *
  * @version $Id$
- * @since 1.3
+ * @since 1.4
  */
 @Component
 @Singleton

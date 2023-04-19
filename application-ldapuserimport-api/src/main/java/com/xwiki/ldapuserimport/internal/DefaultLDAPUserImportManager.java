@@ -814,21 +814,8 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         String ldapGroupDN = resultEntry.getDN();
         group.put("dn", ldapGroupDN);
         boolean isAssociated = false;
-        if (StringUtils.isNotBlank(xWikiGroupName)) {
-            if (groupMappings.get(xWikiGroupName) != null && groupMappings.get(xWikiGroupName).contains(ldapGroupDN)) {
-                isAssociated = true;
-            }
-        } else {
-            // In the case where no xWikiGroupName is provided, look through the existing mappings to check if one of
-            // them contains the current DN
-            for (Map.Entry<String, Set<String>> mapping : groupMappings.entrySet()) {
-                if (mapping.getValue().contains(ldapGroupDN)) {
-                    isAssociated = true;
-                    // Due to limitations to the return format of #getLDAPGroupDetails,
-                    // we currently cannot return more than one group mapping.
-                    group.put("xwikiGroup", mapping.getKey());
-                }
-            }
+        if (groupMappings.get(xWikiGroupName) != null && groupMappings.get(xWikiGroupName).contains(ldapGroupDN)) {
+            isAssociated = true;
         }
 
         group.put("isAssociated", Boolean.toString(isAssociated));

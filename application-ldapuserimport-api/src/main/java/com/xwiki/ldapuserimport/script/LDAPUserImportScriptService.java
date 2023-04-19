@@ -185,6 +185,7 @@ public class LDAPUserImportScriptService implements ScriptService
 
     /**
      * @return the configuration of the LDAP user importer
+     * @since 1.4
      */
     public LDAPUserImportConfiguration getConfiguration()
     {

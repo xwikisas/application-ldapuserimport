@@ -27,7 +27,7 @@ import org.xwiki.component.annotation.Role;
  * Configuration for the LDAP User Import application.
  *
  * @version $Id$
- * @since 1.3
+ * @since 1.4
  */
 @Role
 public interface LDAPUserImportConfiguration
@@ -35,7 +35,8 @@ public interface LDAPUserImportConfiguration
     /**
      * Define who is allowed to import LDAP users in the wiki.
      */
-    enum UserImportPolicy {
+    enum UserImportPolicy
+    {
         /**
          * Only allow global administrators.
          */
