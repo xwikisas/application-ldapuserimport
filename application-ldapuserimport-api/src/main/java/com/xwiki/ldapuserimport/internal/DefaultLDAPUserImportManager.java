@@ -670,7 +670,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     {
         logger.info("Collect case-sensitive information for this group.");
         Map<String, String> membersCaseSensitive = new HashMap<>();
-        for (Map.Entry<String, String> member : groupMembers.entrySet()) {
+        for (Entry<String, String> member : groupMembers.entrySet()) {
             // Search for the exact values.
             List<XWikiLDAPSearchAttribute> attributes = ldapUtils.searchUserAttributesByUid(member.getValue(),
                 new String[] { ldapUtils.getUidAttributeName() });
@@ -802,7 +802,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         List<String> usersToImportList, Map<String, Map<String, String>> usersToSynchronizeMap,
         Map<String, String> groupMembersMap)
     {
-        for (Map.Entry<String, String> entry : users.entrySet()) {
+        for (Entry<String, String> entry : users.entrySet()) {
             String uidAttribute = entry.getValue();
             // Check if user exists to know if should be imported on synchronized, using the existing profile.
             List<XWikiLDAPSearchAttribute> searchAttributeList = new ArrayList<>();
