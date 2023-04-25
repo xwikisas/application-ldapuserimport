@@ -813,7 +813,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             boolean userExists = context.getWiki().exists(userReference, context);
             groupMembersMap.put(userReference.toString(), entry.getKey());
             if (!userExists) {
-                usersToImportList.add(userPageName);
+                usersToImportList.add(uidAttribute);
             } else {
                 Map<String, String> user = new HashMap<>();
                 user.put(USERNAME, userPageName);
