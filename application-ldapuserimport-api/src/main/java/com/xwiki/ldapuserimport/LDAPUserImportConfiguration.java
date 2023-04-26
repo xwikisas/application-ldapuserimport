@@ -81,7 +81,7 @@ public interface LDAPUserImportConfiguration
     UserImportPolicy getUserImportPolicy();
 
     /**
-     * @return the format to be used for new user page names.
+     * @return the format to be used for new user page names
      */
     String getUserPageNameFormatter();
 
