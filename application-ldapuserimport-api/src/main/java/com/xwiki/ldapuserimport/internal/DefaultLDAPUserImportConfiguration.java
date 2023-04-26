@@ -30,8 +30,10 @@ import javax.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.phase.Initializable;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.LocalDocumentReference;
+import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
@@ -47,23 +49,32 @@ import com.xwiki.ldapuserimport.LDAPUserImportConfiguration;
  */
 @Component
 @Singleton
-public class DefaultLDAPUserImportConfiguration implements LDAPUserImportConfiguration
+public class DefaultLDAPUserImportConfiguration implements LDAPUserImportConfiguration, Initializable
 {
     private static final String LDAP_USER_IMPORT = "LDAPUserImport";
-
-    private static final DocumentReference CONFIGURATION_REFERENCE =
-        new DocumentReference("xwiki", LDAP_USER_IMPORT, "WebHome");
 
     private static final LocalDocumentReference CONFIGURATION_CLASS_REFERENCE =
         new LocalDocumentReference(LDAP_USER_IMPORT, "LDAPUserImportConfigClass");
 
     private static final int DEFAULT_MAX_USER_IMPORT_WIZARD_RESULTS = 20;
 
+    private DocumentReference configurationReference;
+
     @Inject
     private Provider<XWikiContext> contextProvider;
 
     @Inject
     private Logger logger;
+
+    @Inject
+    private WikiDescriptorManager wikiDescriptorManager;
+
+    @Override
+    public void initialize()
+    {
+        configurationReference =
+            new DocumentReference(wikiDescriptorManager.getMainWikiId(), LDAP_USER_IMPORT, "WebHome");
+    }
 
     @Override
     public List<String> getLDAPUserAttributes()
@@ -146,10 +157,10 @@ public class DefaultLDAPUserImportConfiguration implements LDAPUserImportConfigu
         XWikiContext context = contextProvider.get();
         XWikiDocument importConfigDoc;
         try {
-            importConfigDoc = context.getWiki().getDocument(CONFIGURATION_REFERENCE, context);
+            importConfigDoc = context.getWiki().getDocument(configurationReference, context);
             return importConfigDoc.getXObject(CONFIGURATION_CLASS_REFERENCE);
         } catch (XWikiException e) {
-            logger.warn("Failed to get the LDAP Import configuration document [{}].", CONFIGURATION_REFERENCE, e);
+            logger.warn("Failed to get the LDAP Import configuration document [{}].", configurationReference, e);
         }
 
         return null;
