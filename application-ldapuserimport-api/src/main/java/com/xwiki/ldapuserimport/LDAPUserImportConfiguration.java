@@ -59,7 +59,7 @@ public interface LDAPUserImportConfiguration
     List<String> getLDAPUserAttributes();
 
     /**
-     * @return true if user search should be perfromed on a single LDAP field in the UI
+     * @return {@code true} if the user search should be performed on a single LDAP field in the UI
      */
     boolean getEnableSingleFieldSearch();
 
