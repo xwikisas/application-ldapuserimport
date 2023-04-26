@@ -71,7 +71,7 @@ public interface LDAPUserImportConfiguration
 
     /**
      * @return the OIDC issuer to be provided when an OIDC Object should be added to new user profiles upon import
-     * @see {{@link #getAddOIDCObject()}}
+     * @see #getAddOIDCObject()
      */
     String getOIDCIssuer();
 
