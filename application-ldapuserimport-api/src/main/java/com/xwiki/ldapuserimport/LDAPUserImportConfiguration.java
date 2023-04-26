@@ -65,7 +65,7 @@ public interface LDAPUserImportConfiguration
 
     /**
      * @return true if a OIDC Object should be added to new user profiles upon import
-     * @see {{@link #getOIDCIssuer()}}
+     * @see #getOIDCIssuer()
      */
     boolean getAddOIDCObject();
 
