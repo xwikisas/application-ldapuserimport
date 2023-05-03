@@ -678,10 +678,10 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             if (attributes != null) {
                 // Collect the case-sensitive values from the search response.
                 XWikiLDAPSearchAttribute uidAttribute =
-                    attributes.stream().filter(entry -> entry.name.equals(ldapUtils.getUidAttributeName()))
-                        .collect(Collectors.toList()).get(0);
+                    attributes.stream().filter(entry -> entry.name.equals(ldapUtils.getUidAttributeName())).findFirst()
+                        .orElse(null);
                 XWikiLDAPSearchAttribute dn =
-                    attributes.stream().filter(entry -> entry.name.equals(DN)).collect(Collectors.toList()).get(0);
+                    attributes.stream().filter(entry -> entry.name.equals(DN)).findFirst().orElse(null);
                 if (uidAttribute != null && dn != null) {
                     membersCaseSensitive.put(dn.value, uidAttribute.value);
                 }
