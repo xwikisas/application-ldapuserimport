@@ -111,6 +111,48 @@
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
     </forceXWikiUsersGroupMembershipUpdate>
+    <groupPageName>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <hint/>
+      <name>groupPageName</name>
+      <number>12</number>
+      <picker>0</picker>
+      <prettyName>groupPageName</prettyName>
+      <size>30</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+    </groupPageName>
+    <ldapGroupImportSearchDN>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <hint/>
+      <name>ldapGroupImportSearchDN</name>
+      <number>10</number>
+      <picker>0</picker>
+      <prettyName>ldapGroupImportSearchDN</prettyName>
+      <size>30</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+    </ldapGroupImportSearchDN>
+    <ldapGroupImportSearchFilter>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <hint/>
+      <name>ldapGroupImportSearchFilter</name>
+      <number>11</number>
+      <picker>0</picker>
+      <prettyName>ldapGroupImportSearchFilter</prettyName>
+      <size>30</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+    </ldapGroupImportSearchFilter>
     <ldapUserAttributes>
       <contenttype>---</contenttype>
       <customDisplay/>
@@ -156,6 +198,21 @@
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.NumberClass</classType>
     </resultsNumber>
+    <triggerGroupImport>
+      <customDisplay/>
+      <defaultValue/>
+      <disabled>0</disabled>
+      <displayFormType>checkbox</displayFormType>
+      <displayType/>
+      <hint/>
+      <name>triggerGroupImport</name>
+      <number>13</number>
+      <prettyName>triggerGroupImport</prettyName>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+    </triggerGroupImport>
     <triggerGroupsUpdate>
       <customDisplay/>
       <defaultValue/>

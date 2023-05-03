@@ -71,6 +71,14 @@ LDAPUserImport.LDAPUserImportConfigClass_triggerGroupsUpdate=Trigger groups upda
 LDAPUserImport.LDAPUserImportConfigClass_triggerGroupsUpdate.hint=If this option is checked, an update on the XWiki groups that are part of the LDAP groups mapping will be executed at a given time (4:30 AM, by default).
 LDAPUserImport.LDAPUserImportConfigClass_forceXWikiUsersGroupMembershipUpdate=Force XWiki users group membership update
 LDAPUserImport.LDAPUserImportConfigClass_forceXWikiUsersGroupMembershipUpdate.hint=This is a dangerous operation as it can remove admin users from the XWikiAdminGroup, if the LDAP groups mapping contains this group.
+LDAPUserImport.LDAPUserImportConfigClass_ldapGroupImportSearchDN=LDAP Group import search DN
+LDAPUserImport.LDAPUserImportConfigClass_ldapGroupImportSearchDN.hint=The default DN under which LDAP groups should be searched during imports
+LDAPUserImport.LDAPUserImportConfigClass_ldapGroupImportSearchFilter=LDAP Group import search Filter
+LDAPUserImport.LDAPUserImportConfigClass_ldapGroupImportSearchFilter.hint=The filter that should be used to search for groups to import
+LDAPUserImport.LDAPUserImportConfigClass_groupPageName=Group page name
+LDAPUserImport.LDAPUserImportConfigClass_groupPageName.hint=Define the name of imported group pages. By default, the group name is defined as "${uid}Group".
+LDAPUserImport.LDAPUserImportConfigClass_triggerGroupImport=Trigger group import
+LDAPUserImport.LDAPUserImportConfigClass_triggerGroupImport.hint=If this option is checked, enable the daily automated import of LDAP groups. By default, this import is executed at 3:30 AM.
 
 importUsers.groupUpdate.livetableActionButton=Update
 importUsers.groupUpdate.livetableActionButton.hint=Synchronize the group if it is part of LDAP group mapping.

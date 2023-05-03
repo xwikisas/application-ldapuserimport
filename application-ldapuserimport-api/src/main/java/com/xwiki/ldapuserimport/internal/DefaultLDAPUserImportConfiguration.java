@@ -58,6 +58,8 @@ public class DefaultLDAPUserImportConfiguration implements LDAPUserImportConfigu
 
     private static final int DEFAULT_MAX_USER_IMPORT_WIZARD_RESULTS = 20;
 
+    private static final String DEFAULT_GROUP_PAGE_NAME = "${uid}Group";
+
     private DocumentReference configurationReference;
 
     @Inject
@@ -150,6 +152,34 @@ public class DefaultLDAPUserImportConfiguration implements LDAPUserImportConfigu
     {
         BaseObject object = getObject();
         return object != null && object.getIntValue("forceXWikiUsersGroupMembershipUpdate") == 1;
+    }
+
+    @Override
+    public String getLDAPGroupImportSearchDN()
+    {
+        BaseObject object = getObject();
+        return object != null ? object.getStringValue("ldapGroupImportSearchDN") : StringUtils.EMPTY;
+    }
+
+    @Override
+    public String getLDAPGroupImportSearchFilter()
+    {
+        BaseObject object = getObject();
+        return object != null ? object.getStringValue("ldapGroupImportSearchFilter") : StringUtils.EMPTY;
+    }
+
+    @Override
+    public String getGroupPageName()
+    {
+        BaseObject object = getObject();
+        return object != null ? object.getStringValue("groupPageName") : DEFAULT_GROUP_PAGE_NAME;
+    }
+
+    @Override
+    public boolean getTriggerGroupImport()
+    {
+        BaseObject object = getObject();
+        return object != null && object.getIntValue("triggerGroupImport") == 1;
     }
 
     private BaseObject getObject()
