@@ -61,6 +61,11 @@
       <version>${platform.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-security-authorization-bridge</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.xwiki.contrib.ldap</groupId>
       <artifactId>ldap-authenticator</artifactId>
       <version>${ldap.version}</version>
