@@ -28,10 +28,14 @@ import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
 import org.xwiki.script.service.ScriptService;
+import org.xwiki.security.authorization.ContextualAuthorizationManager;
+import org.xwiki.security.authorization.Right;
 import org.xwiki.stability.Unstable;
 
+import com.xwiki.ldapuserimport.LDAPGroupImportManager;
 import com.xwiki.ldapuserimport.LDAPUserImportConfiguration;
 import com.xwiki.ldapuserimport.LDAPUserImportManager;
+import com.xwiki.ldapuserimport.job.AbstractLDAPGroupImportJob;
 
 /**
  * @version $Id$
@@ -43,10 +47,16 @@ import com.xwiki.ldapuserimport.LDAPUserImportManager;
 public class LDAPUserImportScriptService implements ScriptService
 {
     @Inject
-    private LDAPUserImportManager manager;
+    private LDAPGroupImportManager groupImportManager;
+
+    @Inject
+    private LDAPUserImportManager userImportManager;
 
     @Inject
     private LDAPUserImportConfiguration configuration;
+
+    @Inject
+    private ContextualAuthorizationManager contextualAuthorizationManager;
 
     /**
      * Get all the users that have the searched value contained in any of the provided fields value.
@@ -61,7 +71,7 @@ public class LDAPUserImportScriptService implements ScriptService
         throws Exception
     {
         if (hasImport()) {
-            return manager.getUsers(singleField, allFields, searchInput);
+            return userImportManager.getUsers(singleField, allFields, searchInput);
         }
         return Collections.emptyMap();
     }
@@ -77,7 +87,7 @@ public class LDAPUserImportScriptService implements ScriptService
     public Map<String, Map<String, String>> importUsers(String[] usersList, String groupName) throws Exception
     {
         if (hasImport()) {
-            return manager.importUsers(usersList, groupName);
+            return userImportManager.importUsers(usersList, groupName);
         }
         return Collections.emptyMap();
     }
@@ -90,7 +100,7 @@ public class LDAPUserImportScriptService implements ScriptService
      */
     public boolean hasImport() throws Exception
     {
-        return manager.hasImport();
+        return userImportManager.hasImport();
     }
 
     /**
@@ -103,7 +113,7 @@ public class LDAPUserImportScriptService implements ScriptService
      */
     public boolean displayedMax(int displayedUsersNb) throws Exception
     {
-        return manager.displayedMax(displayedUsersNb);
+        return userImportManager.displayedMax(displayedUsersNb);
     }
 
     /**
@@ -114,7 +124,7 @@ public class LDAPUserImportScriptService implements ScriptService
      */
     public List<String> getXWikiMappedGroups() throws Exception
     {
-        return manager.getXWikiMappedGroups();
+        return userImportManager.getXWikiMappedGroups();
     }
 
     /**
@@ -126,7 +136,7 @@ public class LDAPUserImportScriptService implements ScriptService
      */
     public int getGroupMemberSize(String xWikiGroupName) throws Exception
     {
-        return manager.getGroupMemberSize(xWikiGroupName);
+        return userImportManager.getGroupMemberSize(xWikiGroupName);
     }
 
     /**
@@ -139,7 +149,7 @@ public class LDAPUserImportScriptService implements ScriptService
     public boolean updateGroup(String xWikiGroupName) throws Exception
     {
         if (hasImport()) {
-            return manager.updateGroup(xWikiGroupName);
+            return userImportManager.updateGroup(xWikiGroupName);
         }
         return false;
     }
@@ -151,7 +161,7 @@ public class LDAPUserImportScriptService implements ScriptService
      */
     public void updateGroups() throws Exception
     {
-        manager.updateGroups();
+        userImportManager.updateGroups();
     }
 
     /**
@@ -165,7 +175,7 @@ public class LDAPUserImportScriptService implements ScriptService
      */
     public Map<String, Map<String, String>> getLDAPGroups(String searchInput, String xWikiGroupName) throws Exception
     {
-        return manager.getLDAPGroups(searchInput, xWikiGroupName);
+        return userImportManager.getLDAPGroups(searchInput, xWikiGroupName);
     }
 
     /**
@@ -179,7 +189,7 @@ public class LDAPUserImportScriptService implements ScriptService
     public boolean associateGroups(String[] ldapGroupsList, String xWikiGroupName) throws Exception
     {
         if (hasImport()) {
-            return manager.associateGroups(ldapGroupsList, xWikiGroupName);
+            return userImportManager.associateGroups(ldapGroupsList, xWikiGroupName);
         }
         return false;
     }
@@ -192,5 +202,19 @@ public class LDAPUserImportScriptService implements ScriptService
     public LDAPUserImportConfiguration getConfiguration()
     {
         return configuration;
+    }
+
+    /**
+     * Starts an LDAP Group import job.
+     *
+     * @return the ongoing LDAP Group import job
+     * @throws Exception in case of exceptions
+     * @since 1.4
+     */
+    @Unstable
+    public AbstractLDAPGroupImportJob importLDAPGroups() throws Exception
+    {
+        contextualAuthorizationManager.checkAccess(Right.PROGRAM);
+        return groupImportManager.importLDAPGroups();
     }
 }
