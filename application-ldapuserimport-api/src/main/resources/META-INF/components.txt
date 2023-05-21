@@ -1,5 +1,6 @@
 com.xwiki.ldapuserimport.script.LDAPUserImportScriptService
 com.xwiki.ldapuserimport.internal.job.DefaultLDAPGroupImportJob
+com.xwiki.ldapuserimport.internal.DefaultLDAPGroupImportManager
 com.xwiki.ldapuserimport.internal.DefaultLDAPUserImportConfiguration
 com.xwiki.ldapuserimport.internal.DefaultLDAPUserImportManager
 com.xwiki.ldapuserimport.internal.XWikiLDAPConfigProvider
