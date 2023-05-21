@@ -191,7 +191,14 @@ public class DefaultLDAPUserImportConfiguration implements LDAPUserImportConfigu
     public String getGroupPageName()
     {
         BaseObject object = getObject();
-        return object != null ? object.getStringValue("groupPageName") : DEFAULT_GROUP_PAGE_NAME;
+        if (object != null) {
+            String pageName = object.getStringValue("groupPageName");
+            if (StringUtils.isNotBlank(pageName)) {
+                return pageName;
+            }
+        }
+
+        return DEFAULT_GROUP_PAGE_NAME;
     }
 
     @Override
