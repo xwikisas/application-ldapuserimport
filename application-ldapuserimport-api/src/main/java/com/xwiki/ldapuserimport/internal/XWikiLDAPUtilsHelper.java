@@ -28,6 +28,7 @@ import java.util.Set;
 
 import org.xwiki.contrib.ldap.XWikiLDAPConfig;
 import org.xwiki.contrib.ldap.XWikiLDAPConnection;
+import org.xwiki.contrib.ldap.XWikiLDAPUtils;
 import org.xwiki.text.StringUtils;
 
 /**
@@ -176,5 +177,21 @@ public final class XWikiLDAPUtilsHelper
         }
 
         return attributes.toArray(new String[attributes.size()]);
+    }
+
+    /**
+     * Create a XWikiLDAPUtils instance and set needed attributes.
+     *
+     * @param configuration the XWiki LDAP configuration to be used
+     * @param connection the XWiki LDAP connection
+     * @return the {@link XWikiLDAPUtils} instance
+     */
+    public static XWikiLDAPUtils getXWikiLDAPUtils(XWikiLDAPConfig configuration, XWikiLDAPConnection connection)
+    {
+        XWikiLDAPUtils ldapUtils = new XWikiLDAPUtils(connection, configuration);
+        ldapUtils.setUidAttributeName(configuration.getLDAPParam(XWikiLDAPConfig.PREF_LDAP_UID, CN));
+        ldapUtils.setBaseDN(configuration.getLDAPParam(LDAP_BASE_DN, ""));
+
+        return ldapUtils;
     }
 }
