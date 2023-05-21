@@ -116,7 +116,7 @@
       <disabled>0</disabled>
       <hint/>
       <name>groupPageName</name>
-      <number>12</number>
+      <number>13</number>
       <picker>0</picker>
       <prettyName>groupPageName</prettyName>
       <size>30</size>
@@ -125,6 +125,20 @@
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
     </groupPageName>
+    <ldapGroupImportSearchAttributes>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <hint/>
+      <name>ldapGroupImportSearchAttributes</name>
+      <number>12</number>
+      <picker>0</picker>
+      <prettyName>ldapGroupImportSearchAttributes</prettyName>
+      <size>30</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+    </ldapGroupImportSearchAttributes>
     <ldapGroupImportSearchDN>
       <customDisplay/>
       <disabled>0</disabled>
@@ -206,7 +220,7 @@
       <displayType/>
       <hint/>
       <name>triggerGroupImport</name>
-      <number>13</number>
+      <number>14</number>
       <prettyName>triggerGroupImport</prettyName>
       <unmodifiable>0</unmodifiable>
       <validationMessage/>
