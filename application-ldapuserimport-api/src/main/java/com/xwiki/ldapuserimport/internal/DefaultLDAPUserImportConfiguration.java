@@ -31,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
+import org.xwiki.contrib.ldap.XWikiLDAPConfig;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
@@ -58,6 +59,9 @@ public class DefaultLDAPUserImportConfiguration implements LDAPUserImportConfigu
 
     private static final int DEFAULT_MAX_USER_IMPORT_WIZARD_RESULTS = 20;
 
+    private static final List<String> DEFAULT_LDAP_GROUP_SEARCH_ATTRIBUTES =
+        Collections.singletonList(XWikiLDAPUtilsHelper.CN);
+
     private static final String DEFAULT_GROUP_PAGE_NAME = "${uid}Group";
 
     private DocumentReference configurationReference;
@@ -82,7 +86,8 @@ public class DefaultLDAPUserImportConfiguration implements LDAPUserImportConfigu
     public List<String> getLDAPUserAttributes()
     {
         BaseObject object = getObject();
-        return object != null ? Arrays.asList(object.getStringValue("ldapUserAttributes").split(","))
+        return object != null
+            ? Arrays.asList(object.getStringValue("ldapUserAttributes").split(XWikiLDAPConfig.DEFAULT_SEPARATOR))
             : Collections.EMPTY_LIST;
     }
 
@@ -166,6 +171,20 @@ public class DefaultLDAPUserImportConfiguration implements LDAPUserImportConfigu
     {
         BaseObject object = getObject();
         return object != null ? object.getStringValue("ldapGroupImportSearchFilter") : StringUtils.EMPTY;
+    }
+
+    @Override
+    public List<String> getLDAPGroupImportSearchAttributes()
+    {
+        BaseObject object = getObject();
+        if (object != null) {
+            String ldapGroupSearchAttributes = object.getStringValue("ldapGroupImportSearchAttributes");
+            if (StringUtils.isNotBlank(ldapGroupSearchAttributes)) {
+                return Arrays.asList(ldapGroupSearchAttributes.split(XWikiLDAPConfig.DEFAULT_SEPARATOR));
+            }
+        }
+
+        return DEFAULT_LDAP_GROUP_SEARCH_ATTRIBUTES;
     }
 
     @Override

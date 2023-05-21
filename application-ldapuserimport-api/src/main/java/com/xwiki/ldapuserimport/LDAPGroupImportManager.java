@@ -20,8 +20,10 @@
 package com.xwiki.ldapuserimport;
 
 import java.util.List;
+import java.util.Map;
 
 import org.xwiki.component.annotation.Role;
+import org.xwiki.contrib.ldap.XWikiLDAPSearchAttribute;
 import org.xwiki.job.JobException;
 import org.xwiki.stability.Unstable;
 
@@ -38,13 +40,15 @@ import com.xwiki.ldapuserimport.job.AbstractLDAPGroupImportJob;
 public interface LDAPGroupImportManager
 {
     /**
-     * Get a list of every LDAP group from the configured LDAP server that qualify for import.
+     * Get a map of every LDAP group from the configured LDAP server that qualify for import.
      *
      * @param groupSearchDN the base DN under which groups should be searched
      * @param groupSearchFilter the filter to use when searching groups
-     * @return every LDAP group that exist in the configured LDAP directory.
+     * @param groupSearchAttributes the attributes to fetch from LDAP groups
+     * @return a map containing the group DN as a key and a list of the group attributes as entry
      */
-    List<String> getImportableGroups(String groupSearchDN, String groupSearchFilter);
+    Map<String, List<XWikiLDAPSearchAttribute>> getImportableGroups(String groupSearchDN, String groupSearchFilter,
+        List<String> groupSearchAttributes);
 
     /**
      * Start a job to import the LDAP groups.
@@ -52,11 +56,12 @@ public interface LDAPGroupImportManager
      * @param groupSearchDN the base search DN
      * @param groupPageName the format of group pages
      * @param groupSearchFilter the filter to search groups
+     * @param groupSearchAttributes the attributes to fetch from LDAP groups
      * @return the LDAP group import job
      * @throws JobException if an error occurs starting the import job
      */
-    AbstractLDAPGroupImportJob importLDAPGroups(String groupPageName, String groupSearchDN, String groupSearchFilter)
-        throws JobException;
+    AbstractLDAPGroupImportJob importLDAPGroups(String groupPageName, String groupSearchDN, String groupSearchFilter,
+        List<String> groupSearchAttributes) throws JobException;
 
     /**
      * Start a job to import the LDAP groups, using the group search DN, group search filter and group page name

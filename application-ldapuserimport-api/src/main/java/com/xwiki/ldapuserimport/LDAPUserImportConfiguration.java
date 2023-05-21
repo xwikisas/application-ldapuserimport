@@ -113,6 +113,11 @@ public interface LDAPUserImportConfiguration
     String getLDAPGroupImportSearchFilter();
 
     /**
+     * @return the list of LDAP attributes that should be used when fetching groups
+     */
+    List<String> getLDAPGroupImportSearchAttributes();
+
+    /**
      * @return the page name that should be used for LDAP groups
      */
     String getGroupPageName();

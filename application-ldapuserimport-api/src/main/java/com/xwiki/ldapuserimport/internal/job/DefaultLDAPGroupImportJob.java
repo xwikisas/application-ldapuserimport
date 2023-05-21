@@ -19,7 +19,6 @@
  */
 package com.xwiki.ldapuserimport.internal.job;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -92,30 +91,33 @@ public class DefaultLDAPGroupImportJob extends AbstractLDAPGroupImportJob
     {
         // Start by getting the list of available LDAP groups from the LDAP directory
         jobProgressManager.startStep(this, "Retrieve the list of importable groups");
-        List<String> importableGroups = ldapGroupImportManager.getImportableGroups(
-            request.getLDAPGroupSearchDN(), request.getLDAPGroupSearchFilter());
+        Map<String, List<XWikiLDAPSearchAttribute>> importableGroups = ldapGroupImportManager.getImportableGroups(
+            request.getLDAPGroupSearchDN(), request.getLDAPGroupSearchFilter(), request.getLDAPGroupSearchAttributes());
         jobProgressManager.endStep(this);
 
         // Exclude every LDAP group already mapped to an XWiki group
         jobProgressManager.startStep(this, "Exclude existing linked groups");
         Map<String, Set<String>> mappings = xWikiLDAPConfigProvider.get().getGroupMappings();
         for (Map.Entry<String, Set<String>> mapping : mappings.entrySet()) {
-            importableGroups.removeAll(mapping.getValue());
+            for (String existingLDAPGroup : mapping.getValue()) {
+                importableGroups.remove(existingLDAPGroup);
+            }
         }
         jobProgressManager.endStep(this);
 
         // With the remaining groups, compute their XWiki group name, create a document, and register them as bindings
         jobProgressManager.startStep(this, "Create new groups and register their mappings");
         logger.info("[{}] LDAP groups will be imported", importableGroups.size());
-        for (String importableGroup : importableGroups) {
-            String xwikiGroupName = computeXWikiGroupName(importableGroup);
+        for (Map.Entry<String, List<XWikiLDAPSearchAttribute>> importableGroup : importableGroups.entrySet()) {
+            String xwikiGroupName = ldapDocumentHelper.getDocumentName(request.getGroupPageName(),
+                XWikiLDAPUtilsHelper.CN, importableGroup.getValue(), xWikiLDAPConfigProvider.get());
 
             try {
                 DocumentReference xwikiGroupReference = new DocumentReference(wikiDescriptorManager.getCurrentWikiId(),
                     XWiki.SYSTEM_SPACE, xwikiGroupName);
 
                 createXWikiGroupDocument(xwikiGroupReference);
-                ldapUserImportManager.associateGroups(new String[] { importableGroup },
+                ldapUserImportManager.associateGroups(new String[] { importableGroup.getKey() },
                     stringEntityReferenceSerializer.serialize(xwikiGroupReference));
 
                 status.addImportedGroup(xwikiGroupReference);
@@ -125,13 +127,6 @@ public class DefaultLDAPGroupImportJob extends AbstractLDAPGroupImportJob
             }
         }
         jobProgressManager.endStep(this);
-    }
-
-    private String computeXWikiGroupName(String ldapGroupName)
-    {
-        XWikiLDAPSearchAttribute cnAttribute = new XWikiLDAPSearchAttribute(XWikiLDAPUtilsHelper.CN, ldapGroupName);
-        return ldapDocumentHelper.getDocumentName(request.getGroupPageName(),
-            XWikiLDAPUtilsHelper.CN, Collections.singletonList(cnAttribute), xWikiLDAPConfigProvider.get());
     }
 
     private void createXWikiGroupDocument(DocumentReference groupReference) throws XWikiException

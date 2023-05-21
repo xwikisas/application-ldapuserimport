@@ -19,6 +19,8 @@
  */
 package com.xwiki.ldapuserimport.job;
 
+import java.util.List;
+
 import org.xwiki.job.AbstractRequest;
 import org.xwiki.stability.Unstable;
 
@@ -34,6 +36,8 @@ public class LDAPGroupImportRequest extends AbstractRequest
     private static final String PROP_LDAP_GROUP_SEARCH_DN = "ldapGroupSearchDN";
 
     private static final String PROP_LDAP_GROUP_SEARCH_FILTER = "ldapGroupSearchFilter";
+
+    private static final String PROP_LDAP_GROUP_SEARCH_ATTRIBUTES = "ldapGroupSearchAttributes";
 
     private static final String PROP_GROUP_PAGE_NAME = "groupPageName";
 
@@ -67,6 +71,22 @@ public class LDAPGroupImportRequest extends AbstractRequest
     public void setLDAPGroupSearchFilter(String ldapGroupSearchFilter)
     {
         setProperty(PROP_LDAP_GROUP_SEARCH_FILTER, ldapGroupSearchFilter);
+    }
+
+    /**
+     * @return the attributes to be used when importing LDAP groups
+     */
+    public List<String> getLDAPGroupSearchAttributes()
+    {
+        return getProperty(PROP_LDAP_GROUP_SEARCH_ATTRIBUTES);
+    }
+
+    /**
+     * @param ldapGroupSearchAttributes the attributes to be fetched when searching groups
+     */
+    public void setLDAPGroupSearchAttributes(List<String> ldapGroupSearchAttributes)
+    {
+        setProperty(PROP_LDAP_GROUP_SEARCH_ATTRIBUTES, ldapGroupSearchAttributes);
     }
 
     /**
