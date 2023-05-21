@@ -104,26 +104,31 @@ public interface LDAPUserImportConfiguration
 
     /**
      * @return the base DN under which LDAP groups to be imported should be searched
+     * @since 1.4
      */
     String getLDAPGroupImportSearchDN();
 
     /**
      * @return the filter to be used when searching for groups to import
+     * @since 1.4
      */
     String getLDAPGroupImportSearchFilter();
 
     /**
      * @return the list of LDAP attributes that should be used when fetching groups
+     * @since 1.4
      */
     List<String> getLDAPGroupImportSearchAttributes();
 
     /**
      * @return the page name that should be used for LDAP groups
+     * @since 1.4
      */
     String getGroupPageName();
 
     /**
      * @return true if LDAP groups should be automatically imported in XWiki
+     * @since 1.4
      */
     boolean getTriggerGroupImport();
 }
