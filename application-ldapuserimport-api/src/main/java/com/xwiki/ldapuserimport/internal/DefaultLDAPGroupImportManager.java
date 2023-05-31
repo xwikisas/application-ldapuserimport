@@ -29,6 +29,7 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.ldap.XWikiLDAPConfig;
@@ -98,8 +99,8 @@ public class DefaultLDAPGroupImportManager implements LDAPGroupImportManager
                 results.put(entry.getDN(), attributeList);
             }
         } catch (XWikiLDAPException | LDAPException e) {
-            logger.warn("Failed to get a list of importable LDAP groups using base DN [{}] and filter [{}]. Root cause is: [{}].",
-                groupSearchDN, groupSearchFilter, ExceptionUtils.getRootCauseMessage(e));
+            logger.warn("Failed to get a list of importable LDAP groups using base DN [{}] and filter [{}]."
+                    + "Root cause is: [{}].", groupSearchDN, groupSearchFilter, ExceptionUtils.getRootCauseMessage(e));
         } finally {
             connection.close();
         }
