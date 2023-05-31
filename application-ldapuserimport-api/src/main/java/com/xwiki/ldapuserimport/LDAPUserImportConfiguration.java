@@ -121,10 +121,10 @@ public interface LDAPUserImportConfiguration
     List<String> getLDAPGroupImportSearchAttributes();
 
     /**
-     * @return the page name that should be used for LDAP groups
+     * @return the page name format that should be used for LDAP groups
      * @since 1.4
      */
-    String getGroupPageName();
+    String getGroupPageNameFormat();
 
     /**
      * @return true if LDAP groups should be automatically imported in XWiki

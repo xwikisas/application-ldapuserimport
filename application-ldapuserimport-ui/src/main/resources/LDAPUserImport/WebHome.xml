@@ -110,20 +110,20 @@
         <validationRegExp/>
         <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
       </forceXWikiUsersGroupMembershipUpdate>
-      <groupPageName>
+      <groupPageNameFormat>
         <customDisplay/>
         <disabled>0</disabled>
         <hint/>
-        <name>groupPageName</name>
+        <name>groupPageNameFormat</name>
         <number>13</number>
         <picker>0</picker>
-        <prettyName>groupPageName</prettyName>
+        <prettyName>groupPageNameFormat</prettyName>
         <size>30</size>
         <unmodifiable>0</unmodifiable>
         <validationMessage/>
         <validationRegExp/>
         <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </groupPageName>
+      </groupPageNameFormat>
       <ldapGroupImportSearchAttributes>
         <customDisplay/>
         <disabled>0</disabled>
@@ -279,7 +279,7 @@
       <forceXWikiUsersGroupMembershipUpdate/>
     </property>
     <property>
-      <groupPageName/>
+      <groupPageNameFormat/>
     </property>
     <property>
       <ldapGroupImportSearchAttributes/>

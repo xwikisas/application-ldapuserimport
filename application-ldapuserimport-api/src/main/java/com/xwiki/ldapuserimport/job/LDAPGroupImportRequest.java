@@ -39,7 +39,7 @@ public class LDAPGroupImportRequest extends AbstractRequest
 
     private static final String PROP_LDAP_GROUP_SEARCH_ATTRIBUTES = "ldapGroupSearchAttributes";
 
-    private static final String PROP_GROUP_PAGE_NAME = "groupPageName";
+    private static final String PROP_GROUP_PAGE_NAME_FORMAT = "groupPageNameFormat";
 
     /**
      * @return the DN under which LDAP groups should be searched
@@ -94,14 +94,14 @@ public class LDAPGroupImportRequest extends AbstractRequest
      */
     public String getGroupPageName()
     {
-        return getProperty(PROP_GROUP_PAGE_NAME);
+        return getProperty(PROP_GROUP_PAGE_NAME_FORMAT);
     }
 
     /**
      * @param groupPageName the page name for imported groups
      */
-    public void setGroupPageName(String groupPageName)
+    public void setGroupPageNameFormat(String groupPageName)
     {
-        setProperty(PROP_GROUP_PAGE_NAME, groupPageName);
+        setProperty(PROP_GROUP_PAGE_NAME_FORMAT, groupPageName);
     }
 }

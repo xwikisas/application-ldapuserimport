@@ -77,8 +77,8 @@ LDAPUserImport.LDAPUserImportConfigClass_ldapGroupImportSearchFilter=LDAP Group 
 LDAPUserImport.LDAPUserImportConfigClass_ldapGroupImportSearchFilter.hint=The filter that should be used to search for groups to import
 LDAPUserImport.LDAPUserImportConfigClass_ldapGroupImportSearchAttributes=LDAP Group import search attributes
 LDAPUserImport.LDAPUserImportConfigClass_ldapGroupImportSearchAttributes.hint=A hint of attributes to be fetched from LDAP groups. These attributes can be used to compute the group page name.
-LDAPUserImport.LDAPUserImportConfigClass_groupPageName=Group page name
-LDAPUserImport.LDAPUserImportConfigClass_groupPageName.hint=Define the name of imported group pages. By default, the group name is defined as "${uid}Group".
+LDAPUserImport.LDAPUserImportConfigClass_groupPageNameFormat=Group page name format
+LDAPUserImport.LDAPUserImportConfigClass_groupPageNameFormat.hint=Define the name format of imported group pages. By default, the group name is defined as "${uid}Group".
 LDAPUserImport.LDAPUserImportConfigClass_triggerGroupImport=Trigger group import
 LDAPUserImport.LDAPUserImportConfigClass_triggerGroupImport.hint=If this option is checked, enable the daily automated import of LDAP groups. By default, this import is executed at 3:30 AM.
 

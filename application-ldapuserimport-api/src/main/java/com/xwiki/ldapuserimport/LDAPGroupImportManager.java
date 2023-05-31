@@ -53,15 +53,15 @@ public interface LDAPGroupImportManager
     /**
      * Start a job to import the LDAP groups.
      *
-     * @param groupPageName the format of group pages
+     * @param groupPageNameFormat the format of group pages
      * @param groupSearchDN the base search DN
      * @param groupSearchFilter the filter to search groups
      * @param groupSearchAttributes the attributes to fetch from LDAP groups
      * @return the LDAP group import job
      * @throws JobException if an error occurs starting the import job
      */
-    AbstractLDAPGroupImportJob importLDAPGroups(String groupPageName, String groupSearchDN, String groupSearchFilter,
-        List<String> groupSearchAttributes) throws JobException;
+    AbstractLDAPGroupImportJob importLDAPGroups(String groupPageNameFormat, String groupSearchDN,
+        String groupSearchFilter, List<String> groupSearchAttributes) throws JobException;
 
     /**
      * Start a job to import the LDAP groups, using the group search DN, group search filter and group page name

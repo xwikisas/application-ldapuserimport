@@ -109,14 +109,14 @@ public class DefaultLDAPGroupImportManager implements LDAPGroupImportManager
     }
 
     @Override
-    public AbstractLDAPGroupImportJob importLDAPGroups(String groupPageName, String groupSearchDN,
+    public AbstractLDAPGroupImportJob importLDAPGroups(String groupPageNameFormat, String groupSearchDN,
         String groupSearchFilter, List<String> groupSearchAttributes) throws JobException
     {
         LDAPGroupImportRequest request = new LDAPGroupImportRequest();
         request.setLDAPGroupSearchDN(groupSearchDN);
         request.setLDAPGroupSearchFilter(groupSearchFilter);
         request.setLDAPGroupSearchAttributes(groupSearchAttributes);
-        request.setGroupPageName(groupPageName);
+        request.setGroupPageNameFormat(groupPageNameFormat);
 
         return (AbstractLDAPGroupImportJob) jobExecutor.execute(AbstractLDAPGroupImportJob.JOB_TYPE, request);
     }
@@ -127,7 +127,7 @@ public class DefaultLDAPGroupImportManager implements LDAPGroupImportManager
         String groupSearchFilter = StringUtils.isBlank(ldapUserImportConfiguration.getLDAPGroupImportSearchFilter())
             ? getGroupsFilter(StringUtils.EMPTY, xWikiLDAPConfigProvider.get())
             : ldapUserImportConfiguration.getLDAPGroupImportSearchFilter();
-        return importLDAPGroups(ldapUserImportConfiguration.getGroupPageName(),
+        return importLDAPGroups(ldapUserImportConfiguration.getGroupPageNameFormat(),
             ldapUserImportConfiguration.getLDAPGroupImportSearchDN(), groupSearchFilter,
             ldapUserImportConfiguration.getLDAPGroupImportSearchAttributes());
     }

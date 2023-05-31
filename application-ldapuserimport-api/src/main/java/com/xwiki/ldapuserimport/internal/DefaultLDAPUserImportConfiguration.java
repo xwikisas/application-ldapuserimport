@@ -188,11 +188,11 @@ public class DefaultLDAPUserImportConfiguration implements LDAPUserImportConfigu
     }
 
     @Override
-    public String getGroupPageName()
+    public String getGroupPageNameFormat()
     {
         BaseObject object = getObject();
         if (object != null) {
-            String pageName = object.getStringValue("groupPageName");
+            String pageName = object.getStringValue("groupPageNameFormat");
             if (StringUtils.isNotBlank(pageName)) {
                 return pageName;
             }
