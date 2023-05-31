@@ -32,6 +32,7 @@ import org.xwiki.contrib.ldap.LDAPDocumentHelper;
 import org.xwiki.contrib.ldap.XWikiLDAPConfig;
 import org.xwiki.contrib.ldap.XWikiLDAPException;
 import org.xwiki.contrib.ldap.XWikiLDAPSearchAttribute;
+import org.xwiki.job.AbstractJob;
 import org.xwiki.job.event.status.JobProgressManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
@@ -44,18 +45,24 @@ import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.ldapuserimport.LDAPGroupImportManager;
 import com.xwiki.ldapuserimport.LDAPUserImportManager;
 import com.xwiki.ldapuserimport.internal.XWikiLDAPUtilsHelper;
-import com.xwiki.ldapuserimport.job.AbstractLDAPGroupImportJob;
+import com.xwiki.ldapuserimport.job.LDAPGroupImportRequest;
+import com.xwiki.ldapuserimport.job.LDAPGroupImportStatus;
 
 /**
- * Default implementation of the {@link AbstractLDAPGroupImportJob}.
+ * Default implementation of LDAP Group Import job.
  *
  * @version $Id$
  * @since 1.4
  */
 @Component
-@Named(AbstractLDAPGroupImportJob.JOB_TYPE)
-public class DefaultLDAPGroupImportJob extends AbstractLDAPGroupImportJob
+@Named(DefaultLDAPGroupImportJob.JOB_TYPE)
+public class DefaultLDAPGroupImportJob extends AbstractJob<LDAPGroupImportRequest, LDAPGroupImportStatus>
 {
+    /**
+     * The job type.
+     */
+    public static final String JOB_TYPE = "ldapUserImport/groupImport";
+
     @Inject
     private EntityReferenceSerializer<String> stringEntityReferenceSerializer;
 

@@ -24,10 +24,9 @@ import java.util.Map;
 
 import org.xwiki.component.annotation.Role;
 import org.xwiki.contrib.ldap.XWikiLDAPSearchAttribute;
+import org.xwiki.job.Job;
 import org.xwiki.job.JobException;
 import org.xwiki.stability.Unstable;
-
-import com.xwiki.ldapuserimport.job.AbstractLDAPGroupImportJob;
 
 /**
  * Manager for importing LDAP groups.
@@ -60,7 +59,7 @@ public interface LDAPGroupImportManager
      * @return the LDAP group import job
      * @throws JobException if an error occurs starting the import job
      */
-    AbstractLDAPGroupImportJob importLDAPGroups(String groupPageNameFormat, String groupSearchDN,
+    Job importLDAPGroups(String groupPageNameFormat, String groupSearchDN,
         String groupSearchFilter, List<String> groupSearchAttributes) throws JobException;
 
     /**
@@ -70,5 +69,5 @@ public interface LDAPGroupImportManager
      * @return the LDAP group import job
      * @throws JobException if an error occurs starting the import job
      */
-    AbstractLDAPGroupImportJob importLDAPGroups() throws JobException;
+    Job importLDAPGroups() throws JobException;
 }

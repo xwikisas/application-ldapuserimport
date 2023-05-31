@@ -36,6 +36,7 @@ import org.xwiki.contrib.ldap.XWikiLDAPConfig;
 import org.xwiki.contrib.ldap.XWikiLDAPConnection;
 import org.xwiki.contrib.ldap.XWikiLDAPException;
 import org.xwiki.contrib.ldap.XWikiLDAPSearchAttribute;
+import org.xwiki.job.Job;
 import org.xwiki.job.JobException;
 import org.xwiki.job.JobExecutor;
 
@@ -45,7 +46,7 @@ import com.novell.ldap.LDAPSearchResults;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.ldapuserimport.LDAPGroupImportManager;
 import com.xwiki.ldapuserimport.LDAPUserImportConfiguration;
-import com.xwiki.ldapuserimport.job.AbstractLDAPGroupImportJob;
+import com.xwiki.ldapuserimport.internal.job.DefaultLDAPGroupImportJob;
 import com.xwiki.ldapuserimport.job.LDAPGroupImportRequest;
 
 import static com.novell.ldap.LDAPConnection.SCOPE_SUB;
@@ -109,7 +110,7 @@ public class DefaultLDAPGroupImportManager implements LDAPGroupImportManager
     }
 
     @Override
-    public AbstractLDAPGroupImportJob importLDAPGroups(String groupPageNameFormat, String groupSearchDN,
+    public Job importLDAPGroups(String groupPageNameFormat, String groupSearchDN,
         String groupSearchFilter, List<String> groupSearchAttributes) throws JobException
     {
         LDAPGroupImportRequest request = new LDAPGroupImportRequest();
@@ -118,11 +119,11 @@ public class DefaultLDAPGroupImportManager implements LDAPGroupImportManager
         request.setLDAPGroupSearchAttributes(groupSearchAttributes);
         request.setGroupPageNameFormat(groupPageNameFormat);
 
-        return (AbstractLDAPGroupImportJob) jobExecutor.execute(AbstractLDAPGroupImportJob.JOB_TYPE, request);
+        return jobExecutor.execute(DefaultLDAPGroupImportJob.JOB_TYPE, request);
     }
 
     @Override
-    public AbstractLDAPGroupImportJob importLDAPGroups() throws JobException
+    public Job importLDAPGroups() throws JobException
     {
         String groupSearchFilter = StringUtils.isBlank(ldapUserImportConfiguration.getLDAPGroupImportSearchFilter())
             ? getGroupsFilter(StringUtils.EMPTY, xWikiLDAPConfigProvider.get())

@@ -27,6 +27,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.job.Job;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
@@ -35,7 +36,6 @@ import org.xwiki.stability.Unstable;
 import com.xwiki.ldapuserimport.LDAPGroupImportManager;
 import com.xwiki.ldapuserimport.LDAPUserImportConfiguration;
 import com.xwiki.ldapuserimport.LDAPUserImportManager;
-import com.xwiki.ldapuserimport.job.AbstractLDAPGroupImportJob;
 
 /**
  * @version $Id$
@@ -212,7 +212,7 @@ public class LDAPUserImportScriptService implements ScriptService
      * @since 1.4
      */
     @Unstable
-    public AbstractLDAPGroupImportJob importLDAPGroups() throws Exception
+    public Job importLDAPGroups() throws Exception
     {
         contextualAuthorizationManager.checkAccess(Right.PROGRAM);
         return groupImportManager.importLDAPGroups();
