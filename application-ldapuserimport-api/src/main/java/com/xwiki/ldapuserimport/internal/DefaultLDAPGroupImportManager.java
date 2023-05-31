@@ -98,8 +98,8 @@ public class DefaultLDAPGroupImportManager implements LDAPGroupImportManager
                 results.put(entry.getDN(), attributeList);
             }
         } catch (XWikiLDAPException | LDAPException e) {
-            logger.error("Failed to get a list of importable LDAP groups using base DN [{}] and filter [{}]",
-                groupSearchDN, groupSearchFilter);
+            logger.warn("Failed to get a list of importable LDAP groups using base DN [{}] and filter [{}]. Root cause is: [{}].",
+                groupSearchDN, groupSearchFilter, ExceptionUtils.getRootCauseMessage(e));
         } finally {
             connection.close();
         }
