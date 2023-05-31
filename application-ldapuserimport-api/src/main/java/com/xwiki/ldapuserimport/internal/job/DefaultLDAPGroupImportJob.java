@@ -107,8 +107,11 @@ public class DefaultLDAPGroupImportJob extends AbstractLDAPGroupImportJob
 
         // With the remaining groups, compute their XWiki group name, create a document, and register them as bindings
         jobProgressManager.startStep(this, "Create new groups and register their mappings");
+        jobProgressManager.pushLevelProgress(importableGroups.size(), this);
         logger.info("[{}] LDAP groups will be imported", importableGroups.size());
+
         for (Map.Entry<String, List<XWikiLDAPSearchAttribute>> importableGroup : importableGroups.entrySet()) {
+            jobProgressManager.startStep(this);
             String xwikiGroupName = ldapDocumentHelper.getDocumentName(request.getGroupPageName(),
                 XWikiLDAPUtilsHelper.CN, importableGroup.getValue(), xWikiLDAPConfigProvider.get());
 
@@ -125,7 +128,10 @@ public class DefaultLDAPGroupImportJob extends AbstractLDAPGroupImportJob
             } catch (Exception e) {
                 logger.error("Failed to import LDAP group [{}] as [{}]", importableGroup, xwikiGroupName, e);
             }
+            jobProgressManager.endStep(this);
         }
+
+        jobProgressManager.popLevelProgress(this);
         jobProgressManager.endStep(this);
     }
 
