@@ -53,8 +53,8 @@ public interface LDAPGroupImportManager
     /**
      * Start a job to import the LDAP groups.
      *
-     * @param groupSearchDN the base search DN
      * @param groupPageName the format of group pages
+     * @param groupSearchDN the base search DN
      * @param groupSearchFilter the filter to search groups
      * @param groupSearchAttributes the attributes to fetch from LDAP groups
      * @return the LDAP group import job
