@@ -101,4 +101,34 @@ public interface LDAPUserImportConfiguration
      * @return true if user group membership should be updated upon synchronization
      */
     boolean getForceUserGroupMembershipUpdate();
+
+    /**
+     * @return the base DN under which LDAP groups to be imported should be searched
+     * @since 1.4
+     */
+    String getLDAPGroupImportSearchDN();
+
+    /**
+     * @return the filter to be used when searching for groups to import
+     * @since 1.4
+     */
+    String getLDAPGroupImportSearchFilter();
+
+    /**
+     * @return the list of LDAP attributes that should be used when fetching groups
+     * @since 1.4
+     */
+    List<String> getLDAPGroupImportSearchAttributes();
+
+    /**
+     * @return the page name format that should be used for LDAP groups
+     * @since 1.4
+     */
+    String getGroupPageNameFormat();
+
+    /**
+     * @return true if LDAP groups should be automatically imported in XWiki
+     * @since 1.4
+     */
+    boolean getTriggerGroupImport();
 }
