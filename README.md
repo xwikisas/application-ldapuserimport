@@ -3,5 +3,5 @@
 * Project Lead: N/A
 * [Issue Tracker](https://github.com/xwikisas/application-activedirectory/issues)
 * [Development Practices](http://dev.xwiki.org/xwiki/bin/view/Community/DevelopmentPractices)
-* Minimal XWiki version supported: XWiki 10.11
+* Minimal XWiki version supported: XWiki 11.10
 * License: LGPL 2.1
