@@ -53,6 +53,7 @@ import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
+import org.xwiki.rendering.syntax.Syntax;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPEntry;
@@ -62,6 +63,7 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
+import com.xpn.xwiki.objects.classes.BaseClass;
 import com.xwiki.ldapuserimport.LDAPUserImportConfiguration;
 import com.xwiki.ldapuserimport.LDAPUserImportManager;
 
@@ -601,6 +603,71 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         }
     }
 
+
+    protected XWikiDocument getGroupDocument(String groupName, XWikiContext context) throws XWikiException
+    {
+        BaseClass groupClass = context.getWiki().getGroupClass(context);
+
+        // Get document representing group
+        XWikiDocument groupDoc = context.getWiki().getDocument(groupName, context);
+        return groupDoc;
+    }
+
+    protected void saveGroupDocument(XWikiDocument groupDoc, String groupName, XWikiContext context)
+    {
+        try {
+            // If the document is new, set its content
+            if (groupDoc.isNew()) {
+                groupDoc.setSyntax(Syntax.XWIKI_2_0);
+                groupDoc.setContent("{{include reference='XWiki.XWikiGroupSheet' /}}");
+            }
+
+            // Save modifications
+            context.getWiki().saveDocument(groupDoc, context);
+            logger.debug("Saving xwiki group [{}]", groupName);
+        } catch (Exception e) {
+            logger.error("Failed saving group [{}]", groupName, e);
+        }
+
+    }
+
+    protected void addUserToXWikiGroup(String xwikiUserName, XWikiDocument groupDoc,
+                                       String groupName, XWikiContext context)
+    {
+        try {
+            logger.debug("Adding user [{}] to xwiki group [{}]", xwikiUserName, groupName);
+            BaseClass groupClass = context.getWiki().getGroupClass(context);
+            synchronized (groupDoc) {
+                // Make extra sure the group cannot contain duplicate (even if this method is not supposed to be called
+                // in this case)
+                List<BaseObject> xobjects = groupDoc.getXObjects(groupClass.getDocumentReference());
+                if (xobjects != null) {
+                    for (BaseObject memberObj : xobjects) {
+                        if (memberObj != null) {
+                            String existingMember = memberObj.getStringValue(MEMBER);
+                            if (existingMember != null && existingMember.equals(xwikiUserName)) {
+                                logger.warn("User [{}] already exist in group [{}]", xwikiUserName,
+                                    groupDoc.getDocumentReference());
+                                return;
+                            }
+                        }
+                    }
+                }
+
+                // Add a member object to document
+                BaseObject memberObj = groupDoc.newXObject(groupClass.getDocumentReference(), context);
+                Map<String, String> map = new HashMap<>();
+                map.put(MEMBER, xwikiUserName);
+                groupClass.fromMap(map, memberObj);
+
+
+            }
+            logger.debug("Finished adding user [{}] to xwiki group [{}]", xwikiUserName, groupName);
+        } catch (Exception e) {
+            logger.error("Failed to add a user [{}] to a group [{}]", xwikiUserName, groupName, e);
+        }
+    }
+
     private void synchronizeGroupMembership(String xWikiGroupName, Map<String, String> groupMembersMap,
         XWikiLDAPConfig configuration, XWikiLDAPConnection connection, XWikiLDAPUtils ldapUtils, XWikiContext context)
         throws Exception
@@ -627,19 +694,29 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 }
             }
 
-            connection.open(configuration.getLDAPBindDN(), configuration.getLDAPBindPassword(), context);
-            for (Entry<String, String> user : groupMembersMap.entrySet()) {
-                String xwikiUserName = user.getKey();
-                String userDN = user.getValue();
-                ldapUtils.syncGroupsMembership(xwikiUserName, userDN, filteredGroupMapping, context);
+            int nbUsers = 0;
+            int maxNbUsers = 500;
+            XWikiDocument groupDoc = getGroupDocument(xWikiGroupName, context);
+            synchronized (groupDoc) {
+                for (Entry<String, String> user : groupMembersMap.entrySet()) {
+                    String xwikiUserName = user.getKey();
+                    String userDN = user.getValue();
+                    addUserToXWikiGroup(xwikiUserName, groupDoc, xWikiGroupName, context);
+                    nbUsers++;
+                    // The goal is to save the group Document after adding enough users
+                    if (nbUsers >= maxNbUsers) {
+                        nbUsers = 0;
+                        saveGroupDocument(groupDoc, xWikiGroupName, context);
+                    }
+                }
+                if (nbUsers > 0) {
+                    saveGroupDocument(groupDoc, xWikiGroupName, context);
+                }
             }
         } catch (XWikiException e) {
             logger.error(e.getFullMessage());
             throw e;
-        } finally {
-            connection.close();
         }
-
     }
 
     private void splitUsersList(XWikiContext context, XWikiLDAPUtils ldapUtils, Map<String, String> users,

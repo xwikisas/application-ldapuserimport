@@ -33,6 +33,7 @@
   <description>Application to import users from LDAP</description>
   <properties>
     <xwiki.extension.category>api</xwiki.extension.category>
+    <checkstyle.suppressions.location>${basedir}/src/checkstyle/checkstyle-suppressions.xml</checkstyle.suppressions.location>
   </properties>
   <dependencies>
     <dependency>

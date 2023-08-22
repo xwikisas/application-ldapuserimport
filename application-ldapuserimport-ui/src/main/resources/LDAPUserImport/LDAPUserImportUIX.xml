@@ -598,7 +598,7 @@
   confirmGroupUpdateButton.click(function() {
     groupMembersSizeLoading.addClass('hidden');
     groupUpdateLoading.removeClass('hidden');
-    var xWikiGroupName = $(this).data('xwikigroupname');
+    var xWikiGroupName = this.getAttribute('data-xwikigroupname');
     // Make sure the status is always clean, even when updating multiple groups without reloading the page.
     updateStatus.html('');
     $.post(serviceURL,
