@@ -170,6 +170,12 @@ public final class XWikiLDAPUtilsHelper
         configuration.getUserMappings(userAttributes);
         attributes.addAll(userAttributes);
 
+        // Also append the LDAP photo attribute if synchronization of LDAP profile pictures is enabled
+        if (configuration.getLDAPParam(XWikiLDAPConfig.PREF_LDAP_UPDATE_PHOTO, "0").equals("1")) {
+            attributes.add(configuration.getLDAPParam(XWikiLDAPConfig.PREF_LDAP_PHOTO_ATTRIBUTE,
+                XWikiLDAPConfig.DEFAULT_PHOTO_ATTRIBUTE));
+        }
+
         // Make sure to also add all the default LDAP fields mappings. LDAP configuration could provide only few of
         // them, but for display purposes, we need them all.
         for (Map.Entry<String, String> pair : defaultMapping.entrySet()) {
