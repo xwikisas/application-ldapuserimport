@@ -47,6 +47,7 @@ importUsers.modal.fieldValue.search=Search
 importUsers.modal.fieldValue.noResults=No users were found for the searched value!
 importUsers.modal.fieldValue.loadingResults=Loading results ...
 importUsers.modal.fieldValue.importingResults=Importing users ...
+importUsers.modal.searchType.label=Search inside values (slower) 
 importUsers.modal.user.failedImport=Failed to import users!
 importUsers.modal.user.alreadyImported={0} already imported in
 importUsers.modal.user.created={0} user profile has been created in
