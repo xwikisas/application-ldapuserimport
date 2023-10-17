@@ -36,10 +36,12 @@ public interface LDAPUserImportManager
      * @param singleField the field to only filter when the single field search is enabled
      * @param allFields the list of all configured fields
      * @param searchInput the value to search for
+     * @param isFullSearch allowing to choose if the search is a "contains" search or a "begin with" search
      * @return a map containing all the matching users with information from all fields
      * @throws Exception in case of exceptions
      */
-    Map<String, Map<String, String>> getUsers(String singleField, String allFields, String searchInput)
+    Map<String, Map<String, String>> getUsers(String singleField, String allFields,
+        String searchInput, boolean isFullSearch)
         throws Exception;
 
     /**
@@ -110,9 +112,11 @@ public interface LDAPUserImportManager
      * @param searchInput the value to search for
      * @param xWikiGroupName the group name
      * @return the list of groups
+     * @param isFullSearch allowing to choose if the search is a "contains" search or a "begin with" search
      * @throws Exception in case of exceptions
      */
-    Map<String, Map<String, String>> getLDAPGroups(String searchInput, String xWikiGroupName) throws Exception;
+    Map<String, Map<String, String>> getLDAPGroups(String searchInput, String xWikiGroupName,
+                                                   boolean isFullSearch) throws Exception;
 
     /**
      * Associate a list of LDAP groups to an XWiki group.
