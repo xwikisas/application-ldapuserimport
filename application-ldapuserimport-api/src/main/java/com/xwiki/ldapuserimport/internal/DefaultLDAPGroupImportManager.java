@@ -126,7 +126,7 @@ public class DefaultLDAPGroupImportManager implements LDAPGroupImportManager
     public Job importLDAPGroups() throws JobException
     {
         String groupSearchFilter = StringUtils.isBlank(ldapUserImportConfiguration.getLDAPGroupImportSearchFilter())
-            ? getGroupsFilter(StringUtils.EMPTY, xWikiLDAPConfigProvider.get())
+            ? getGroupsFilter(StringUtils.EMPTY, xWikiLDAPConfigProvider.get(), false)
             : ldapUserImportConfiguration.getLDAPGroupImportSearchFilter();
         return importLDAPGroups(ldapUserImportConfiguration.getGroupPageNameFormat(),
             ldapUserImportConfiguration.getLDAPGroupImportSearchDN(), groupSearchFilter,
