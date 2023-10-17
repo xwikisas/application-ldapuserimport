@@ -76,7 +76,11 @@
         $jsontool.serialize({'message': $message})
       #elseif ($request.action == 'getLDAPGroups')
         #set ($noResultsMessage = $services.localization.render('importUsers.associateGroups.modal.fieldValue.noResults'))
-        #set ($groups = $services.ldapuserimport.getLDAPGroups($request.searchInput, $request.xWikiGroupName))
+        #set ($isFullSearch = false)
+        #if ($request.searchType=="1")
+          #set ($isFullSearch = true)
+        #end
+        #set ($groups = $services.ldapuserimport.getLDAPGroups($request.searchInput, $request.xWikiGroupName, $isFullSearch))
         #foreach ($group in $groups.entrySet())
           #if ($group.value.isAssociated == true)
             #set ($message = $services.localization.render('importUsers.associateGroups.modal.alreadyAssociated', [$group.value.description, $group.value.cn]))
@@ -99,7 +103,11 @@
         #end
         $jsontool.serialize({'message': $message, 'status': $status})
       #elseif ($request.action == 'searchUsers')
-        #set ($users = $services.ldapuserimport.getUsers($request.singleField, $request.allFields, $request.searchInput))
+        #set ($isFullSearch = false)
+        #if ($request.searchType=="1")
+          #set ($isFullSearch = true)
+        #end
+        #set ($users = $services.ldapuserimport.getUsers($request.singleField, $request.allFields, $request.searchInput, $isFullSearch))
         #set ($noResultsMessage = $services.localization.render('importUsers.modal.fieldValue.noResults'))
         #foreach ($user in $users.entrySet())
           #set ($params = [])

@@ -1076,7 +1076,7 @@ ul#importedUsersList {
         <separators>|, </separators>
         <size>5</size>
         <unmodifiable>0</unmodifiable>
-        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.parameters=Request parameters|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
+        <values>action=Action|doc.reference=Document|doc.revision|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.headers|request.parameters=Request parameters|request.remoteAddr|request.session|request.url=Request URL|request.wiki=Request wiki|sheet|user=User|wiki=Wiki</values>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </async_context>
       <async_enabled>
@@ -1269,6 +1269,14 @@ ul#importedUsersList {
                 &lt;input type="text" id="searchInput" name="searchInput" required
                   placeholder="$escapetool.xml($services.localization.render('importUsers.modal.fieldValue.search'))" /&gt;
               &lt;/dd&gt;
+              &lt;dt&gt;
+                &lt;label for="searchType"&gt;
+                  $services.localization.render('importUsers.modal.searchType.label')
+                &lt;/label&gt;
+              &lt;/dt&gt;
+              &lt;dd&gt;
+                &lt;input type="checkbox" id="searchType" name="searchType" value="1" /&gt;
+              &lt;/dd&gt;
             &lt;/dl&gt;
             &lt;input type="submit" id="triggerSearch" class="btn btn-primary"
               value="$services.localization.render('importUsers.modal.fieldValue.search')"/&gt;
@@ -1379,6 +1387,14 @@ ul#importedUsersList {
               &lt;dd&gt;
                 &lt;input type="text" id="searchInput" name="searchInput" required
                   placeholder="$escapetool.xml($services.localization.render('importUsers.modal.fieldValue.search'))" /&gt;
+              &lt;/dd&gt;
+              &lt;dt&gt;
+                &lt;label for="searchType"&gt;
+                  $services.localization.render('importUsers.modal.searchType.label')
+                &lt;/label&gt;
+              &lt;/dt&gt;
+              &lt;dd&gt;
+                &lt;input type="checkbox" id="searchType" name="searchType" value="1" /&gt;
               &lt;/dd&gt;
             &lt;/dl&gt;
             &lt;input type="submit" id="triggerGroupsSearch" class="btn btn-primary"

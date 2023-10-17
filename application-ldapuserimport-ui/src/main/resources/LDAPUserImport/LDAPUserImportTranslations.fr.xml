@@ -47,6 +47,7 @@ importUsers.modal.fieldValue.search=Rechercher
 importUsers.modal.fieldValue.noResults=Aucun utilisateur n'a été trouvé
 importUsers.modal.fieldValue.loadingResults=Chargement des résultats ...
 importUsers.modal.fieldValue.importingResults=Importer des utilisateurs  ...
+importUsers.modal.searchType.label=Rechercher dans les valeurs (plus lent)
 importUsers.modal.user.imported=Utilisateur déjà importé
 importUsers.modal.user.notImported=Utilisateur non importé
 importUsers.modal.user.failedImport=Echec d'importation de l'utilisateur
