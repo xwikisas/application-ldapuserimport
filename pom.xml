@@ -34,7 +34,7 @@
   <name>LDAP User Import Application - Parent POM</name>
   <description>Application to import users from LDAP</description>
   <properties>
-    <ldap.version>9.11.0</ldap.version>
+    <ldap.version>9.12.0</ldap.version>
   </properties>
   <issueManagement>
     <system>GitHub</system>
