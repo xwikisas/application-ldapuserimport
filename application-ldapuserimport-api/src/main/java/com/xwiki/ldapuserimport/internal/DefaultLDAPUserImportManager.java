@@ -146,7 +146,8 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
      * Get all the users that have the searched value contained in any of the provided fields value.
      */
     @Override
-    public Map<String, Map<String, String>> getUsers(String singleField, String allFields, String searchInput)
+    public Map<String, Map<String, String>> getUsers(String singleField, String allFields,
+                                                     String searchInput, boolean isFullSearch)
         throws Exception
     {
         XWikiContext context = contextProvider.get();
@@ -167,11 +168,11 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 
             String filter;
             if (StringUtils.isNoneBlank(singleField)) {
-                filter = getUsersFilter(searchInput, singleField);
+                filter = getUsersFilter(searchInput, singleField, configuration, isFullSearch);
             } else if (StringUtils.isNoneBlank(allFields)) {
-                filter = getUsersFilter(searchInput, allFields);
+                filter = getUsersFilter(searchInput, allFields, configuration, isFullSearch);
             } else {
-                filter = getUsersFilter(searchInput, attributeNameTable);
+                filter = getUsersFilter(searchInput, attributeNameTable, configuration, isFullSearch);
             }
 
             PagedLDAPSearchResults result =
@@ -756,7 +757,8 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     }
 
     @Override
-    public Map<String, Map<String, String>> getLDAPGroups(String searchInput, String xWikiGroupName) throws Exception
+    public Map<String, Map<String, String>> getLDAPGroups(String searchInput, String xWikiGroupName,
+                                                          boolean isFullSearch) throws Exception
     {
         XWikiContext context = contextProvider.get();
         String currentWikiId = context.getWikiId();
@@ -770,7 +772,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 
         try {
             connection.open(configuration.getLDAPBindDN(), configuration.getLDAPBindPassword(), context);
-            String filter = getGroupsFilter(searchInput, configuration);
+            String filter = getGroupsFilter(searchInput, configuration, isFullSearch);
             String base = configuration.getLDAPParam(LDAP_BASE_DN, "");
 
             String[] attributeNameTable = new String[] {CN, "description"};
@@ -778,7 +780,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             PagedLDAPSearchResults result =
                 connection.searchPaginated(base, LDAPConnection.SCOPE_SUB, filter, attributeNameTable, false);
             if (result.hasMore()) {
-                ldapGroups = getLDAPGroups(configuration, connection, result, context, xWikiGroupName);
+                ldapGroups = getLDAPGroups(configuration, connection, result, context, xWikiGroupName, isFullSearch);
             } else {
                 logger.warn("There are no result for base dn: [{}], search scope: [{}], filter: [{}], fields: [{}].",
                     base, LDAPConnection.SCOPE_SUB, filter, CN);
@@ -798,7 +800,8 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     }
 
     private Map<String, Map<String, String>> getLDAPGroups(XWikiLDAPConfig configuration,
-        XWikiLDAPConnection connection, PagedLDAPSearchResults result, XWikiContext context, String xWikiGroupName)
+        XWikiLDAPConnection connection, PagedLDAPSearchResults result, XWikiContext context,
+        String xWikiGroupName, boolean isFullSearch)
         throws Exception
     {
         LDAPEntry resultEntry = null;

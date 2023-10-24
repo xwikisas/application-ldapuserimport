@@ -64,14 +64,16 @@ public class LDAPUserImportScriptService implements ScriptService
      * @param singleField the field to only filter when the single field search is enabled
      * @param allFields the list of all configured fields
      * @param searchInput the value to search for
+     * @param isFullSearch allowing to choose if the search is a "contains" search or a "begin with" search
      * @return a map containing all the matching users with information from all fields
      * @throws Exception in case of exceptions
      */
-    public Map<String, Map<String, String>> getUsers(String singleField, String allFields, String searchInput)
+    public Map<String, Map<String, String>> getUsers(String singleField, String allFields,
+                                                     String searchInput, boolean isFullSearch)
         throws Exception
     {
         if (hasImport()) {
-            return userImportManager.getUsers(singleField, allFields, searchInput);
+            return userImportManager.getUsers(singleField, allFields, searchInput, isFullSearch);
         }
         return Collections.emptyMap();
     }
@@ -170,12 +172,14 @@ public class LDAPUserImportScriptService implements ScriptService
      *
      * @param searchInput the value to search for
      * @param xWikiGroupName the group name
+     * @param isFullSearch allowing to choose if the search is a "contains" search or a "begin with" search
      * @return the list of groups
      * @throws Exception in case of exceptions
      */
-    public Map<String, Map<String, String>> getLDAPGroups(String searchInput, String xWikiGroupName) throws Exception
+    public Map<String, Map<String, String>> getLDAPGroups(String searchInput,
+           String xWikiGroupName, boolean isFullSearch) throws Exception
     {
-        return userImportManager.getLDAPGroups(searchInput, xWikiGroupName);
+        return userImportManager.getLDAPGroups(searchInput, xWikiGroupName, isFullSearch);
     }
 
     /**
