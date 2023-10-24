@@ -70,7 +70,7 @@ public final class XWikiLDAPUtilsHelper
 
     private static final String LDAP_GROUP_SEARCH_FIELDS = CN;
 
-    private static final String LDAP_USER_CLASSES = "inetOrgPerson";
+    private static final String LDAP_USER_CLASSES = "*";
 
     private XWikiLDAPUtilsHelper()
     {
