@@ -114,7 +114,8 @@ public class DefaultLDAPGroupImportManager implements LDAPGroupImportManager
         String groupSearchFilter, List<String> groupSearchAttributes) throws JobException
     {
         LDAPGroupImportRequest request = new LDAPGroupImportRequest();
-        request.setId(xWikiContextProvider.get().getWikiId(), String.valueOf(System.currentTimeMillis()));
+        request.setId("ldap", "groupImport", xWikiContextProvider.get().getWikiId(),
+            String.valueOf(System.currentTimeMillis()));
         request.setLDAPGroupSearchDN(groupSearchDN);
         request.setLDAPGroupSearchFilter(groupSearchFilter);
         request.setLDAPGroupSearchAttributes(groupSearchAttributes);
