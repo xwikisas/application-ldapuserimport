@@ -488,7 +488,12 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             Set<String> ldapGroupDNs = configuration.getGroupMappings().get(xWikiGroupName);
             Map<String, String> members = new HashMap<>();
             for (String ldapGroupDN : ldapGroupDNs) {
-                Map<String, String> groupMembers = ldapUtils.getGroupMembers(ldapGroupDN, context);
+                Map<String, String> groupMembers = null;
+                try {
+                    groupMembers = ldapUtils.getGroupMembers(ldapGroupDN, context);
+                } catch (XWikiLDAPException e) {
+                    logger.error("Could not import members of group [{}]", ldapGroupDN, e);
+                }
                 if (groupMembers == null) {
                     continue;
                 }
