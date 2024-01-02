@@ -489,6 +489,9 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             Map<String, String> members = new HashMap<>();
             for (String ldapGroupDN : ldapGroupDNs) {
                 Map<String, String> groupMembers = ldapUtils.getGroupMembers(ldapGroupDN, context);
+                if (groupMembers == null) {
+                    continue;
+                }
                 if (caseSensitive) {
                     members.putAll(getGroupMembersCaseSensitive(groupMembers, ldapUtils));
                 } else {
