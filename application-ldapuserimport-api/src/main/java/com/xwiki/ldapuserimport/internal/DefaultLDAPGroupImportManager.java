@@ -32,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.contrib.ldap.PagedLDAPSearchResults;
 import org.xwiki.contrib.ldap.XWikiLDAPConfig;
 import org.xwiki.contrib.ldap.XWikiLDAPConnection;
 import org.xwiki.contrib.ldap.XWikiLDAPException;
@@ -42,7 +43,6 @@ import org.xwiki.job.JobExecutor;
 
 import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
-import com.novell.ldap.LDAPSearchResults;
 import com.xpn.xwiki.XWikiContext;
 import com.xwiki.ldapuserimport.LDAPGroupImportManager;
 import com.xwiki.ldapuserimport.LDAPUserImportConfiguration;
@@ -90,8 +90,8 @@ public class DefaultLDAPGroupImportManager implements LDAPGroupImportManager
             connection.open(configuration.getLDAPBindDN(), configuration.getLDAPBindPassword(), context);
 
             String[] attributes = groupSearchAttributes.toArray(new String[0]);
-            LDAPSearchResults ldapSearchResults = connection.search(groupSearchDN, groupSearchFilter, attributes,
-                SCOPE_SUB);
+            PagedLDAPSearchResults ldapSearchResults =
+                connection.searchPaginated(groupSearchDN, SCOPE_SUB, groupSearchFilter, attributes, false);
             while (ldapSearchResults.hasMore()) {
                 LDAPEntry entry = ldapSearchResults.next();
 
