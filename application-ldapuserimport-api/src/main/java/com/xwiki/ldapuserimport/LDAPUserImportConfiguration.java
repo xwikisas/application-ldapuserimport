@@ -131,4 +131,11 @@ public interface LDAPUserImportConfiguration
      * @since 1.4
      */
     boolean getTriggerGroupImport();
+
+    /**
+     * @return the user attribute that denotes they are part of a certain group. (i.e. an ldap user might have a
+     * `memberOf` attribute that points to a group they belong to). If this property is not empty,
+     * @since 1.5.8
+     */
+    String getGroupMembershipAttribute();
 }

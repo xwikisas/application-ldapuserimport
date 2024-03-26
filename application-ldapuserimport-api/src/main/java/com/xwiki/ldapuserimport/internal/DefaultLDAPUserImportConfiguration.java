@@ -208,6 +208,19 @@ public class DefaultLDAPUserImportConfiguration implements LDAPUserImportConfigu
         return object != null && object.getIntValue("triggerGroupImport") == 1;
     }
 
+    @Override
+    public String getGroupMembershipAttribute()
+    {
+        BaseObject object = getObject();
+        if (object != null) {
+            String attribute = object.getStringValue("groupMembershipAttribute");
+            if (StringUtils.isNotBlank(attribute)) {
+                return attribute;
+            }
+        }
+        return "";
+    }
+
     private BaseObject getObject()
     {
         XWikiContext context = contextProvider.get();

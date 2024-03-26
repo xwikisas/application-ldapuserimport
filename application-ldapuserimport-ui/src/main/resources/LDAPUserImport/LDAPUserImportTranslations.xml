@@ -82,6 +82,8 @@ LDAPUserImport.LDAPUserImportConfigClass_groupPageNameFormat=Group page name for
 LDAPUserImport.LDAPUserImportConfigClass_groupPageNameFormat.hint=Define the name format of imported group pages. By default, the group name is defined as "${uid}Group".
 LDAPUserImport.LDAPUserImportConfigClass_triggerGroupImport=Trigger group import
 LDAPUserImport.LDAPUserImportConfigClass_triggerGroupImport.hint=If this option is checked, enable the daily automated import of LDAP groups. By default, this import is executed at 3:30 AM.
+LDAPUserImport.LDAPUserImportConfigClass_groupMembershipAttribute=User attribute that denotes group membership
+LDAPUserImport.LDAPUserImportConfigClass_groupMembershipAttribute.hint=Use this parameter when users in the LDAP server have attributes that denote membership to groups (such as `memberOf`). If this parameter is filled, the group update job will also look for users that have the attribute value equal to a group in the LDAP groups mapping.
 
 importUsers.groupUpdate.livetableActionButton=Update
 importUsers.groupUpdate.livetableActionButton.hint=Synchronize the group if it is part of LDAP group mapping.

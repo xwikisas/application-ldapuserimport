@@ -51,9 +51,9 @@ import org.xwiki.contrib.ldap.XWikiLDAPUtils;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.LocalDocumentReference;
+import org.xwiki.rendering.syntax.Syntax;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
-import org.xwiki.rendering.syntax.Syntax;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPEntry;
@@ -347,7 +347,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
      * be populated according to a mapping between the LDAP user attribute and OIDC subject format. The default mapping
      * is (OIDC) subject = (LDAP) uid. Example: if the LDAP uid is sAMAccountName, then the value from this field will
      * be stored in the OIDC subject. TODO: Provide flexibility to accept other field/formatter for the mapping.
-     * 
+     *
      * @param userDoc the new created user profile document
      * @param subject the user UID to be stored in the OIDC subject property
      * @param context the main wiki context, to make sure the users are updated on the main wiki
@@ -486,6 +486,12 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             XWikiLDAPUtils ldapUtils = getXWikiLDAPUtils(configuration, connection);
 
             Set<String> ldapGroupDNs = configuration.getGroupMappings().get(xWikiGroupName);
+            if (StringUtils.isNotBlank(ldapUserImportConfiguration.getGroupMembershipAttribute())) {
+                ldapGroupDNs = ldapGroupDNs
+                    .stream()
+                    .map(ldapGroupDn -> ldapUserImportConfiguration.getGroupMembershipAttribute() + '=' + ldapGroupDn)
+                    .collect(Collectors.toSet());
+            }
             Map<String, String> members = new HashMap<>();
             for (String ldapGroupDN : ldapGroupDNs) {
                 Map<String, String> groupMembers = ldapUtils.getGroupMembers(ldapGroupDN, context);

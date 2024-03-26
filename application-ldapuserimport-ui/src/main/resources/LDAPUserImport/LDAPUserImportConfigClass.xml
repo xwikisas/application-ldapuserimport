@@ -111,6 +111,20 @@
       <validationRegExp/>
       <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
     </forceXWikiUsersGroupMembershipUpdate>
+    <groupMembershipAttribute>
+      <customDisplay/>
+      <disabled>0</disabled>
+      <hint/>
+      <name>groupMembershipAttribute</name>
+      <number>15</number>
+      <picker>0</picker>
+      <prettyName>groupMembershipAttribute</prettyName>
+      <size>30</size>
+      <unmodifiable>0</unmodifiable>
+      <validationMessage/>
+      <validationRegExp/>
+      <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+    </groupMembershipAttribute>
     <groupPageNameFormat>
       <customDisplay/>
       <disabled>0</disabled>
