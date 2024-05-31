@@ -97,7 +97,7 @@ importUsers.groupUpdate.updatingGroup.fail=Group update failed.
 
 importUsers.associateGroups.title=Associate LDAP Group
 importUsers.associateGroups.livetableActionButton=Associate
-importUsers.associateGroups.livetableActionButton.hint=Associate this group with one ore many LDAP groups to synchronize users from them.
+importUsers.associateGroups.livetableActionButton.hint=Associate this group with one or more LDAP groups to synchronize users from them.
 importUsers.associateGroups.modal.alreadyAssociated={0} ({1}) is already assigned.
 importUsers.associateGroups.modal.toAssociate={0} ({1})
 importUsers.associateGroups.modal.associateButton=Associate
