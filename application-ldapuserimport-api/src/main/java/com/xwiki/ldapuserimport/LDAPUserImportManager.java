@@ -21,6 +21,7 @@ package com.xwiki.ldapuserimport;
 
 import java.util.List;
 import java.util.Map;
+
 import org.xwiki.component.annotation.Role;
 
 /**
@@ -116,7 +117,21 @@ public interface LDAPUserImportManager
      * @throws Exception in case of exceptions
      */
     Map<String, Map<String, String>> getLDAPGroups(String searchInput, String xWikiGroupName,
-                                                   boolean isFullSearch) throws Exception;
+        boolean isFullSearch) throws Exception;
+
+    /**
+     * Get all the LDAP Organizational Units from a domain. Each group contains information about the relation with the
+     * current XWiki  group (associated or not).
+     *
+     * @param searchInput the value to search for
+     * @param xWikiGroupName the group name
+     * @param isFullSearch allowing to choose if the search is a "contains" search or a "begin with" search
+     * @param isOUSearch denotes whether the search is done over LDAP groups or organizational units
+     * @return the list of organizational units
+     * @throws Exception in case of exceptions
+     */
+    Map<String, Map<String, String>> getLDAPGroups(String searchInput, String xWikiGroupName,
+        boolean isFullSearch, boolean isOUSearch) throws Exception;
 
     /**
      * Associate a list of LDAP groups to an XWiki group.

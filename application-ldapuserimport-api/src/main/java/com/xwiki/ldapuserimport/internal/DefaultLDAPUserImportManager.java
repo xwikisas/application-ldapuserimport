@@ -84,6 +84,8 @@ import static com.xwiki.ldapuserimport.internal.XWikiLDAPUtilsHelper.getXWikiLDA
 @Singleton
 public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 {
+    private static final String OU = "ou";
+
     private static final String MEMBER = "member";
 
     private static final String XWIKI_PREFERENCES = "XWikiPreferences";
@@ -92,11 +94,14 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 
     private static final String USERNAME = "username";
 
-    private static final Map<String, String> DEFAULT_LDAP_FIELDS_MAPPING = new HashMap<String, String>() {{
+    private static final Map<String, String> DEFAULT_LDAP_FIELDS_MAPPING = new HashMap<String, String>()
+    {
+        {
             put("first_name", "givenName");
             put("last_name", "sn");
             put("email", "mail");
-        }};
+        }
+    };
 
     private static final String USER_PROFILE_KEY = "userProfile";
 
@@ -147,8 +152,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
      */
     @Override
     public Map<String, Map<String, String>> getUsers(String singleField, String allFields,
-                                                     String searchInput, boolean isFullSearch)
-        throws Exception
+        String searchInput, boolean isFullSearch) throws Exception
     {
         XWikiContext context = contextProvider.get();
         String currentWikiId = context.getWikiId();
@@ -546,7 +550,6 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         return membersCaseSensitive;
     }
 
-
     @Override
     public boolean updateGroup(String xWikiGroupName) throws Exception
     {
@@ -613,7 +616,6 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         }
     }
 
-
     protected XWikiDocument getGroupDocument(String groupName, XWikiContext context) throws XWikiException
     {
         BaseClass groupClass = context.getWiki().getGroupClass(context);
@@ -638,11 +640,10 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         } catch (Exception e) {
             logger.error("Failed saving group [{}]", groupName, e);
         }
-
     }
 
     protected void addUserToXWikiGroup(String xwikiUserName, XWikiDocument groupDoc,
-                                       String groupName, XWikiContext context)
+        String groupName, XWikiContext context)
     {
         try {
             logger.debug("Adding user [{}] to xwiki group [{}]", xwikiUserName, groupName);
@@ -669,8 +670,6 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 Map<String, String> map = new HashMap<>();
                 map.put(MEMBER, xwikiUserName);
                 groupClass.fromMap(map, memberObj);
-
-
             }
             logger.debug("Finished adding user [{}] to xwiki group [{}]", xwikiUserName, groupName);
         } catch (Exception e) {
@@ -767,7 +766,14 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 
     @Override
     public Map<String, Map<String, String>> getLDAPGroups(String searchInput, String xWikiGroupName,
-                                                          boolean isFullSearch) throws Exception
+        boolean isFullSearch) throws Exception
+    {
+        return getLDAPGroups(searchInput, xWikiGroupName, isFullSearch, false);
+    }
+
+    @Override
+    public Map<String, Map<String, String>> getLDAPGroups(String searchInput, String xWikiGroupName,
+        boolean isFullSearch, boolean isOUSearch) throws Exception
     {
         XWikiContext context = contextProvider.get();
         String currentWikiId = context.getWikiId();
@@ -781,15 +787,18 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 
         try {
             connection.open(configuration.getLDAPBindDN(), configuration.getLDAPBindPassword(), context);
-            String filter = getGroupsFilter(searchInput, configuration, isFullSearch);
+            String filter = isOUSearch
+                ? XWikiLDAPUtilsHelper.getSearchFilter("organizationalUnit", searchInput, new String[] { OU },
+                isFullSearch) : getGroupsFilter(searchInput, configuration, isFullSearch);
             String base = configuration.getLDAPParam(LDAP_BASE_DN, "");
 
-            String[] attributeNameTable = new String[] {CN, "description"};
+            String[] attributeNameTable = new String[] { isOUSearch ? OU : CN, "description" };
 
             PagedLDAPSearchResults result =
                 connection.searchPaginated(base, LDAPConnection.SCOPE_SUB, filter, attributeNameTable, false);
             if (result.hasMore()) {
-                ldapGroups = getLDAPGroups(configuration, connection, result, context, xWikiGroupName, isFullSearch);
+                ldapGroups =
+                    getLDAPGroups(configuration, connection, result, context, xWikiGroupName, isFullSearch, isOUSearch);
             } else {
                 logger.warn("There are no result for base dn: [{}], search scope: [{}], filter: [{}], fields: [{}].",
                     base, LDAPConnection.SCOPE_SUB, filter, CN);
@@ -809,9 +818,8 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     }
 
     private Map<String, Map<String, String>> getLDAPGroups(XWikiLDAPConfig configuration,
-        XWikiLDAPConnection connection, PagedLDAPSearchResults result, XWikiContext context,
-        String xWikiGroupName, boolean isFullSearch)
-        throws Exception
+        XWikiLDAPConnection connection, PagedLDAPSearchResults result, XWikiContext context, String xWikiGroupName,
+        boolean isFullSearch, boolean isOUSearch) throws Exception
     {
         LDAPEntry resultEntry = null;
 
@@ -825,7 +833,11 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 do {
                     Map<String, String> group =
                         getLDAPGroupDetails(connection, xWikiGroupName, resultEntry, ldapGroupMapping);
-                    groupsMap.put(group.get(CN), group);
+                    if (isOUSearch) {
+                        groupsMap.put(group.get(OU), group);
+                    } else {
+                        groupsMap.put(group.get(CN), group);
+                    }
                     hasMore = result.hasMore();
                     resultEntry = hasMore ? result.next() : null;
                 } while (resultEntry != null && groupsMap.size() < maxDisplayedUsersNb);

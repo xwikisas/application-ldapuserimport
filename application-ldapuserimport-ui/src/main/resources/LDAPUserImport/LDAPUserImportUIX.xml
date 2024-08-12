@@ -723,6 +723,37 @@
   var associateResultsLoading = $('#associateResultsLoading');
   var associateButton = $('#associateButton');
 
+  $('#getFilterUsers input').on('change', function () {
+    $('#associatedFilter').val($(this).val());
+  });
+
+  $("#associationType").on('change', function () {
+    let selectedValue = $(this).val();
+    $(".associationType").each(function () {
+      if ($(this).attr('id') == selectedValue) {
+        $(this).removeClass('hidden');
+        $(this).find('input').prop('disabled', false);
+      } else {
+        $(this).addClass('hidden');
+        $(this).find('input').prop('disabled', true);
+      }
+      // Hide all possible search results done over different association types.
+      $('#ldapGroupSearchBox').addClass('hidden');
+      resultsContainer.addClass('hidden');
+      $('#ldapGroupSearchBox .infomessage').addClass('hidden');
+      $('#ldapGroupSearchBox .ldapError').addClass('hidden');
+      associateButton.addClass('hidden');
+      // Remove searches and selections done over different association types.
+      $('#groupsList').remove();
+      $('#associatedFilter').prop('disabled', true);
+      // Handle filter use case.
+      if (selectedValue == 'getFilterUsers') {
+        associateButton.removeClass('hidden');
+        $('#associatedFilter').prop('disabled', false);
+      }
+    });
+  });
+
   // Set the XWiki group name in the associateLDAPGroups form
   $('#groupstable').on('click', '.actionassociategroups', function() {
     var xWikiGroupName = $(this).closest('tr').find('.name .group').data('reference');
@@ -805,6 +836,7 @@
   // Perform the groups association.
   $('#associateLDAPGroups').submit(function(event) {
     event.preventDefault();
+    $('#ldapGroupSearchBox').removeClass('hidden');
     associateResultsLoading.removeClass('hidden');
     resultsContainer.addClass('hidden');
     var associateLDAPGroupsForm = $(this);
@@ -1375,30 +1407,87 @@ ul#importedUsersList {
             &lt;div class="hidden"&gt;
               &lt;input type="hidden" name="form_token" value="$services.csrf.token"/&gt;
               &lt;input type="hidden" name="outputSyntax" value="plain"/&gt;
-              &lt;input type="hidden" name="action" value="getLDAPGroups"/&gt;
               &lt;input type="hidden" name="xWikiGroupName"/&gt;
             &lt;/div&gt;
             &lt;dl&gt;
               &lt;dt&gt;
-                &lt;label for="searchInput"&gt;
-                  $services.localization.render('importUsers.modal.fieldValue.label')
+                &lt;label for="associationType"&gt;
+                  $services.localization.render('importUsers.modal.fieldValue.associationType.label')
                 &lt;/label&gt;
               &lt;/dt&gt;
               &lt;dd&gt;
-                &lt;input type="text" id="searchInput" name="searchInput" required
-                  placeholder="$escapetool.xml($services.localization.render('importUsers.modal.fieldValue.search'))" /&gt;
-              &lt;/dd&gt;
-              &lt;dt&gt;
-                &lt;label for="searchType"&gt;
-                  $services.localization.render('importUsers.modal.searchType.label')
-                &lt;/label&gt;
-              &lt;/dt&gt;
-              &lt;dd&gt;
-                &lt;input type="checkbox" id="searchType" name="searchType" value="1" /&gt;
+                &lt;select id="associationType" name="action"&gt;
+                  &lt;option value="getLDAPGroups" selected&gt;$escapetool.xml($services.localization.render('importUsers.modal.group.search.type.group'))&lt;/option&gt;
+                  &lt;option value="getLDAPOus"&gt;$escapetool.xml($services.localization.render('importUsers.modal.group.search.type.ou'))&lt;/option&gt;
+                  &lt;option value="getFilterUsers"&gt;$escapetool.xml($services.localization.render('importUsers.modal.group.search.type.filter'))&lt;/option&gt;
+                &lt;/select&gt;
               &lt;/dd&gt;
             &lt;/dl&gt;
-            &lt;input type="submit" id="triggerGroupsSearch" class="btn btn-primary"
-              value="$services.localization.render('importUsers.modal.fieldValue.search')"/&gt;
+            &lt;div class="associationTypes"&gt;
+              &lt;div class="associationType" id="getLDAPGroups"&gt;
+                &lt;dl&gt;
+                  &lt;dt&gt;
+                    &lt;label for="searchInput"&gt;
+                      $escapetool.xml($services.localization.render('importUsers.modal.group.fieldValue.label'))
+                    &lt;/label&gt;
+                  &lt;/dt&gt;
+                  &lt;dd&gt;
+                    &lt;input type="text" id="searchInput" name="searchInput" required
+                      placeholder="$escapetool.xml($services.localization.render('importUsers.modal.group.fieldValue.placeholder'))" /&gt;
+                  &lt;/dd&gt;
+                &lt;/dl&gt;
+                &lt;dl&gt;
+                  &lt;dt&gt;
+                    &lt;label for="searchType"&gt;
+                      $escapetool.xml($services.localization.render('importUsers.modal.searchType.label'))
+                    &lt;/label&gt;
+                  &lt;/dt&gt;
+                  &lt;dd&gt;
+                    &lt;input type="checkbox" id="searchType" name="searchType" value="1" /&gt;
+                  &lt;/dd&gt;
+                &lt;/dl&gt;
+                &lt;input type="submit" id="triggerGroupsSearch" class="btn btn-primary"
+                  value="$escapetool.xml($services.localization.render('importUsers.modal.group.fieldValue.search'))"/&gt;
+              &lt;/div&gt;
+              &lt;div class="associationType hidden" id="getLDAPOus"&gt;
+                &lt;dl&gt;
+                  &lt;dt&gt;
+                    &lt;label for="searchInput"&gt;
+                      $escapetool.xml($services.localization.render('importUsers.modal.ou.fieldValue.label'))
+                    &lt;/label&gt;
+                  &lt;/dt&gt;
+                  &lt;dd&gt;
+                    &lt;input disabled type="text" id="searchInput" name="searchInput" required
+                      placeholder="$escapetool.xml($services.localization.render('importUsers.modal.ou.fieldValue.placeholder'))" /&gt;
+                  &lt;/dd&gt;
+                &lt;/dl&gt;
+                &lt;dl&gt;
+                  &lt;dt&gt;
+                    &lt;label for="searchType"&gt;
+                      $escapetool.xml($services.localization.render('importUsers.modal.searchType.label'))
+                    &lt;/label&gt;
+                  &lt;/dt&gt;
+                  &lt;dd&gt;
+                    &lt;input disabled type="checkbox" id="searchType" name="searchType" value="1" /&gt;
+                  &lt;/dd&gt;
+                &lt;/dl&gt;
+                &lt;input disabled type="submit" id="triggerGroupsSearch" class="btn btn-primary"
+                  value="$escapetool.xml($services.localization.render('importUsers.modal.ou.fieldValue.search'))"/&gt;
+              &lt;/div&gt;
+              &lt;div class="associationType hidden" id="getFilterUsers"&gt;
+                &lt;dl&gt;
+                  &lt;dt&gt;
+                    &lt;label for="searchInput"&gt;
+                      $escapetool.xml($services.localization.render('importUsers.modal.filter.fieldValue.label'))
+                    &lt;/label&gt;
+                  &lt;/dt&gt;
+                  &lt;dd&gt;
+                    &lt;input disabled type="text" id="searchInput" name="searchInput" required
+                      placeholder="$escapetool.xml($services.localization.render('importUsers.modal.filter.fieldValue.placeholder'))" /&gt;
+                  &lt;/dd&gt;
+                &lt;/dl&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
           &lt;/form&gt;
           &lt;form class="xform" id="associateLDAPGroups" action="$formAction"&gt;
             &lt;div class="hidden"&gt;
@@ -1406,6 +1495,7 @@ ul#importedUsersList {
               &lt;input type="hidden" name="outputSyntax" value="plain"/&gt;
               &lt;input type="hidden" name="action" value="associateGroups"/&gt;
               &lt;input type="hidden" name="xWikiGroupName"/&gt;
+              &lt;input type="hidden" disabled id="associatedFilter" name="group"&gt;
             &lt;/div&gt;
             &lt;div class="box hidden" id="ldapGroupSearchBox"&gt;
               &lt;div class="box infomessage hidden"&gt;

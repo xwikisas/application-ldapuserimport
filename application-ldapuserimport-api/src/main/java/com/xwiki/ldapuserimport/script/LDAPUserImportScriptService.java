@@ -183,6 +183,23 @@ public class LDAPUserImportScriptService implements ScriptService
     }
 
     /**
+     * Get all the LDAP groups from a domain. Each group contains information about the relation with the current XWiki
+     * group (associated or not).
+     *
+     * @param searchInput the value to search for
+     * @param xWikiGroupName the group name
+     * @param isFullSearch allowing to choose if the search is a "contains" search or a "begin with" search
+     * @param isOUSearch denotes whether the search should be done over LDAP groups or organizational units.
+     * @return the list of groups
+     * @throws Exception in case of exceptions
+     */
+    public Map<String, Map<String, String>> getLDAPGroups(String searchInput,
+        String xWikiGroupName, boolean isFullSearch, boolean isOUSearch) throws Exception
+    {
+        return userImportManager.getLDAPGroups(searchInput, xWikiGroupName, isFullSearch, isOUSearch);
+    }
+
+    /**
      * Associate a list of LDAP groups to an XWiki group.
      *
      * @param ldapGroupsList the list of LDAP Groups to be assigned
