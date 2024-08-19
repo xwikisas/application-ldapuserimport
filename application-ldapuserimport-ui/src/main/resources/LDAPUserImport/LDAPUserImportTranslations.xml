@@ -94,6 +94,10 @@ LDAPUserImport.LDAPUserImportConfigClass_triggerGroupImport=Trigger group import
 LDAPUserImport.LDAPUserImportConfigClass_triggerGroupImport.hint=If this option is checked, enable the daily automated import of LDAP groups. By default, this import is executed at 3:30 AM.
 LDAPUserImport.LDAPUserImportConfigClass_groupMembershipAttribute=User attribute that denotes group membership
 LDAPUserImport.LDAPUserImportConfigClass_groupMembershipAttribute.hint=Use this parameter when users in the LDAP server have attributes that denote membership to groups (such as `memberOf`). If this parameter is filled, the group update job will also look for users that have the attribute value equal to a group in the LDAP groups mapping.
+LDAPUserImport.LDAPUserImportConfigClass_resultsNumber=Results Number
+LDAPUserImport.LDAPUserImportConfigClass_resultsNumber.hint=The maximum number of entries displayed when searching for a LDAP users to import or LDAP groups to associate.
+LDAPUserImport.LDAPUserImportConfigClass_OIDCIssuer=OIDC Issuer
+LDAPUserImport.LDAPUserImportConfigClass_OIDCIssuer.hint=The URI of the OIDC Issuer. All the users imported using LDAP User Import will be associated to this issuer.
 
 importUsers.groupUpdate.livetableActionButton=Update
 importUsers.groupUpdate.livetableActionButton.hint=Synchronize the group if it is part of LDAP group mapping.
