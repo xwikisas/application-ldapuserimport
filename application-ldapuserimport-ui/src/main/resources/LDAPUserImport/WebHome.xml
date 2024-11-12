@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="LDAPUserImport.WebHome" locale="">
+<xwikidoc version="1.5" reference="LDAPUserImport.WebHome" locale="">
   <web>LDAPUserImport</web>
   <name>WebHome</name>
   <language/>
@@ -110,6 +110,20 @@
         <validationRegExp/>
         <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
       </forceXWikiUsersGroupMembershipUpdate>
+      <groupMembershipAttribute>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <hint/>
+        <name>groupMembershipAttribute</name>
+        <number>15</number>
+        <picker>0</picker>
+        <prettyName>groupMembershipAttribute</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </groupMembershipAttribute>
       <groupPageNameFormat>
         <customDisplay/>
         <disabled>0</disabled>
@@ -277,6 +291,9 @@
     </property>
     <property>
       <forceXWikiUsersGroupMembershipUpdate/>
+    </property>
+    <property>
+      <groupMembershipAttribute/>
     </property>
     <property>
       <groupPageNameFormat/>
@@ -544,9 +561,6 @@
       <configurationClass>LDAPUserImport.LDAPUserImportConfigClass</configurationClass>
     </property>
     <property>
-      <configureGlobally>1</configureGlobally>
-    </property>
-    <property>
       <displayBeforeCategory/>
     </property>
     <property>
@@ -614,6 +628,7 @@
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>

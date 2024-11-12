@@ -268,7 +268,13 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         DocumentReference userReference, XWikiContext context)
     {
         Map<String, String> user = new HashMap<>();
-        boolean userExists = context.getWiki().exists(userReference, context);
+        boolean userExists = false;
+        try {
+            userExists = context.getWiki().exists(userReference, context);
+        } catch (XWikiException e) {
+            logger.warn("An exception was thrown while checking if [{}] exists.", userReference);
+            return Collections.emptyMap();
+        }
         if (userExists) {
             user.put(USER_PROFILE_URL_KEY, context.getWiki().getURL(userReference, context));
         }
@@ -741,7 +747,13 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 
             DocumentReference userReference =
                 new DocumentReference(XWiki.DEFAULT_MAIN_WIKI, XWiki.SYSTEM_SPACE, userPageName);
-            boolean userExists = context.getWiki().exists(userReference, context);
+            boolean userExists = false;
+            try {
+                userExists = context.getWiki().exists(userReference, context);
+            } catch (XWikiException e) {
+                logger.warn("Failed to check whether [{}] exists or not.", userReference);
+                continue;
+            }
             groupMembersMap.put(userReference.toString(), entry.getKey());
             if (!userExists) {
                 usersToImportList.add(uidAttribute);
