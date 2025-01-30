@@ -528,8 +528,9 @@
 
   var addAssociateGroupsButtons = function() {
     if (groupsTable.length &gt; 0) {
+      let actionTabs = groupsTable.hasClass('liveData') ? '.actions-container' : 'td.actions';
       var associateGroupsButton = $('.actionassociategroups');
-      $.each($('#groupstable-display tr td.actions'), function(index, value) {
+      groupsTable.find(actionTabs).each(function(index, value) {
         if ($(this).find('.actionassociategroups').length === 0) {
           var associateGroupsButtonClone = associateGroupsButton.clone();
           associateGroupsButtonClone.removeClass('hidden');
@@ -565,6 +566,7 @@
   };
   addAssociateGroupsButtons();
   $(document).on('xwiki:livetable:displayComplete', addAssociateGroupsButtons);
+  $(document).on('xwiki:livedata:entriesUpdated', addAssociateGroupsButtons)
   addUpdateGroupButtons();
   $(document).on('xwiki:livetable:displayComplete', addUpdateGroupButtons);
 
