@@ -555,8 +555,12 @@
           var ldapUpdateGroupButtonClone = ldapUpdateGroupButton.clone();
           ldapUpdateGroupButtonClone.removeClass('hidden');
           ldapUpdateGroupButtonClone.attr({'data-xWikiGroupName': groupName})
-          var groupNameCell = groupsTable.find(".group[data-reference$='" + groupName + "']").parent();
-          var groupActionsCell = groupNameCell.siblings('td.actions');
+          var groupNameRow = groupsTable.find("tr:has(div[data-reference$='" + groupName + "'])");
+          // Additional filter for older versions.
+          groupNameRow = groupsTable.hasClass('liveData') ? groupNameRow
+            : groupNameRow.filter((i, e) => e.attributes['data-index']);
+          var groupActionsCell = groupsTable.hasClass('liveData') ? groupNameRow.find('.actions-container')
+            : groupNameRow.find('td.actions');
           if (groupActionsCell.find('.actionupdategroup').length === 0) {
             groupActionsCell.append(ldapUpdateGroupButtonClone);
           }
@@ -569,6 +573,7 @@
   $(document).on('xwiki:livedata:entriesUpdated', addAssociateGroupsButtons)
   addUpdateGroupButtons();
   $(document).on('xwiki:livetable:displayComplete', addUpdateGroupButtons);
+  $(document).on('xwiki:livedata:entriesUpdated', addUpdateGroupButtons)
 
   // Trigger the import/group update.
   groupsTable.on('click', '.actionupdategroup', function(event) {
