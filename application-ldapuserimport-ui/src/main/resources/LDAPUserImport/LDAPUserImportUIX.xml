@@ -767,7 +767,7 @@
 
   // Set the XWiki group name in the associateLDAPGroups form
   $('#groupstable').on('click', '.actionassociategroups', function() {
-    var xWikiGroupName = $(this).closest('tr').find('.name .group').data('reference');
+    var xWikiGroupName = $(this).closest('tr').find('.group').data('reference');
     var localXWikiGroupName = xWikiGroupName.split(':')[1];
     $('#searchLDAPGroups').find('input[name=xWikiGroupName]').val(localXWikiGroupName);
     $('#associateLDAPGroups').find('input[name=xWikiGroupName]').val(localXWikiGroupName);
