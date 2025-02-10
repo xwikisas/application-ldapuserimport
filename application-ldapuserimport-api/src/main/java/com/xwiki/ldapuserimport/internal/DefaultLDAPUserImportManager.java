@@ -48,8 +48,10 @@ import org.xwiki.contrib.ldap.XWikiLDAPConnection;
 import org.xwiki.contrib.ldap.XWikiLDAPException;
 import org.xwiki.contrib.ldap.XWikiLDAPSearchAttribute;
 import org.xwiki.contrib.ldap.XWikiLDAPUtils;
+import org.xwiki.model.ModelContext;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.rendering.syntax.Syntax;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
@@ -146,6 +148,13 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
 
     @Inject
     private LDAPUserImportConfiguration ldapUserImportConfiguration;
+
+    @Inject
+    @Named("compact")
+    private EntityReferenceSerializer<String> serializer;
+
+    @Inject
+    private ModelContext modelContext;
 
     /**
      * Get all the users that have the searched value contained in any of the provided fields value.
@@ -278,7 +287,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         if (userExists) {
             user.put(USER_PROFILE_URL_KEY, context.getWiki().getURL(userReference, context));
         }
-        user.put(USER_PROFILE_KEY, userReference.toString());
+        user.put(USER_PROFILE_KEY, serializer.serialize(userReference, modelContext.getCurrentEntityReference()));
         user.put(USERNAME, userReference.getName());
         user.put("exists", Boolean.toString(userExists));
 
@@ -754,13 +763,15 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 logger.warn("Failed to check whether [{}] exists or not.", userReference);
                 continue;
             }
-            groupMembersMap.put(userReference.toString(), entry.getKey());
+            groupMembersMap.put(serializer.serialize(userReference, modelContext.getCurrentEntityReference()),
+                entry.getKey());
             if (!userExists) {
                 usersToImportList.add(uidAttribute);
             } else {
                 Map<String, String> user = new HashMap<>();
                 user.put(USERNAME, userPageName);
-                user.put(USER_PROFILE_KEY, userReference.toString());
+                user.put(USER_PROFILE_KEY,
+                    serializer.serialize(userReference, modelContext.getCurrentEntityReference()));
                 usersToSynchronizeMap.put(uidAttribute, user);
             }
         }
