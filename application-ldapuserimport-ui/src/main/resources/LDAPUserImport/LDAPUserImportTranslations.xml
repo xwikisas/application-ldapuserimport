@@ -87,7 +87,7 @@ LDAPUserImport.LDAPUserImportConfigClass_forceXWikiUsersGroupMembershipUpdate.hi
 LDAPUserImport.LDAPUserImportConfigClass_ldapGroupImportSearchDN=LDAP Group import search DN
 LDAPUserImport.LDAPUserImportConfigClass_ldapGroupImportSearchDN.hint=The default DN under which LDAP groups should be searched during imports
 LDAPUserImport.LDAPUserImportConfigClass_ldapGroupImportSearchFilter=LDAP Group import search filter
-LDAPUserImport.LDAPUserImportConfigClass_ldapGroupImportSearchFilter.hint=The filter that should be used to search for groups to import
+LDAPUserImport.LDAPUserImportConfigClass_ldapGroupImportSearchFilter.hint=The filter that should be used to search for groups to import. It should follow RFC 2554. i.e. (|(objectClass=groupOfNames)(objectClass=customGroupName))
 LDAPUserImport.LDAPUserImportConfigClass_ldapGroupImportSearchAttributes=LDAP Group import search attributes
 LDAPUserImport.LDAPUserImportConfigClass_ldapGroupImportSearchAttributes.hint=A hint of attributes to be fetched from LDAP groups. These attributes can be used to compute the group page name.
 LDAPUserImport.LDAPUserImportConfigClass_groupPageNameFormat=Group page name format
