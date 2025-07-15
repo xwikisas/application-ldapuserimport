@@ -505,11 +505,15 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             XWikiLDAPUtils ldapUtils = getXWikiLDAPUtils(configuration, connection);
 
             Set<String> ldapGroupDNs = configuration.getGroupMappings().get(xWikiGroupName);
-            if (StringUtils.isNotBlank(ldapUserImportConfiguration.getGroupMembershipAttribute())) {
-                ldapGroupDNs = ldapGroupDNs
+            String groupMembershipAttribute = ldapUserImportConfiguration.getGroupMembershipAttribute();
+            if (StringUtils.isNotBlank(groupMembershipAttribute)) {
+                String filterPrefix = groupMembershipAttribute + '=';
+                Set<String> filters = ldapGroupDNs
                     .stream()
-                    .map(ldapGroupDn -> ldapUserImportConfiguration.getGroupMembershipAttribute() + '=' + ldapGroupDn)
+                    .filter(ldapGroupDn -> !ldapGroupDn.startsWith(filterPrefix))
+                    .map(ldapGroupDn -> filterPrefix + ldapGroupDn)
                     .collect(Collectors.toSet());
+                ldapGroupDNs.addAll(filters);
             }
             Map<String, String> members = new HashMap<>();
             for (String ldapGroupDN : ldapGroupDNs) {
