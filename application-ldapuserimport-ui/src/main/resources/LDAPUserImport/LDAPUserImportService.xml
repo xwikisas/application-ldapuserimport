@@ -88,10 +88,14 @@
           #set ($idKey = 'cn')
         #end
         #foreach ($group in $groups.entrySet())
+          #set ($description = $group.value.description)
+          #if ("$!description" == '')
+            #set ($description = $group.value.dn)
+          #end
           #if ($group.value.isAssociated == true)
-            #set ($message = $services.localization.render('importUsers.associateGroups.modal.alreadyAssociated', [$group.value.description, $group.value.get($idKey)]))
+            #set ($message = $services.localization.render('importUsers.associateGroups.modal.alreadyAssociated', ["$!description", "$!group.value.get($idKey)"]))
           #else
-            #set ($message = $services.localization.render('importUsers.associateGroups.modal.toAssociate', [$group.value.description, $group.value.get($idKey)]))
+            #set ($message = $services.localization.render('importUsers.associateGroups.modal.toAssociate', ["$!description", "$!group.value.get($idKey)"]))
           #end
           #set ($group.value.displayMessage = $message)
         #end
