@@ -28,7 +28,6 @@ import java.util.Set;
 
 import org.xwiki.contrib.ldap.XWikiLDAPConfig;
 import org.xwiki.contrib.ldap.XWikiLDAPConnection;
-import org.xwiki.contrib.ldap.XWikiLDAPUtils;
 
 /**
  * Internal utility class to provide help methods to deal with LDAP queries.
@@ -91,10 +90,10 @@ public final class XWikiLDAPUtilsHelper
      * @return the filter
      */
     public static String getUsersFilter(String searchInput, String searchFields,
-                                        XWikiLDAPConfig configuration, boolean isFullSearch)
+        XWikiLDAPConfig configuration, boolean isFullSearch)
     {
         return getUsersFilter(searchInput, searchFields.split(XWikiLDAPConfig.DEFAULT_SEPARATOR),
-                              configuration, isFullSearch);
+            configuration, isFullSearch);
     }
 
     /**
@@ -126,7 +125,7 @@ public final class XWikiLDAPUtilsHelper
      * @return the filter
      **/
     public static String getSearchFilter(String objectClassesString, String searchInput, String[] searchFields,
-                                         boolean isFullSearch)
+        boolean isFullSearch)
     {
         String filterFormat = "(%s=%s*)";
         if (isFullSearch) {
@@ -159,7 +158,7 @@ public final class XWikiLDAPUtilsHelper
      * @return the filter
      */
     public static String getUsersFilter(String searchInput, String[] searchFields,
-                                        XWikiLDAPConfig configuration, boolean isFullSearch)
+        XWikiLDAPConfig configuration, boolean isFullSearch)
     {
         String objectClassesString = configuration.getLDAPParam(LDAP_USER_CLASSES_KEY, LDAP_USER_CLASSES);
         return getSearchFilter(objectClassesString, searchInput, searchFields, isFullSearch);
@@ -178,7 +177,7 @@ public final class XWikiLDAPUtilsHelper
         String objectClassesString = configuration.getLDAPParam(LDAP_GROUP_CLASSES_KEY, LDAP_GROUP_CLASSES);
         String searchFields = configuration.getLDAPParam(LDAP_GROUP_SEARCH_FIELDS_KEY, LDAP_GROUP_SEARCH_FIELDS);
         return getSearchFilter(objectClassesString, searchInput,
-                               searchFields.split(XWikiLDAPConfig.DEFAULT_SEPARATOR), isFullSearch);
+            searchFields.split(XWikiLDAPConfig.DEFAULT_SEPARATOR), isFullSearch);
     }
 
     /**
@@ -242,21 +241,5 @@ public final class XWikiLDAPUtilsHelper
         }
 
         return attributes.toArray(new String[attributes.size()]);
-    }
-
-    /**
-     * Create a XWikiLDAPUtils instance and set needed attributes.
-     *
-     * @param configuration the XWiki LDAP configuration to be used
-     * @param connection the XWiki LDAP connection
-     * @return the {@link XWikiLDAPUtils} instance
-     */
-    public static XWikiLDAPUtils getXWikiLDAPUtils(XWikiLDAPConfig configuration, XWikiLDAPConnection connection)
-    {
-        XWikiLDAPUtils ldapUtils = new XWikiLDAPUtils(connection, configuration);
-        ldapUtils.setUidAttributeName(configuration.getLDAPParam(XWikiLDAPConfig.PREF_LDAP_UID, CN));
-        ldapUtils.setBaseDN(configuration.getLDAPParam(LDAP_BASE_DN, ""));
-
-        return ldapUtils;
     }
 }

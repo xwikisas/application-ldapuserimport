@@ -77,7 +77,6 @@ import static com.xwiki.ldapuserimport.internal.XWikiLDAPUtilsHelper.getGroupsFi
 import static com.xwiki.ldapuserimport.internal.XWikiLDAPUtilsHelper.getUserAttributes;
 import static com.xwiki.ldapuserimport.internal.XWikiLDAPUtilsHelper.getUserFieldsMap;
 import static com.xwiki.ldapuserimport.internal.XWikiLDAPUtilsHelper.getUsersFilter;
-import static com.xwiki.ldapuserimport.internal.XWikiLDAPUtilsHelper.getXWikiLDAPUtils;
 
 /**
  * @version $Id$
@@ -157,6 +156,9 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     @Inject
     private ModelContext modelContext;
 
+    @Inject
+    private XWikiLDAPFactory xWikiLDAPFactory;
+
     /**
      * Get all the users that have the searched value contained in any of the provided fields value.
      */
@@ -170,7 +172,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         context.setWikiId(context.getMainXWiki());
 
         XWikiLDAPConfig configuration = xwikiLDAPConfigProvider.get();
-        XWikiLDAPConnection connection = new XWikiLDAPConnection(configuration);
+        XWikiLDAPConnection connection = xWikiLDAPFactory.getLDAPConnection(configuration);
         String loginDN = configuration.getLDAPBindDN();
         String password = configuration.getLDAPBindPassword();
 
@@ -213,7 +215,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
     private Map<String, Map<String, String>> getUsers(XWikiLDAPConfig configuration, XWikiLDAPConnection connection,
         PagedLDAPSearchResults result, XWikiContext context) throws Exception
     {
-        XWikiLDAPUtils ldapUtils = getXWikiLDAPUtils(configuration, connection);
+        XWikiLDAPUtils ldapUtils = xWikiLDAPFactory.getLDAPUtils(connection, configuration);
         LDAPEntry resultEntry = null;
 
         try {
@@ -323,8 +325,8 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             context.setWikiId(context.getMainXWiki());
 
             XWikiLDAPConfig configuration = xwikiLDAPConfigProvider.get();
-            XWikiLDAPConnection connection = new XWikiLDAPConnection(configuration);
-            XWikiLDAPUtils ldapUtils = getXWikiLDAPUtils(configuration, connection);
+            XWikiLDAPConnection connection = xWikiLDAPFactory.getLDAPConnection(configuration);
+            XWikiLDAPUtils ldapUtils = xWikiLDAPFactory.getLDAPUtils(connection, configuration);
 
             try {
                 connection.open(configuration.getLDAPBindDN(), configuration.getLDAPBindPassword(), context);
@@ -500,10 +502,10 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         context.setWikiId(context.getMainXWiki());
 
         XWikiLDAPConfig configuration = xwikiLDAPConfigProvider.get();
-        XWikiLDAPConnection connection = new XWikiLDAPConnection(configuration);
+        XWikiLDAPConnection connection = xWikiLDAPFactory.getLDAPConnection(configuration);
         try {
             connection.open(configuration.getLDAPBindDN(), configuration.getLDAPBindPassword(), context);
-            XWikiLDAPUtils ldapUtils = getXWikiLDAPUtils(configuration, connection);
+            XWikiLDAPUtils ldapUtils = xWikiLDAPFactory.getLDAPUtils(connection, configuration);
 
             Set<String> ldapGroupDNs = configuration.getGroupMappings().get(xWikiGroupName);
             String groupMembershipAttribute = ldapUserImportConfiguration.getGroupMembershipAttribute();
@@ -579,8 +581,8 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         context.setWikiId(context.getMainXWiki());
 
         XWikiLDAPConfig configuration = xwikiLDAPConfigProvider.get();
-        XWikiLDAPConnection connection = new XWikiLDAPConnection(configuration);
-        XWikiLDAPUtils ldapUtils = getXWikiLDAPUtils(configuration, connection);
+        XWikiLDAPConnection connection = xWikiLDAPFactory.getLDAPConnection(configuration);
+        XWikiLDAPUtils ldapUtils = xWikiLDAPFactory.getLDAPUtils(connection, configuration);
 
         List<String> newUsersList = new ArrayList<>();
         Map<String, Map<String, String>> existingUsersMap = new HashMap<>();
@@ -703,10 +705,12 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 // Clean the users that are already in the group.
                 updateGroupMembersMap(groupMembersMap, groupDoc, groupClass, usersNotInLDAPGroups);
                 nbUsers = addUsersToGroup(xWikiGroupName, groupMembersMap, context, groupDoc, nbUsers, maxNbUsers);
-                nbUsers =
-                    removeUsersFromGroup(xWikiGroupName, context, usersNotInLDAPGroups, groupDoc, groupClass, nbUsers,
-                        maxNbUsers);
-
+                if (ldapUserImportConfiguration.getForceUserGroupMembershipUpdate()) {
+                    nbUsers =
+                        removeUsersFromGroup(xWikiGroupName, context, usersNotInLDAPGroups, groupDoc, groupClass,
+                            nbUsers,
+                            maxNbUsers);
+                }
                 if (nbUsers > 0) {
                     saveGroupDocument(groupDoc, xWikiGroupName, context);
                 }
@@ -742,7 +746,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         // Remove the users that are part of the xwiki group but not of the ldap group. They were probably
         // removed from the ldap group.
         int groupUpdates = nbUsers;
-        LDAPProfileXClass ldapXClass = new LDAPProfileXClass(context);
+        LDAPProfileXClass ldapXClass = xWikiLDAPFactory.getLDAPProfileXClass(context);
         for (String userNotInLDAPGroups : usersNotInLDAPGroups) {
             XWikiDocument userProfile = context.getWiki()
                 .getDocument(documentReferenceResolver.resolve(userNotInLDAPGroups), context);
@@ -850,7 +854,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         context.setWikiId(context.getMainXWiki());
 
         XWikiLDAPConfig configuration = xwikiLDAPConfigProvider.get();
-        XWikiLDAPConnection connection = new XWikiLDAPConnection(configuration);
+        XWikiLDAPConnection connection = xWikiLDAPFactory.getLDAPConnection(configuration);
 
         Map<String, Map<String, String>> ldapGroups = new HashMap<>();
 
