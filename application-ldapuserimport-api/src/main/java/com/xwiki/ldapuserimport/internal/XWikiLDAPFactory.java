@@ -20,6 +20,8 @@ package com.xwiki.ldapuserimport.internal;
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
+import javax.inject.Singleton;
+
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.ldap.LDAPProfileXClass;
 import org.xwiki.contrib.ldap.XWikiLDAPConfig;
@@ -38,6 +40,7 @@ import static com.xwiki.ldapuserimport.internal.XWikiLDAPUtilsHelper.LDAP_BASE_D
  * @version $Id$
  * @since 1.7.7
  */
+@Singleton
 @Component(roles = XWikiLDAPFactory.class)
 public class XWikiLDAPFactory
 {
@@ -63,6 +66,11 @@ public class XWikiLDAPFactory
         return new XWikiLDAPUtils(connection, config);
     }
 
+    /**
+     * @param context the current XWiki context.
+     * @return an instance of the {@link LDAPProfileXClass} that helps with operations on the xwiki ldap object.
+     * @throws XWikiException if there was an issue when constructing the object.
+     */
     public LDAPProfileXClass getLDAPProfileXClass(XWikiContext context) throws XWikiException
     {
         return new LDAPProfileXClass(context);

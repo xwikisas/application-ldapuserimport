@@ -46,7 +46,7 @@
       <artifactId>xwiki-commons-script</artifactId>
       <version>${commons.version}</version>
     </dependency>
-        <dependency>
+    <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-configuration-default</artifactId>
       <version>${platform.version}</version>
@@ -69,7 +69,7 @@
     <dependency>
       <groupId>org.xwiki.contrib.ldap</groupId>
       <artifactId>ldap-authenticator</artifactId>
-      <version>${ldap.version}</version>F
+      <version>${ldap.version}</version>
     </dependency>
     <!--  Testing dependencies.  -->
     <dependency>

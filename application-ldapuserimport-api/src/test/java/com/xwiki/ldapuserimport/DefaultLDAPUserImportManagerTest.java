@@ -1,3 +1,22 @@
+/*
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ */
 package com.xwiki.ldapuserimport;
 
 import java.util.ArrayList;
@@ -18,7 +37,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.slf4j.Logger;
-import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.contrib.ldap.LDAPProfileXClass;
 import org.xwiki.contrib.ldap.PagedLDAPSearchResults;
 import org.xwiki.contrib.ldap.XWikiLDAPConfig;
@@ -79,10 +97,6 @@ public class DefaultLDAPUserImportManagerTest
     private DefaultLDAPUserImportManager defaultLDAPUserImportManager;
 
     @MockComponent
-    @Named("context")
-    private Provider<ComponentManager> componentManagerProvider;
-
-    @MockComponent
     private ContextualAuthorizationManager contextualAuthorizationManager;
 
     @MockComponent
@@ -129,19 +143,10 @@ public class DefaultLDAPUserImportManagerTest
     private PagedLDAPSearchResults searchResults;
 
     @Mock
-    private XWikiDocument userDocument;
-
-    @Mock
     private XWikiDocument groupDocument;
 
     @Mock
-    private BaseObject userObject;
-
-    @Mock
     private BaseObject groupObject;
-
-    @Mock
-    private BaseObject clonedLdapObject;
 
     @Mock
     private BaseClass groupClass;
@@ -150,9 +155,6 @@ public class DefaultLDAPUserImportManagerTest
     private LDAPProfileXClass ldapProfileXClass;
 
     private TestComponentManager testComponentManager;
-
-//    @Mock
-//    private User apiUser;
 
     @BeforeEach
     public void setup(TestComponentManager componentManager) throws Exception
