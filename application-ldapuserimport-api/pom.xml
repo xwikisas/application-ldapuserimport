@@ -46,7 +46,7 @@
       <artifactId>xwiki-commons-script</artifactId>
       <version>${commons.version}</version>
     </dependency>
-        <dependency>
+    <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-configuration-default</artifactId>
       <version>${platform.version}</version>
@@ -70,6 +70,17 @@
       <groupId>org.xwiki.contrib.ldap</groupId>
       <artifactId>ldap-authenticator</artifactId>
       <version>${ldap.version}</version>
+    </dependency>
+    <!--  Testing dependencies.  -->
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-tool-test-component</artifactId>
+      <version>${commons.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
     </dependency>
   </dependencies>
 </project>
