@@ -63,7 +63,7 @@ public class XWikiLDAPFactory
         XWikiLDAPUtils utils = new XWikiLDAPUtils(connection, config);
         utils.setUidAttributeName(config.getLDAPParam(XWikiLDAPConfig.PREF_LDAP_UID, CN));
         utils.setBaseDN(config.getLDAPParam(LDAP_BASE_DN, ""));
-        return new XWikiLDAPUtils(connection, config);
+        return utils;
     }
 
     /**
