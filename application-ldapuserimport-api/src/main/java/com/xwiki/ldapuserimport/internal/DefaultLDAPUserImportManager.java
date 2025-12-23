@@ -196,14 +196,14 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             if (result.hasMore()) {
                 return getUsers(configuration, connection, result, context);
             } else {
-                logger.warn("There are no result for base dn: [{}], search scope: [{}], filter: [{}], fields: [{}]",
+                logger.debug("There are no result for base dn: [{}], search scope: [{}], filter: [{}], fields: [{}]",
                     base, LDAPConnection.SCOPE_SUB, filter, attributeNameTable);
             }
         } catch (XWikiLDAPException e) {
             logger.error(e.getFullMessage());
             throw e;
         } catch (Exception e) {
-            logger.warn("Failed to search for value [{}] in the fields [{}]", searchInput, allFields, e);
+            logger.error("Failed to search for value [{}] in the fields [{}]", searchInput, allFields, e);
             throw e;
         } finally {
             connection.close();
@@ -248,13 +248,13 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                  * For some weird reason result.hasMore() can be true before the first call to next() even if nothing is
                  * found.
                  */
-                logger.warn("The LDAP request returned no result (hasMore() is true but first next() call "
+                logger.debug("The LDAP request returned no result (hasMore() is true but first next() call "
                     + "returned nothing)");
             }
         } catch (Exception e) {
-            logger.warn(FAILED_TO_GET_RESULTS, e);
+            logger.error(FAILED_TO_GET_RESULTS, e);
             if (e instanceof LDAPReferralException) {
-                logger.warn(((LDAPReferralException) e).getFailedReferral());
+                logger.error(((LDAPReferralException) e).getFailedReferral());
             }
             throw e;
         }
@@ -284,7 +284,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
         try {
             userExists = context.getWiki().exists(userReference, context);
         } catch (XWikiException e) {
-            logger.warn("An exception was thrown while checking if [{}] exists.", userReference);
+            logger.error("An exception was thrown while checking if [{}] exists.", userReference);
             return Collections.emptyMap();
         }
         if (userExists) {
@@ -389,7 +389,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                     context.getWiki().saveDocument(userDoc, "OIDC user object added.", context);
                 }
             } catch (XWikiException e) {
-                logger.warn("Failed to attach OIDC object of [{}] type to the [{}] user profile.", OIDC_CLASS, userDoc,
+                logger.error("Failed to attach OIDC object of [{}] type to the [{}] user profile.", OIDC_CLASS, userDoc,
                     e);
                 throw e;
             }
@@ -549,7 +549,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
      */
     private Map<String, String> getGroupMembersCaseSensitive(Map<String, String> groupMembers, XWikiLDAPUtils ldapUtils)
     {
-        logger.info("Collect case-sensitive information for this group.");
+        logger.debug("Collect case-sensitive information for this group.");
         Map<String, String> membersCaseSensitive = new HashMap<>();
         for (Entry<String, String> member : groupMembers.entrySet()) {
             // Search for the exact values.
@@ -784,7 +784,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                     continue;
                 }
                 if (groupMembersMap.remove(existingMember) != null) {
-                    logger.warn("User [{}] already exist in group [{}]", existingMember,
+                    logger.debug("User [{}] already exist in group [{}]", existingMember,
                         groupDoc.getDocumentReference());
                 } else {
                     usersNotInLDAPGroups.add(existingMember);
@@ -810,7 +810,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             try {
                 userExists = context.getWiki().exists(userReference, context);
             } catch (XWikiException e) {
-                logger.warn("Failed to check whether [{}] exists or not.", userReference);
+                logger.error("Failed to check whether [{}] exists or not.", userReference);
                 continue;
             }
             groupMembersMap.put(serializer.serialize(userReference, modelContext.getCurrentEntityReference()),
@@ -873,7 +873,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 ldapGroups =
                     getLDAPGroups(configuration, connection, result, context, xWikiGroupName, isFullSearch, isOUSearch);
             } else {
-                logger.warn("There are no result for base dn: [{}], search scope: [{}], filter: [{}], fields: [{}].",
+                logger.debug("There are no result for base dn: [{}], search scope: [{}], filter: [{}], fields: [{}].",
                     base, LDAPConnection.SCOPE_SUB, filter, CN);
                 return null;
             }
@@ -881,7 +881,7 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             logger.error(e.getFullMessage());
             throw e;
         } catch (Exception e) {
-            logger.warn("Failed to search for value [{}] in the fields [{}].", e);
+            logger.error("Failed to search for value [{}] in the fields [{}].", e);
             throw e;
         } finally {
             connection.close();
@@ -926,9 +926,9 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 return groupsMap;
             }
         } catch (Exception e) {
-            logger.warn(FAILED_TO_GET_RESULTS, e);
+            logger.error(FAILED_TO_GET_RESULTS, e);
             if (e instanceof LDAPReferralException) {
-                logger.warn(((LDAPReferralException) e).getFailedReferral());
+                logger.error(((LDAPReferralException) e).getFailedReferral());
             }
             throw e;
         }
