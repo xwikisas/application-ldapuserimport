@@ -37,6 +37,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.slf4j.Logger;
+import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.contrib.ldap.LDAPProfileXClass;
 import org.xwiki.contrib.ldap.PagedLDAPSearchResults;
 import org.xwiki.contrib.ldap.XWikiLDAPConfig;
@@ -72,8 +73,10 @@ import com.xwiki.ldapuserimport.internal.XWikiLDAPFactory;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -159,6 +162,8 @@ public class DefaultLDAPUserImportManagerTest
     @BeforeEach
     public void setup(TestComponentManager componentManager) throws Exception
     {
+        ReflectionUtils.setFieldValue(this.defaultLDAPUserImportManager, "logger", this.logger);
+
         testComponentManager = componentManager;
         Utils.setComponentManager(testComponentManager);
         testComponentManager.registerComponent(DocumentReferenceResolver.TYPE_STRING, "currentmixed", mock(
@@ -359,6 +364,50 @@ public class DefaultLDAPUserImportManagerTest
         verify(this.groupDocument).removeXObject(eq(existingGroupUser));
     }
 
+    /**
+     * If one user fails to get imported, the others should be processed.
+     */
+    @Test
+    void updateGroupAndOneUserFailsTest() throws XWikiException
+    {
+        String[] users = new String[3];
+        for (int i = 0; i < users.length; i++) {
+            users[i] = "user" + i;
+        }
+        Map<String, String> usersMap = new HashMap<>();
+        for (String user : users) {
+            usersMap.put("XWiki." + user, user);
+        }
+        when(this.xWikiLDAPUtils.getGroupMembers("ldapgroup", this.context)).thenReturn(usersMap);
+        when(this.xWiki.getDocument(XWIKI_GROUP, this.context)).thenReturn(this.groupDocument);
+
+        when(this.xWiki.exists(any(DocumentReference.class), eq(this.context))).thenReturn(false);
+        when(this.ldapProfileXClass.getDn(any(XWikiDocument.class))).thenReturn("something");
+        when(this.groupDocument.getXObject(any(DocumentReference.class), eq("member"), any())).thenReturn(
+            this.groupObject);
+
+        // Update group calls defaultLDAPUserImportManager#importUsers.
+        testUsersImport(users, XWIKI_GROUP, () -> {
+            try {
+                when(this.xWikiLDAPUtils.syncUser(any(), any(), any(), eq("user0"), any())).thenThrow(
+                    XWikiException.class);
+            } catch (XWikiException ignored) {
+            }
+            try {
+                defaultLDAPUserImportManager.updateGroup(XWIKI_GROUP);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }, false);
+
+        verify(this.logger).error(anyString(), any(), any());
+        verify(this.xWiki).getDocument(eq(new DocumentReference("xwiki", "XWiki", "user1")), any(XWikiContext.class));
+        verify(this.xWiki).getDocument(eq(new DocumentReference("xwiki", "XWiki", "user2")), any(XWikiContext.class));
+        verify(this.xWiki, never()).getDocument(eq(new DocumentReference("xwiki", "XWiki", "user0")),
+            any(XWikiContext.class));
+        verify(this.xWiki, times(1)).saveDocument(this.groupDocument, this.context);
+    }
+
     @Test
     void updateGroupWithOver500UsersTest() throws XWikiException
     {
@@ -409,7 +458,7 @@ public class DefaultLDAPUserImportManagerTest
             when(userDoc.getDocumentReference()).thenReturn(userRef);
             when(userObj.clone()).thenReturn(clonedUserObj);
 
-            when(this.xWikiLDAPUtils.syncUser(any(), any(), any(), any(), any())).thenReturn(userDoc);
+            when(this.xWikiLDAPUtils.syncUser(any(), any(), any(), eq(user), any())).thenReturn(userDoc);
             when(this.xWiki.getDocument(new DocumentReference(WIKI_ID, MAIN_SPACE, user), this.context)).thenReturn(
                 userDoc);
 

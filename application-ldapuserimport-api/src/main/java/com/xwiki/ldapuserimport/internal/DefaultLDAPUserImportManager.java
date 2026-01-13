@@ -336,20 +336,27 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
                 String[] attributeNameTable = getUserAttributes(configuration, DEFAULT_LDAP_FIELDS_MAPPING);
                 Map<String, String> fieldsMap = getUserFieldsMap(configuration, DEFAULT_LDAP_FIELDS_MAPPING);
                 for (String user : usersList) {
-                    List<XWikiLDAPSearchAttribute> attributes =
-                        ldapUtils.searchUserAttributesByUid(user, attributeNameTable);
-                    XWikiDocument userDoc =
-                        ldapUtils.syncUser(null, attributes, ldapUtils.searchUserDNByUid(user), user, context);
+                    try {
+                        List<XWikiLDAPSearchAttribute> attributes =
+                            ldapUtils.searchUserAttributesByUid(user, attributeNameTable);
+                        XWikiDocument userDoc =
+                            ldapUtils.syncUser(null, attributes, ldapUtils.searchUserDNByUid(user), user, context);
 
-                    // Make sure to get the latest version of the document, after LDAP synchronization.
-                    userDoc = context.getWiki().getDocument(userDoc.getDocumentReference(), context);
-                    addOIDCObject(userDoc, user, context);
+                        // Make sure to get the latest version of the document, after LDAP synchronization.
+                        userDoc = context.getWiki().getDocument(userDoc.getDocumentReference(), context);
+                        addOIDCObject(userDoc, user, context);
 
-                    Map<String, String> userMap =
-                        getUserDetails(fieldsMap, attributes, userDoc.getDocumentReference(), context);
+                        Map<String, String> userMap =
+                            getUserDetails(fieldsMap, attributes, userDoc.getDocumentReference(), context);
 
-                    users.put(user, userMap);
+                        users.put(user, userMap);
+                    } catch (XWikiException e) {
+                        logger.error("The ldap user [{}] could not be imported in XWiki.", user, e);
+                    } catch (Exception e) {
+                        logger.error("Failed to import user [{}] from ldap to xwiki.", user, e);
+                    }
                 }
+
                 addUsersInGroup(groupName, users);
 
                 return users;
@@ -618,20 +625,26 @@ public class DefaultLDAPUserImportManager implements LDAPUserImportManager
             configuration.setFinalProperty("ldap_update_user", "1");
 
             for (Entry<String, Map<String, String>> userToSynchronize : usersToSynchronizeMap.entrySet()) {
-                String userId = userToSynchronize.getKey();
-                DocumentReference userReference = new DocumentReference(XWiki.DEFAULT_MAIN_WIKI, XWiki.SYSTEM_SPACE,
-                    userToSynchronize.getValue().get(USERNAME));
-                List<XWikiLDAPSearchAttribute> attributes =
-                    ldapUtils.searchUserAttributesByUid(userId,
-                        getUserAttributes(configuration, DEFAULT_LDAP_FIELDS_MAPPING));
-                XWikiDocument userDoc = context.getWiki().getDocument(userReference, context);
-                ldapUtils.syncUser(userDoc, attributes, ldapUtils.searchUserDNByUid(userId), userId, context);
-                // Make sure to get the latest version of the document, after LDAP synchronization.
-                userDoc = context.getWiki().getDocument(userReference, context);
-                addOIDCObject(userDoc, userId, context);
+                try {
+                    String userId = userToSynchronize.getKey();
+                    DocumentReference userReference = new DocumentReference(XWiki.DEFAULT_MAIN_WIKI, XWiki.SYSTEM_SPACE,
+                        userToSynchronize.getValue().get(USERNAME));
+                    List<XWikiLDAPSearchAttribute> attributes =
+                        ldapUtils.searchUserAttributesByUid(userId,
+                            getUserAttributes(configuration, DEFAULT_LDAP_FIELDS_MAPPING));
+                    XWikiDocument userDoc = context.getWiki().getDocument(userReference, context);
+                    ldapUtils.syncUser(userDoc, attributes, ldapUtils.searchUserDNByUid(userId), userId, context);
+                    // Make sure to get the latest version of the document, after LDAP synchronization.
+                    userDoc = context.getWiki().getDocument(userReference, context);
+                    addOIDCObject(userDoc, userId, context);
+                } catch (Exception e) {
+                    logger.error("Failed to synchronize the ldap user [{}] to the already existing xwiki user [{}].",
+                        userToSynchronize.getKey(), userToSynchronize.getValue().get(USERNAME), e);
+                }
             }
-        } catch (XWikiException e) {
-            logger.error(e.getFullMessage());
+        } catch (Exception e) {
+            logger.error("The user synchronization failed. An error occurred in communicating with the ldap server.",
+                e);
             throw e;
         } finally {
             connection.close();
