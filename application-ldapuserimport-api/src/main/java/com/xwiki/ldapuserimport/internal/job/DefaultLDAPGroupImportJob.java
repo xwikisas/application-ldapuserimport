@@ -33,7 +33,9 @@ import org.xwiki.contrib.ldap.XWikiLDAPConfig;
 import org.xwiki.contrib.ldap.XWikiLDAPException;
 import org.xwiki.contrib.ldap.XWikiLDAPSearchAttribute;
 import org.xwiki.job.AbstractJob;
+import org.xwiki.job.Job;
 import org.xwiki.job.event.status.JobProgressManager;
+import org.xwiki.job.event.status.JobStatus;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
@@ -91,6 +93,14 @@ public class DefaultLDAPGroupImportJob extends AbstractJob<LDAPGroupImportReques
     public String getType()
     {
         return JOB_TYPE;
+    }
+
+    @Override
+    protected LDAPGroupImportStatus createNewStatus(LDAPGroupImportRequest request)
+    {
+        Job currentJob = this.jobContext.getCurrentJob();
+        JobStatus currentJobStatus = currentJob != null ? currentJob.getStatus() : null;
+        return new LDAPGroupImportStatus(getType(), request, currentJobStatus, observationManager, loggerManager);
     }
 
     @Override

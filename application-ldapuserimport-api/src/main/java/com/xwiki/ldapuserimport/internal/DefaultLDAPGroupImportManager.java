@@ -94,7 +94,10 @@ public class DefaultLDAPGroupImportManager implements LDAPGroupImportManager
                 connection.searchPaginated(groupSearchDN, SCOPE_SUB, groupSearchFilter, attributes, false);
             while (ldapSearchResults.hasMore()) {
                 LDAPEntry entry = ldapSearchResults.next();
-
+                // Entry can be null on unfollowed referrals.
+                if (entry == null) {
+                    break;
+                }
                 List<XWikiLDAPSearchAttribute> attributeList = new ArrayList<>();
                 connection.ldapToXWikiAttribute(attributeList, entry.getAttributeSet());
                 results.put(entry.getDN(), attributeList);
