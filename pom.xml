@@ -49,5 +49,6 @@
   <modules>
     <module>application-ldapuserimport-api</module>
     <module>application-ldapuserimport-ui</module>
+    <module>application-ldapuserimport-xip</module>
   </modules>
 </project>
