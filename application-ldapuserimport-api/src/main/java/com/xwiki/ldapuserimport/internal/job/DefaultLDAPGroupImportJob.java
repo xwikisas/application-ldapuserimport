@@ -45,6 +45,7 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.ldapuserimport.LDAPGroupImportManager;
+import com.xwiki.ldapuserimport.LDAPUserImportConfiguration;
 import com.xwiki.ldapuserimport.LDAPUserImportManager;
 import com.xwiki.ldapuserimport.internal.XWikiLDAPUtilsHelper;
 import com.xwiki.ldapuserimport.job.LDAPGroupImportRequest;
@@ -88,6 +89,9 @@ public class DefaultLDAPGroupImportJob extends AbstractJob<LDAPGroupImportReques
 
     @Inject
     private WikiDescriptorManager wikiDescriptorManager;
+
+    @Inject
+    private LDAPUserImportConfiguration configuration;
 
     @Override
     public String getType()
@@ -161,14 +165,18 @@ public class DefaultLDAPGroupImportJob extends AbstractJob<LDAPGroupImportReques
         // Make sure that the document is new, even this should have been handled beforehand
         // TODO: Define an exception specific to the LDAP User import module and use it here. Currently, it's not a
         //  big issue as we don't expose this code as API
-        if (!groupDocument.isNew()) {
+        if (!groupDocument.isNew() && !configuration.getMapOverExistingGroups()) {
             throw new XWikiLDAPException(String.format("The group document [%s] already exists.", groupReference));
         }
 
-        groupDocument.createXObject(new DocumentReference(wikiDescriptorManager.getCurrentWikiId(),
-            XWiki.SYSTEM_SPACE, "XWikiGroups"), context);
+        groupDocument.getXObject(new DocumentReference(wikiDescriptorManager.getCurrentWikiId(),
+            XWiki.SYSTEM_SPACE, "XWikiGroups"), true, context);
 
-        xwiki.saveDocument(groupDocument,
-            String.format("Automated creation from LDAP group [%s]", groupReference), context);
+        if (groupDocument.isNew()) {
+            xwiki.saveDocument(groupDocument,
+                String.format("Automated creation from LDAP group [%s]", groupReference), context);
+        } else {
+            logger.debug("The ldap group was associated to an existing xwiki group.");
+        }
     }
 }

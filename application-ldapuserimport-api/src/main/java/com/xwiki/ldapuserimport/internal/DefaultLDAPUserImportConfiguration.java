@@ -221,6 +221,13 @@ public class DefaultLDAPUserImportConfiguration implements LDAPUserImportConfigu
         return "";
     }
 
+    @Override
+    public boolean getMapOverExistingGroups()
+    {
+        BaseObject object = getObject();
+        return object != null && object.getIntValue("mapOverExistingGroups") == 1;
+    }
+
     private BaseObject getObject()
     {
         XWikiContext context = contextProvider.get();

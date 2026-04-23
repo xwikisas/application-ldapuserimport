@@ -190,6 +190,7 @@
         <number>1</number>
         <picker>1</picker>
         <prettyName>LDAP user fields</prettyName>
+        <restricted>0</restricted>
         <rows>5</rows>
         <size>40</size>
         <unmodifiable>0</unmodifiable>
@@ -197,6 +198,21 @@
         <validationRegExp/>
         <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
       </ldapUserAttributes>
+      <mapOverExistingGroups>
+        <customDisplay/>
+        <defaultValue>0</defaultValue>
+        <disabled>0</disabled>
+        <displayFormType>checkbox</displayFormType>
+        <displayType/>
+        <hint/>
+        <name>mapOverExistingGroups</name>
+        <number>16</number>
+        <prettyName>Create group mappings over existing groups</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </mapOverExistingGroups>
       <pageNameFormatter>
         <customDisplay/>
         <disabled>0</disabled>
@@ -263,6 +279,7 @@
         <displayType>radio</displayType>
         <freeText/>
         <hint>Use this option to specify who is able to import users from LDAP. By default, this is restricted only to Global admin users.</hint>
+        <largeStorage>0</largeStorage>
         <multiSelect>0</multiSelect>
         <name>usersAllowedToImport</name>
         <number>5</number>
@@ -309,6 +326,9 @@
     </property>
     <property>
       <ldapUserAttributes/>
+    </property>
+    <property>
+      <mapOverExistingGroups>0</mapOverExistingGroups>
     </property>
     <property>
       <pageNameFormatter/>

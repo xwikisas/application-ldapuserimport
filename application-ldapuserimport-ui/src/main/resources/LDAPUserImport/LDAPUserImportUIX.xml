@@ -558,7 +558,7 @@
           var groupNameRow = groupsTable.find("tr:has(div[data-reference$='" + groupName + "'])");
           // Additional filter for older versions.
           groupNameRow = groupsTable.hasClass('liveData') ? groupNameRow
-            : groupNameRow.filter((i, e) => e.attributes['data-index']);
+            : groupNameRow.filter((i, e) =&gt; e.attributes['data-index']);
           var groupActionsCell = groupsTable.hasClass('liveData') ? groupNameRow.find('.actions-container')
             : groupNameRow.find('td.actions');
           if (groupActionsCell.find('.actionupdategroup').length === 0) {
@@ -1120,7 +1120,7 @@ ul#importedUsersList {
         <separators>|, </separators>
         <size>5</size>
         <unmodifiable>0</unmodifiable>
-        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.headers|request.parameters=Request parameters|request.remoteAddr|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
+        <values>action=Action|doc.reference=Document|doc.revision|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.headers|request.parameters=Request parameters|request.remoteAddr|request.session|request.url=Request URL|request.wiki=Request wiki|sheet|user=User|wiki=Wiki</values>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </async_context>
       <async_enabled>
