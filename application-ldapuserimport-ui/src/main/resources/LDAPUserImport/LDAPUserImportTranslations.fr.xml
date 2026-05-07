@@ -44,20 +44,28 @@ importUsers.modal.form.description=Des résultats supplémentaires sont disponib
 importUsers.modal.field.label=Champ de recherche LDAP
 importUsers.modal.fieldValue.label=Texte recherché
 importUsers.modal.fieldValue.search=Rechercher
+### Missing: importUsers.modal.fieldValue.associationType.label=Association type
+### Missing: importUsers.modal.group.fieldValue.label=Search LDAP groups
+### Missing: importUsers.modal.group.fieldValue.placeholder=Type in the name of a group..
+### Missing: importUsers.modal.group.fieldValue.search=Search groups
+### Missing: importUsers.modal.ou.fieldValue.label=Search LDAP Organizational Units
+### Missing: importUsers.modal.ou.fieldValue.placeholder=Type in the name of an organizational unit..
+### Missing: importUsers.modal.ou.fieldValue.search=Search OUs
+### Missing: importUsers.modal.filter.fieldValue.label=LDAP Filter
+### Missing: importUsers.modal.filter.fieldValue.placeholder=Type in filter that will be associated to the group
 importUsers.modal.fieldValue.noResults=Aucun utilisateur n'a été trouvé
 importUsers.modal.fieldValue.loadingResults=Chargement des résultats ...
 importUsers.modal.fieldValue.importingResults=Importer des utilisateurs  ...
 importUsers.modal.searchType.label=Rechercher dans les valeurs (plus lent)
-importUsers.modal.user.imported=Utilisateur déjà importé
-importUsers.modal.user.notImported=Utilisateur non importé
 importUsers.modal.user.failedImport=Echec d'importation de l'utilisateur
 importUsers.modal.user.alreadyImported={0} déjà importé dans
 importUsers.modal.user.created={0} profil utilisateur a été créé dans
 importUsers.modal.user.toImport={0} à importer dans
+### Missing: importUsers.modal.group.search.type.group=LDAP Group
+### Missing: importUsers.modal.group.search.type.ou=LDAP Organizational Unit
+### Missing: importUsers.modal.group.search.type.filter=LDAP Filter
 importUsers.modal.close=Fermer
-
 admin.ldapuserimport=Import LDAP
-
 LDAPUserImport.LDAPUserImportConfigClass_ldapUserAttributes=Champs de recherche LDAP
 LDAPUserImport.LDAPUserImportConfigClass_enableSingleFieldSearch=Recherche par champ
 LDAPUserImport.LDAPUserImportConfigClass_addOIDCObject=Ajouter un objet OIDC
@@ -74,7 +82,24 @@ LDAPUserImport.LDAPUserImportConfigClass_triggerGroupsUpdate=Déclencher la mise
 LDAPUserImport.LDAPUserImportConfigClass_triggerGroupsUpdate.hint=Si cette option est cochée, une mise à jour sur les groupes XWiki faisant partie des groupes LDAP correspondants sera exécutée à une heure donnée (4h30, par défaut).
 LDAPUserImport.LDAPUserImportConfigClass_forceXWikiUsersGroupMembershipUpdate=Forcer la mise à jour des membres du groupe d'utilisateurs XWiki
 LDAPUserImport.LDAPUserImportConfigClass_forceXWikiUsersGroupMembershipUpdate.hint=C'est une opération dangereuse car elle peut supprimer les utilisateurs admin du XWikiAdminGroup, si le mappage des groupes LDAP contient ce groupe.
-
+### Missing: LDAPUserImport.LDAPUserImportConfigClass_ldapGroupImportSearchDN=LDAP Group import search DN
+### Missing: LDAPUserImport.LDAPUserImportConfigClass_ldapGroupImportSearchDN.hint=The default DN under which LDAP groups should be searched during imports
+### Missing: LDAPUserImport.LDAPUserImportConfigClass_ldapGroupImportSearchFilter=LDAP Group import search filter
+### Missing: LDAPUserImport.LDAPUserImportConfigClass_ldapGroupImportSearchFilter.hint=The filter that should be used to search for groups to import. It should follow RFC 2554. i.e. (|(objectClass=groupOfNames)(objectClass=customGroupName))
+### Missing: LDAPUserImport.LDAPUserImportConfigClass_ldapGroupImportSearchAttributes=LDAP Group import search attributes
+### Missing: LDAPUserImport.LDAPUserImportConfigClass_ldapGroupImportSearchAttributes.hint=A hint of attributes to be fetched from LDAP groups. These attributes can be used to compute the group page name.
+### Missing: LDAPUserImport.LDAPUserImportConfigClass_groupPageNameFormat=Group page name format
+### Missing: LDAPUserImport.LDAPUserImportConfigClass_groupPageNameFormat.hint=Define the name format of imported group pages. By default, the group name is defined as "${uid}Group".
+### Missing: LDAPUserImport.LDAPUserImportConfigClass_triggerGroupImport=Trigger group import
+### Missing: LDAPUserImport.LDAPUserImportConfigClass_triggerGroupImport.hint=If this option is checked, enable the daily automated import of LDAP groups. By default, this import is executed at 3:30 AM.
+### Missing: LDAPUserImport.LDAPUserImportConfigClass_groupMembershipAttribute=User attribute that denotes group membership
+### Missing: LDAPUserImport.LDAPUserImportConfigClass_groupMembershipAttribute.hint=Use this parameter when users in the LDAP server have attributes that denote membership to groups (such as `memberOf`). If this parameter is filled, the group update job will also look for users that have the attribute value equal to a group in the LDAP groups mapping.
+### Missing: LDAPUserImport.LDAPUserImportConfigClass_resultsNumber=Results Number
+### Missing: LDAPUserImport.LDAPUserImportConfigClass_resultsNumber.hint=The maximum number of entries displayed when searching for LDAP users to import or LDAP groups to associate.
+### Missing: LDAPUserImport.LDAPUserImportConfigClass_OIDCIssuer=OIDC Issuer
+### Missing: LDAPUserImport.LDAPUserImportConfigClass_OIDCIssuer.hint=The URI of the OIDC Issuer. All the users imported using LDAP User Import will be associated to this issuer.
+### Missing: LDAPUserImport.LDAPUserImportConfigClass_mapOverExistingGroups=Create group mappings over existing groups
+### Missing: LDAPUserImport.LDAPUserImportConfigClass_mapOverExistingGroups.hint=During Group Import Job the ldap groups can be mapped over existing XWiki Group. Setting this property to true will create the mapping even if the ldap group gets associated to an existing XWiki Group.
 importUsers.groupUpdate.livetableActionButton=Mettre à jour
 importUsers.groupUpdate.livetableActionButton.hint=Synchronisez le groupe s'il fait partie du mappage de groupe LDAP.
 importUsers.groupUpdate.title=Importer/mettre à jour le groupe
@@ -84,7 +109,6 @@ importUsers.groupUpdate.loadingMembersSize=Vérification des utilisateurs ...
 importUsers.groupUpdate.updatingGroup=Mise à jour de groupe ...
 importUsers.groupUpdate.updatingGroup.success=Groupe mis à jour avec succès.
 importUsers.groupUpdate.updatingGroup.fail=Échec de la mise à jour du groupe.
-
 importUsers.associateGroups.title=Associer le Groupe LDAP
 importUsers.associateGroups.livetableActionButton=Associer
 importUsers.associateGroups.livetableActionButton.hint=Associer ce groupe à un ou plusieurs groupes LDAP pour synchroniser les utilisateurs à partir d'eux.
@@ -93,5 +117,6 @@ importUsers.associateGroups.modal.toAssociate={0} ({1})
 importUsers.associateGroups.modal.associateButton=Associer
 importUsers.associateGroups.modal.fieldValue.noResults=Aucun groupe n'a été trouvé
 importUsers.associateGroups.modal.associationFail=Échec de l'association des groupes.
-importUsers.associateGroups.modal.associationSuccess=Les groupes ont été associés avec succès</content>
+importUsers.associateGroups.modal.associationSuccess=Les groupes ont été associés avec succès
+</content>
 </xwikidoc>
