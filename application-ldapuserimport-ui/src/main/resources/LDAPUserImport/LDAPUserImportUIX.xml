@@ -596,9 +596,7 @@
       groupMembersSizeLoading.addClass('hidden');
       var groupMemberSize = data.groupMemberSize;
       updateStatus.html(data.groupMemberSizeInfo);
-      if (data.groupMemberSize &gt; 0) {
-        confirmGroupUpdateButton.removeClass('hidden');
-      }
+      confirmGroupUpdateButton.removeClass('hidden');
     }).fail(function(data) {
       groupMembersSizeLoading.addClass('hidden');
       $('#updateGroupModal .ldapError').removeClass('hidden').html(data.responseText);
