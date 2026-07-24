@@ -155,7 +155,7 @@
 
   var updateAddMembersForm = function() {
     var editForm = $('#addMembers').closest('.xform').not('#inviteUserForm');
-    if (editForm.size() &gt; 0) {
+    if (editForm.length &gt; 0) {
       editForm.wrap("&lt;div class='row'&gt;&lt;/div&gt;").addClass('col-sm-6');
       var importUsersSectionClone = importUsersSection.clone();
       importUsersSectionClone.removeClass('hidden');
