@@ -290,7 +290,7 @@
   var importLoading = $('#importResultsLoading');
   var importButton = $('#importButton');
   // Get user results from LDAP.
-  $('#searchLDAPUsers').submit(function(event) {
+  $('#searchLDAPUsers').on('submit', function(event) {
     event.preventDefault();
     var searchLDAPUsersForm = $(this);
     $('#ldapSearchBox').removeClass('hidden');
@@ -362,7 +362,7 @@
   });
 
   // Perform the user import.
-  $('#importLDAPUsers').submit(function(event) {
+  $('#importLDAPUsers').on('submit', function(event) {
     event.preventDefault();
     importLoading.removeClass('hidden');
     resultsContainer.addClass('hidden');
@@ -603,7 +603,7 @@
     });
   });
   // Trigger the group update.
-  confirmGroupUpdateButton.click(function() {
+  confirmGroupUpdateButton.on('click', function() {
     groupMembersSizeLoading.addClass('hidden');
     groupUpdateLoading.removeClass('hidden');
     var xWikiGroupName = this.getAttribute('data-xwikigroupname');
@@ -772,7 +772,7 @@
   });
 
   // Get group results from LDAP.
-  $('#searchLDAPGroups').submit(function(event) {
+  $('#searchLDAPGroups').on('submit', function(event) {
     event.preventDefault();
     var searchLDAPGroupsForm = $(this);
     $('#ldapGroupSearchBox').removeClass('hidden');
@@ -843,7 +843,7 @@
   });
 
   // Perform the groups association.
-  $('#associateLDAPGroups').submit(function(event) {
+  $('#associateLDAPGroups').on('submit', function(event) {
     event.preventDefault();
     $('#ldapGroupSearchBox').removeClass('hidden');
     associateResultsLoading.removeClass('hidden');
