@@ -70,6 +70,7 @@ import com.xpn.xwiki.web.Utils;
 import com.xwiki.ldapuserimport.internal.DefaultLDAPUserImportManager;
 import com.xwiki.ldapuserimport.internal.XWikiLDAPFactory;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -175,7 +176,6 @@ public class DefaultLDAPUserImportManagerTest
         when(this.ldapUserImportConfiguration.getGroupMembershipAttribute()).thenReturn("");
         when(this.ldapUserImportConfiguration.getForceUserGroupMembershipUpdate()).thenReturn(true);
         when(this.ldapUserImportConfiguration.getTriggerGroupUpdate()).thenReturn(true);
-        when(this.ldapUserImportConfiguration.getTriggerGroupUpdate()).thenReturn(true);
         when(this.ldapUserImportConfiguration.getUserImportPolicy()).thenReturn(
             LDAPUserImportConfiguration.UserImportPolicy.GROUP_EDITORS);
 
@@ -278,6 +278,18 @@ public class DefaultLDAPUserImportManagerTest
     }
 
     @Test
+    void getGroupMemberSizeTest() throws Exception
+    {
+        when(this.xWikiLDAPUtils.getGroupMembers("ldapgroup", this.context))
+            .thenReturn(Map.of("user1dn", "user1"));
+
+        assertEquals(1, this.defaultLDAPUserImportManager.getGroupMemberSize(XWIKI_GROUP));
+
+        verify(this.xWikiLDAPConnection, times(1)).open("binddn", "pass", this.context);
+        verify(this.xWikiLDAPConnection, times(1)).close();
+    }
+
+    @Test
     void importSingleUserTest() throws Exception
     {
         when(this.xWiki.exists(any(DocumentReference.class), any())).thenReturn(true);
@@ -291,6 +303,8 @@ public class DefaultLDAPUserImportManagerTest
                 throw new RuntimeException(e);
             }
         }, true);
+        verify(this.xWikiLDAPConnection, times(1)).open("binddn", "pass", this.context);
+        verify(this.xWikiLDAPConnection, times(1)).close();
     }
 
     @Test
@@ -316,6 +330,9 @@ public class DefaultLDAPUserImportManagerTest
 
         verify(this.groupClass, times(1)).fromMap(any(Map.class), any(BaseObject.class));
         verify(this.xWiki).saveDocument(this.groupDocument, this.context);
+
+        verify(this.xWikiLDAPConnection, times(1)).open("binddn", "pass", this.context);
+        verify(this.xWikiLDAPConnection, times(1)).close();
     }
 
     @Test
